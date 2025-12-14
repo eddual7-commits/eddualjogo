@@ -15,7 +15,6 @@ body {
   font-family: system-ui, Arial;
 }
 
-/* UI */
 #menu {
   position: fixed;
   top: 10px;
@@ -40,7 +39,20 @@ button, input {
   color: #9fb4ff;
 }
 
-/* minimapa */
+#attackBtn {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: radial-gradient(#ff5f5f, #c82828);
+  border: none;
+  color: white;
+  font-size: 16px;
+  z-index: 10;
+}
+
 #minimap {
   position: fixed;
   top: 12px;
@@ -52,9 +64,7 @@ button, input {
   border-radius: 6px;
 }
 
-canvas {
-  display: block;
-}
+canvas { display: block; }
 </style>
 </head>
 
@@ -66,6 +76,8 @@ canvas {
   <input id="roomInput" placeholder="Código">
   <button id="joinBtn">Entrar</button>
 </div>
+
+<button id="attackBtn">ATK</button>
 
 <canvas id="game"></canvas>
 <canvas id="minimap"></canvas>
@@ -93,9 +105,34 @@ let camera = { x: 0, y: 0 }
 
 let roomId = null
 let myId = null
-let players = {}
+
+let serverPlayers = {}
+let smoothPlayers = {}
+
 let localPlayer = { x: 1200, y: 1200, r: 14 }
 let localInit = false
+
+/* ================= CLASSES ================= */
+function getClassBySlot(id) {
+  const ids = Object.keys(serverPlayers)
+  if (ids.length < 2) return "warrior"
+  return ids[0] === id ? "warrior" : "mage"
+}
+
+/* ================= INIMIGOS ================= */
+let enemies = []
+
+function spawnEnemy() {
+  enemies.push({
+    x: Math.random() * WORLD.w,
+    y: Math.random() * WORLD.h,
+    r: 14,
+    hp: 5,
+    speed: 1.2
+  })
+}
+
+for (let i = 0; i < 8; i++) spawnEnemy()
 
 /* ================= UI / SOCKET ================= */
 const createBtn = document.getElementById("createBtn")
@@ -122,57 +159,54 @@ socket.on("roomCreated", id => {
 })
 
 socket.on("updatePlayers", data => {
-  players = data
-  if (!localInit && players[myId]) {
-    localPlayer.x = players[myId].x
-    localPlayer.y = players[myId].y
+  serverPlayers = data
+
+  for (const id in serverPlayers) {
+    if (id === myId) continue
+    if (!smoothPlayers[id]) {
+      smoothPlayers[id] = { x: data[id].x, y: data[id].y, r: 14 }
+    }
+  }
+
+  if (!localInit && serverPlayers[myId]) {
+    localPlayer.x = serverPlayers[myId].x
+    localPlayer.y = serverPlayers[myId].y
     localInit = true
   }
 })
 
-/* ================= IDENTIDADE ================= */
-function getNameBySlot(id) {
-  const ids = Object.keys(players)
-  if (ids.length < 2) return "edu"
-  return ids[0] === id ? "edu" : "kamy"
-}
+/* ================= ATAQUE ================= */
+let atkCooldown = false
+const attackBtn = document.getElementById("attackBtn")
 
-/* ================= FADINHAS ================= */
-function createFairies() {
-  return [
-    { a: 0, d: 26, s: 0.04, c: "#b36bff" },
-    { a: Math.PI, d: 26, s: -0.04, c: "#6be1ff" }
-  ]
-}
-const fairiesMap = {}
+attackBtn.onclick = () => {
+  if (atkCooldown) return
+  atkCooldown = true
 
-function ensureFairies() {
-  for (const id in players) {
-    if (!fairiesMap[id]) fairiesMap[id] = createFairies()
-  }
-}
+  setTimeout(() => atkCooldown = false, 400)
 
-function drawFairies(p, id) {
-  fairiesMap[id].forEach(f => {
-    f.a += f.s
-    const x = p.x + Math.cos(f.a) * f.d
-    const y = p.y + Math.sin(f.a) * f.d
+  const myClass = getClassBySlot(myId)
 
-    ctx.globalAlpha = 0.8
-    ctx.fillStyle = f.c
-    ctx.beginPath()
-    ctx.arc(x, y, 4.5, 0, Math.PI * 2)
-    ctx.fill()
+  enemies.forEach(e => {
+    const dx = e.x - localPlayer.x
+    const dy = e.y - localPlayer.y
+    const dist = Math.hypot(dx, dy)
 
-    ctx.globalAlpha = 0.2
-    ctx.beginPath()
-    ctx.arc(x, y, 10, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.globalAlpha = 1
+    if (myClass === "warrior" && dist < 60) {
+      e.hp -= 2
+      e.x += dx * 0.2
+      e.y += dy * 0.2
+    }
+
+    if (myClass === "mage" && dist < 220) {
+      e.hp -= 1
+    }
   })
+
+  enemies = enemies.filter(e => e.hp > 0)
 }
 
-/* ================= COLISÃO ================= */
+/* ================= FUNÇÕES ================= */
 function resolveCollision(a, b) {
   const dx = a.x - b.x
   const dy = a.y - b.y
@@ -190,7 +224,6 @@ function resolveCollision(a, b) {
   }
 }
 
-/* ================= FUNDO ================= */
 function drawBackground() {
   const grid = 120
   ctx.strokeStyle = "#171a26"
@@ -223,24 +256,28 @@ function loop(ts) {
 
   ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-  /* movimento */
   if (roomId && window.joystick) {
     const speed = 5
     localPlayer.x += window.joystick.dx * speed
     localPlayer.y += window.joystick.dy * speed
-
-    localPlayer.x = Math.max(0, Math.min(WORLD.w, localPlayer.x))
-    localPlayer.y = Math.max(0, Math.min(WORLD.h, localPlayer.y))
   }
 
-  /* envia posição */
+  localPlayer.x = Math.max(0, Math.min(WORLD.w, localPlayer.x))
+  localPlayer.y = Math.max(0, Math.min(WORLD.h, localPlayer.y))
+
   sendTimer += dt
   if (sendTimer > 80 && roomId) {
     sendTimer = 0
     socket.emit("move", { roomId, x: localPlayer.x, y: localPlayer.y })
   }
 
-  /* câmera */
+  for (const id in smoothPlayers) {
+    const t = serverPlayers[id]
+    if (!t) continue
+    smoothPlayers[id].x += (t.x - smoothPlayers[id].x) * 0.18
+    smoothPlayers[id].y += (t.y - smoothPlayers[id].y) * 0.18
+  }
+
   camera.x += (localPlayer.x - camera.x - canvas.width / 2) * 0.12
   camera.y += (localPlayer.y - camera.y - canvas.height / 2) * 0.12
 
@@ -249,22 +286,26 @@ function loop(ts) {
 
   drawBackground()
 
-  const ids = Object.keys(players)
-  if (ids.length === 2) {
-    const a = ids[0] === myId ? localPlayer : players[ids[0]]
-    const b = ids[1] === myId ? localPlayer : players[ids[1]]
-    resolveCollision(a, b)
-  }
+  /* inimigos seguem player */
+  enemies.forEach(e => {
+    const dx = localPlayer.x - e.x
+    const dy = localPlayer.y - e.y
+    const d = Math.hypot(dx, dy)
+    if (d > 2) {
+      e.x += (dx / d) * e.speed
+      e.y += (dy / d) * e.speed
+    }
 
-  ensureFairies()
-
-  for (const id in players) {
-    const p = id === myId ? localPlayer : players[id]
-
-    ctx.fillStyle = "rgba(0,0,0,0.35)"
+    ctx.fillStyle = "#6bff9a"
     ctx.beginPath()
-    ctx.ellipse(p.x, p.y + 14, 14, 4, 0, 0, Math.PI * 2)
+    ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2)
     ctx.fill()
+  })
+
+  /* players */
+  for (const id in serverPlayers) {
+    const p = id === myId ? localPlayer : smoothPlayers[id]
+    if (!p) continue
 
     ctx.fillStyle = id === myId ? "#5aa9ff" : "#ffb86b"
     ctx.beginPath()
@@ -274,9 +315,7 @@ function loop(ts) {
     ctx.fillStyle = "#fff"
     ctx.font = "12px Arial"
     ctx.textAlign = "center"
-    ctx.fillText(getNameBySlot(id), p.x, p.y - 22)
-
-    drawFairies(p, id)
+    ctx.fillText(id === myId ? "edu" : "kamy", p.x, p.y - 22)
   }
 
   ctx.restore()
@@ -286,8 +325,16 @@ function loop(ts) {
   mctx.fillStyle = "#0d0f17"
   mctx.fillRect(0, 0, minimap.width, minimap.height)
 
-  for (const id in players) {
-    const p = id === myId ? localPlayer : players[id]
+  enemies.forEach(e => {
+    const mx = (e.x / WORLD.w) * minimap.width
+    const my = (e.y / WORLD.h) * minimap.height
+    mctx.fillStyle = "#6bff9a"
+    mctx.fillRect(mx - 2, my - 2, 4, 4)
+  })
+
+  for (const id in serverPlayers) {
+    const p = id === myId ? localPlayer : smoothPlayers[id]
+    if (!p) continue
     const mx = (p.x / WORLD.w) * minimap.width
     const my = (p.y / WORLD.h) * minimap.height
     mctx.fillStyle = id === myId ? "#5aa9ff" : "#ffb86b"

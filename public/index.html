@@ -1,148 +1,175 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>eddual jogo</title>
+  <meta charset="UTF-8">
+  <title>eddual jogo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
-<style>
-body {
-  margin: 0;
-  background: #111;
-  color: white;
-  font-family: Arial;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+  <style>
+    body {
+      margin: 0;
+      background: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
-#menu {
-  margin: 10px;
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
+    #menu {
+      margin: 8px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
 
-button, input {
-  padding: 6px;
-  font-size: 14px;
-}
+    button, input {
+      padding: 6px;
+      font-size: 14px;
+    }
 
-#roomCode {
-  width: 100%;
-  text-align: center;
-  font-weight: bold;
-}
+    #roomCode {
+      width: 100%;
+      text-align: center;
+      font-weight: bold;
+    }
 
-canvas {
-  background: #222;
-  border: 2px solid #444;
-}
-</style>
+    #gameWrapper {
+      position: relative;
+    }
+
+    canvas {
+      background: #222;
+      border: 2px solid #444;
+      touch-action: none;
+    }
+  </style>
 </head>
 
 <body>
 
-<div id="menu">
-  <div id="roomCode"></div>
-  <button id="createBtn">Criar sala</button>
-  <input id="roomInput" placeholder="Código">
-  <button id="joinBtn">Entrar</button>
-</div>
+  <!-- MENU -->
+  <div id="menu">
+    <div id="roomCode"></div>
+    <button id="createBtn">Criar sala</button>
+    <input id="roomInput" placeholder="Código da sala">
+    <button id="joinBtn">Entrar</button>
+  </div>
 
-<canvas id="game"></canvas>
+  <!-- JOGO -->
+  <div id="gameWrapper">
+    <canvas id="game"></canvas>
+  </div>
 
-<script src="/socket.io/socket.io.js"></script>
-<script>
-const socket = io()
+  <!-- SOCKET -->
+  <script src="/socket.io/socket.io.js"></script>
 
-const canvas = document.getElementById("game")
-const ctx = canvas.getContext("2d")
+  <!-- JOGO PRINCIPAL -->
+  <script>
+    const socket = io()
 
-canvas.width = Math.min(innerWidth - 20, 420)
-canvas.height = Math.min(innerHeight - 120, 420)
+    // ===== canvas =====
+    const canvas = document.getElementById("game")
+    const ctx = canvas.getContext("2d")
 
-let roomId = null
-let players = {}
-let myId = null
+    canvas.width = Math.min(window.innerWidth - 20, 420)
+    canvas.height = Math.min(window.innerHeight - 140, 420)
 
-socket.on("connect", () => {
-  myId = socket.id
-})
+    // ===== estado =====
+    let roomId = null
+    let players = {}
+    let myId = null
 
-// UI
-createBtn.onclick = () => socket.emit("createRoom")
+    // ===== ui =====
+    const createBtn = document.getElementById("createBtn")
+    const joinBtn = document.getElementById("joinBtn")
+    const roomInput = document.getElementById("roomInput")
+    const roomCode = document.getElementById("roomCode")
 
-joinBtn.onclick = () => {
-  const code = roomInput.value.trim()
-  if (code) {
-    roomId = code
-    socket.emit("joinRoom", code)
-    roomCode.innerText = "Sala: " + code
-  }
-}
+    // ===== socket =====
+    socket.on("connect", () => {
+      myId = socket.id
+    })
 
-socket.on("roomCreated", id => {
-  roomId = id
-  roomCode.innerText = "Sala: " + id
-  roomInput.value = id
-})
+    createBtn.onclick = () => {
+      socket.emit("createRoom")
+    }
 
-socket.on("updatePlayers", data => {
-  players = data
-})
+    joinBtn.onclick = () => {
+      const code = roomInput.value.trim()
+      if (!code) return
+      roomId = code
+      roomCode.innerText = "Sala: " + code
+      socket.emit("joinRoom", code)
+    }
 
-// INPUT — TAP PARA MOVER (FUNCIONA EM TODOs)
-  if (!roomId) return
-  const rect = canvas.getBoundingClientRect()
-  const x = e.clientX - rect.left
-  const y = e.clientY - rect.top
-  socket.emit("move", { roomId, x, y })
-})
-function resolvePlayerCollision(a, b) {
-  const dx = a.x - b.x
-  const dy = a.y - b.y
-  const dist = Math.hypot(dx, dy)
-  const minDist = 24
+    socket.on("roomCreated", id => {
+      roomId = id
+      roomCode.innerText = "Sala: " + id
+      roomInput.value = id
+    })
 
-  if (dist > 0 && dist < minDist) {
-    const overlap = (minDist - dist) / 2
-    const nx = dx / dist
-    const ny = dy / dist
+    socket.on("updatePlayers", data => {
+      players = data
+    })
 
-    a.x += nx * overlap
-    a.y += ny * overlap
-    b.x -= nx * overlap
-    b.y -= ny * overlap
-  }
-}
-// LOOP
-function loop() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height)
-const ids = Object.keys(players)
-if (ids.length === 2) {
-  resolvePlayerCollision(players[ids[0]], players[ids[1]])
-}
-  for (const id in players) {
-    const p = players[id]
-    ctx.fillStyle = id === myId ? "#4da6ff" : "#ffa94d"
-    ctx.fillRect(p.x - 12, p.y - 12, 24, 24)
-  }
-// movimento por joystick
-if (roomId && window.joystick) {
-  const me = players[myId]
-  if (me) {
-    const speed = 5.5
-    const x = me.x + window.joystick.dx * speed
-    const y = me.y + window.joystick.dy * speed
-    socket.emit("move", { roomId, x, y })
-  }
-}
-  requestAnimationFrame(loop)
-}
-loop()
-</script>
+    // ===== colisão simples =====
+    function resolvePlayerCollision(a, b) {
+      const dx = a.x - b.x
+      const dy = a.y - b.y
+      const dist = Math.hypot(dx, dy)
+      const minDist = 24
+
+      if (dist > 0 && dist < minDist) {
+        const overlap = (minDist - dist) / 2
+        const nx = dx / dist
+        const ny = dy / dist
+
+        a.x += nx * overlap
+        a.y += ny * overlap
+        b.x -= nx * overlap
+        b.y -= ny * overlap
+      }
+    }
+
+    // ===== loop =====
+    function loop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+      // movimento por joystick
+      if (roomId && window.joystick) {
+        const me = players[myId]
+        if (me) {
+          const speed = 5
+          const x = me.x + window.joystick.dx * speed
+          const y = me.y + window.joystick.dy * speed
+          socket.emit("move", { roomId, x, y })
+        }
+      }
+
+      const ids = Object.keys(players)
+      if (ids.length === 2) {
+        resolvePlayerCollision(players[ids[0]], players[ids[1]])
+      }
+
+      // desenha players
+      for (const id in players) {
+        const p = players[id]
+        ctx.fillStyle = id === myId ? "#4da6ff" : "#ffa94d"
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, 12, 0, Math.PI * 2)
+        ctx.fill()
+      }
+
+      requestAnimationFrame(loop)
+    }
+
+    loop()
+  </script>
+
+  <!-- JOYSTICK -->
+  <script src="js/joystick.js"></script>
+
 </body>
 </html>
-<script src="js/joystick.js"></script>

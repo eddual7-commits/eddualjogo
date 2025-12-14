@@ -16,12 +16,18 @@ app.get('/', (req, res) => {
   });
 });
 
-// === LÓGICA DO JOGO ===
+/* === JOGO === */
 const rooms = {};
 
 function generateRoomId() {
   return Math.random().toString(36).substring(2, 6).toUpperCase();
 }
+
+const CARD_TYPES = [
+    { type: 'HEAL', color: '#00ff00' },
+    { type: 'DMG',  color: '#ff0000' },
+    { type: 'SPD',  color: '#00ffff' }
+];
 
 function spawnEnemies(roomId) {
     rooms[roomId].enemies = [];
@@ -36,13 +42,6 @@ function spawnEnemies(roomId) {
     }
 }
 
-// Tipos de Cartas
-const CARD_TYPES = [
-    { type: 'HEAL', color: '#00ff00', label: '💚 VIDA' },
-    { type: 'DMG',  color: '#ff0000', label: '⚔️ FORÇA' },
-    { type: 'SPD',  color: '#00ffff', label: '⚡ SPEED' }
-];
-
 io.on('connection', (socket) => {
   console.log('Conectado:', socket.id);
 
@@ -52,11 +51,9 @@ io.on('connection', (socket) => {
     
     rooms[roomId].players[socket.id] = { 
         x: 1200, y: 1200, role: 'warrior', 
-        hp: 100, maxHp: 100, 
-        dmgMult: 1, speedMult: 1 
+        hp: 100, maxHp: 100, dmgMult: 1, speedMult: 1 
     };
     spawnEnemies(roomId);
-    
     socket.join(roomId);
     socket.emit('roomCreated', roomId);
   });
@@ -66,21 +63,21 @@ io.on('connection', (socket) => {
       const role = Object.keys(rooms[roomId].players).length === 0 ? 'warrior' : 'mage';
       rooms[roomId].players[socket.id] = { 
           x: 1200, y: 1200, role: role, 
-          hp: 100, maxHp: 100,
-          dmgMult: 1, speedMult: 1
+          hp: 100, maxHp: 100, dmgMult: 1, speedMult: 1
       };
-      
       socket.join(roomId);
       socket.emit('joinedRoom', roomId);
     }
   });
 
   socket.on('move', (data) => {
-    const { roomId, x, y, state } = data;
+    const { roomId, x, y, state, facing } = data;
     if (rooms[roomId] && rooms[roomId].players[socket.id]) {
-      rooms[roomId].players[socket.id].x = x;
-      rooms[roomId].players[socket.id].y = y;
-      rooms[roomId].players[socket.id].state = state;
+      const p = rooms[roomId].players[socket.id];
+      p.x = x;
+      p.y = y;
+      p.state = state;
+      p.facing = facing || 0; // Direção que o player olha
     }
   });
 
@@ -89,10 +86,9 @@ io.on('connection', (socket) => {
     if (!rooms[roomId]) return;
 
     const p = rooms[roomId].players[socket.id];
-    // Dano base * Multiplicador da Carta
     const baseDmg = p.role === 'warrior' ? 15 : 8;
     const finalDmg = baseDmg * (p.dmgMult || 1);
-    const range = p.role === 'warrior' ? 120 : 300;
+    const range = p.role === 'warrior' ? 140 : 300;
 
     rooms[roomId].enemies.forEach(e => {
         if (e.dead) return;
@@ -100,8 +96,10 @@ io.on('connection', (socket) => {
         
         if (dist < range) {
             e.hp -= finalDmg;
-            e.x += (e.x - p.x) * 0.3; // Knockback
-            e.y += (e.y - p.y) * 0.3;
+            // Knockback baseado na posição
+            const angle = Math.atan2(e.y - p.y, e.x - p.x);
+            e.x += Math.cos(angle) * 30;
+            e.y += Math.sin(angle) * 30;
 
             if (e.hp <= 0) {
                 e.dead = true;
@@ -119,50 +117,46 @@ io.on('connection', (socket) => {
   });
 });
 
-// LOOP PRINCIPAL (20 FPS)
 setInterval(() => {
   for (const rId in rooms) {
     const room = rooms[rId];
     if (Object.keys(room.players).length === 0) continue;
 
-    // 1. Spawn de Cartas (Powerups)
-    if (room.cards.length < 5 && Math.random() < 0.02) { // Chance de nascer carta
+    // Cartas
+    if (room.cards.length < 5 && Math.random() < 0.01) {
         const tipo = CARD_TYPES[Math.floor(Math.random() * CARD_TYPES.length)];
         room.cards.push({
             id: Math.random(),
-            x: 1000 + Math.random() * 400,
-            y: 1000 + Math.random() * 400,
+            x: 500 + Math.random() * 1400, // Espalhar mais
+            y: 500 + Math.random() * 1400,
             ...tipo
         });
     }
 
-    // 2. Colisão Player <-> Carta
+    // Colisão Carta
     Object.keys(room.players).forEach(pid => {
         const p = room.players[pid];
-        
-        // Checar colisão com cartas
         room.cards = room.cards.filter(card => {
-            const dist = Math.hypot(p.x - card.x, p.y - card.y);
-            if (dist < 40) {
-                // Efeito da Carta
-                if (card.type === 'HEAL') p.hp = Math.min(p.hp + 30, p.maxHp);
-                if (card.type === 'DMG') p.dmgMult = 2; // Dobro de dano (temporário poderia ser, mas deixei fixo pra simplificar)
-                if (card.type === 'SPD') p.speedMult = 1.5;
-
+            if (Math.hypot(p.x - card.x, p.y - card.y) < 50) {
+                if (card.type === 'HEAL') p.hp = Math.min(p.hp + 40, p.maxHp);
+                if (card.type === 'DMG') p.dmgMult = 2; 
+                if (card.type === 'SPD') p.speedMult = 1.6;
+                
                 io.to(rId).emit('cardCollect', { pid, type: card.type });
-                return false; // Remove a carta
+                return false;
             }
-            return true; // Mantém a carta
+            return true;
         });
     });
 
-    // 3. IA Inimigos
+    // Inimigos
     room.enemies.forEach(e => {
         if (e.dead) {
             e.respawnTimer--;
             if (e.respawnTimer <= 0) {
                 e.dead = false; e.hp = e.maxHp;
-                e.x = 1000 + Math.random() * 400; e.y = 1000 + Math.random() * 400;
+                e.x = 1000 + Math.random() * 400; 
+                e.y = 1000 + Math.random() * 400;
             }
             return;
         }
@@ -175,7 +169,7 @@ setInterval(() => {
             if (d < minDist) { minDist = d; target = p; }
         });
 
-        if (target && minDist < 500 && minDist > 30) {
+        if (target && minDist < 600 && minDist > 30) {
             const angle = Math.atan2(target.y - e.y, target.x - e.x);
             e.x += Math.cos(angle) * 2.5;
             e.y += Math.sin(angle) * 2.5;

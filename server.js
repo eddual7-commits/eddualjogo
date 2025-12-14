@@ -1,4 +1,3 @@
-
 const express = require("express")
 const http = require("http")
 const { Server } = require("socket.io")
@@ -11,45 +10,62 @@ app.use(express.static("public"))
 
 const rooms = {}
 
+function generateRoomId() {
+  return Math.random().toString(36).substring(2, 6)
+}
+
 io.on("connection", socket => {
+  console.log("conectou:", socket.id)
+
   socket.on("createRoom", () => {
-    const roomId = Math.random().toString(36).slice(2, 7)
+    const roomId = generateRoomId()
     rooms[roomId] = { players: {} }
 
-    socket.join(roomId)
-    rooms[roomId].players[socket.id] = { x: 100, y: 100 }
+    rooms[roomId].players[socket.id] = {
+      x: 120,
+      y: 200
+    }
 
+    socket.join(roomId)
     socket.emit("roomCreated", roomId)
+
     io.to(roomId).emit("updatePlayers", rooms[roomId].players)
   })
 
   socket.on("joinRoom", roomId => {
-    if (!rooms[roomId] || Object.keys(rooms[roomId].players).length >= 2) return
+    if (!rooms[roomId]) return
+
+    rooms[roomId].players[socket.id] = {
+      x: 280,
+      y: 200
+    }
 
     socket.join(roomId)
-    rooms[roomId].players[socket.id] = { x: 200, y: 200 }
-
     io.to(roomId).emit("updatePlayers", rooms[roomId].players)
   })
 
   socket.on("move", data => {
-    const room = rooms[data.roomId]
-    if (!room || !room.players[socket.id]) return
+    const { roomId, x, y } = data
+    if (!rooms[roomId]) return
+    if (!rooms[roomId].players[socket.id]) return
 
-    room.players[socket.id].x = data.x
-    room.players[socket.id].y = data.y
+    rooms[roomId].players[socket.id].x = x
+    rooms[roomId].players[socket.id].y = y
 
-    io.to(data.roomId).emit("updatePlayers", room.players)
+    io.to(roomId).emit("updatePlayers", rooms[roomId].players)
   })
 
   socket.on("disconnect", () => {
-    for (const id in rooms) {
-      if (rooms[id].players[socket.id]) {
-        delete rooms[id].players[socket.id]
-        io.to(id).emit("updatePlayers", rooms[id].players)
+    for (const roomId in rooms) {
+      if (rooms[roomId].players[socket.id]) {
+        delete rooms[roomId].players[socket.id]
+        io.to(roomId).emit("updatePlayers", rooms[roomId].players)
       }
     }
   })
 })
 
-server.listen(process.env.PORT || 3000)
+const PORT = process.env.PORT || 3000
+server.listen(PORT, () => {
+  console.log("server rodando na porta", PORT)
+})

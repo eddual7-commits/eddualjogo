@@ -65,7 +65,7 @@
   <!-- SOCKET -->
   <script src="/socket.io/socket.io.js"></script>
 
-  <!-- JOGO PRINCIPAL -->
+  <!-- JOGO -->
   <script>
     const socket = io()
 
@@ -80,6 +80,10 @@
     let roomId = null
     let players = {}
     let myId = null
+
+    // posição local (ANTI-TREMIDA)
+    let localPlayer = { x: 200, y: 200 }
+    let localInit = false
 
     // ===== ui =====
     const createBtn = document.getElementById("createBtn")
@@ -112,6 +116,13 @@
 
     socket.on("updatePlayers", data => {
       players = data
+
+      // inicializa posição local uma vez
+      if (!localInit && players[myId]) {
+        localPlayer.x = players[myId].x
+        localPlayer.y = players[myId].y
+        localInit = true
+      }
     })
 
     // ===== colisão simples =====
@@ -137,25 +148,50 @@
     function loop() {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-      // movimento por joystick
+      // movimento LOCAL (suave, sem tremida)
       if (roomId && window.joystick) {
-        const me = players[myId]
-        if (me) {
-          const speed = 5
-          const x = me.x + window.joystick.dx * speed
-          const y = me.y + window.joystick.dy * speed
-          socket.emit("move", { roomId, x, y })
+        const speed = 5
+        localPlayer.x += window.joystick.dx * speed
+        localPlayer.y += window.joystick.dy * speed
+
+        // envia pro server com throttling
+        if (Math.random() < 0.3) {
+          socket.emit("move", {
+            roomId,
+            x: localPlayer.x,
+            y: localPlayer.y
+          })
         }
       }
 
+      // colisão (2 players)
       const ids = Object.keys(players)
       if (ids.length === 2) {
-        resolvePlayerCollision(players[ids[0]], players[ids[1]])
+        const a = ids[0] === myId ? localPlayer : players[ids[0]]
+        const b = ids[1] === myId ? localPlayer : players[ids[1]]
+        resolvePlayerCollision(a, b)
       }
 
       // desenha players
       for (const id in players) {
-        const p = players[id]
+        const p = id === myId ? localPlayer : players[id]
+        ctx.fillStyle = id === myId ? "#4da6ff" : "#ffa94d"
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, 12, 0, Math.PI * 2)
+        ctx.fill()
+      }
+
+      requestAnimationFrame(loop)
+    }
+
+    loop()
+  </script>
+
+  <!-- JOYSTICK -->
+  <script src="js/joystick.js"></script>
+
+</body>
+</html>        const p = players[id]
         ctx.fillStyle = id === myId ? "#4da6ff" : "#ffa94d"
         ctx.beginPath()
         ctx.arc(p.x, p.y, 12, 0, Math.PI * 2)

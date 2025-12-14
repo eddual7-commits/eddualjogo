@@ -1,161 +1,131 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<title>coop survival</title>
-<style>
-html, body {
-  margin: 0;
-  padding: 0;
-  background: #0b0b0b;
-  overflow: hidden;
-  font-family: sans-serif;
-}
+  <meta charset="UTF-8" />
+  <title>eddual jogo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
-#menu {
-  position: fixed;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-  background: rgba(0,0,0,0.6);
-  padding: 8px 12px;
-  border-radius: 8px;
-}
+  <style>
+    body {
+      margin: 0;
+      background: #1e1e1e;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
-#menu button, #menu input {
-  margin: 4px;
-}
+    #menu {
+      margin: 10px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
 
-canvas {
-  display: block;
-}
-</style>
+    button, input {
+      padding: 6px;
+      font-size: 14px;
+    }
+
+    #roomCode {
+      width: 100%;
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    canvas {
+      background: #2b2b2b;
+      border: 2px solid #555;
+      touch-action: none;
+    }
+  </style>
 </head>
+
 <body>
 
-<div id="menu">
-  <button onclick="createRoom()">Criar sala</button>
-  <input id="roomInput" placeholder="Sala" />
-  <button onclick="joinRoom()">Entrar</button>
-</div>
+  <div id="menu">
+    <div id="roomCode"></div>
+    <button id="createBtn">Criar sala</button>
+    <input id="roomInput" placeholder="Código da sala" />
+    <button id="joinBtn">Entrar</button>
+  </div>
 
-<canvas id="game"></canvas>
+  <canvas id="game"></canvas>
 
-<script src="/socket.io/socket.io.js"></script>
-<script>
-const socket = io()
-const canvas = document.getElementById("game")
-const ctx = canvas.getContext("2d")
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io()
 
-function resize() {
-  canvas.width = window.innerWidth
-  canvas.height = window.innerHeight
-}
-resize()
-window.addEventListener("resize", resize)
+    const canvas = document.getElementById("game")
+    const ctx = canvas.getContext("2d")
 
-let roomId = null
-let players = {}
+    canvas.width = Math.min(window.innerWidth - 20, 500)
+    canvas.height = Math.min(window.innerHeight - 120, 500)
 
-const me = { x: 200, y: 200, vx: 0, vy: 0 }
+    let roomId = null
+    let players = {}
+    let myId = null
 
-// =====================
-// JOYSTICK BRAWL STYLE
-// =====================
-let joystick = {
-  active: false,
-  id: null,
-  startX: 0,
-  startY: 0,
-  x: 0,
-  y: 0
-}
-
-canvas.addEventListener("touchstart", e => {
-  const t = e.changedTouches[0]
-  joystick.active = true
-  joystick.id = t.identifier
-  joystick.startX = t.clientX
-  joystick.startY = t.clientY
-})
-
-canvas.addEventListener("touchmove", e => {
-  for (const t of e.changedTouches) {
-    if (t.identifier === joystick.id) {
-      joystick.x = t.clientX
-      joystick.y = t.clientY
+    // ====== UI ======
+    document.getElementById("createBtn").onclick = () => {
+      socket.emit("createRoom")
     }
-  }
-})
 
-canvas.addEventListener("touchend", e => {
-  joystick.active = false
-  me.vx = me.vy = 0
-})
+    document.getElementById("joinBtn").onclick = () => {
+      const code = document.getElementById("roomInput").value.trim()
+      if (code) socket.emit("joinRoom", code)
+    }
 
-// =====================
-// SALAS
-// =====================
-function createRoom() {
-  socket.emit("createRoom")
-}
+    socket.on("roomCreated", id => {
+      roomId = id
+      document.getElementById("roomCode").innerText = "Sala: " + id
+      document.getElementById("roomInput").value = id
+    })
 
-function joinRoom() {
-  roomId = document.getElementById("roomInput").value
-  socket.emit("joinRoom", roomId)
-  document.getElementById("menu").style.display = "none"
-}
+    socket.on("updatePlayers", serverPlayers => {
+      players = serverPlayers
+    })
 
-socket.on("roomCreated", id => {
-  roomId = id
-  document.getElementById("roomInput").value = id
-})
+    socket.on("connect", () => {
+      myId = socket.id
+    })
 
-socket.on("updatePlayers", p => players = p)
+    // ====== INPUT (touch) ======
+    canvas.addEventListener("touchmove", e => {
+      e.preventDefault()
+      if (!roomId) return
 
-// =====================
-// UPDATE
-// =====================
-function update() {
-  if (!roomId) return
+      const touch = e.touches[0]
+      const rect = canvas.getBoundingClientRect()
 
-  if (joystick.active) {
-    const dx = joystick.x - joystick.startX
-    const dy = joystick.y - joystick.startY
-    const dist = Math.min(Math.hypot(dx, dy), 60)
-    const angle = Math.atan2(dy, dx)
+      const x = touch.clientX - rect.left
+      const y = touch.clientY - rect.top
 
-    me.vx = Math.cos(angle) * (dist / 8)
-    me.vy = Math.sin(angle) * (dist / 8)
-  }
+      socket.emit("move", { roomId, x, y })
+    }, { passive: false })
 
-  me.x += me.vx
-  me.y += me.vy
+    // ====== LOOP ======
+    function loop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-  socket.emit("move", {
-    roomId,
-    x: me.x,
-    y: me.y
-  })
-}
+      for (const id in players) {
+        const p = players[id]
 
-// =====================
-// DRAW
-// =====================
-function draw() {
-  ctx.clearRect(0,0,canvas.width,canvas.height)
+        ctx.fillStyle = id === myId ? "#4da6ff" : "#ffa94d"
+        ctx.fillRect(p.x - 12, p.y - 12, 24, 24)
+      }
 
-  for (const id in players) {
-    const p = players[id]
-    ctx.fillStyle = id === socket.id ? "#4af" : "#fa4"
-    ctx.beginPath()
-    ctx.arc(p.x, p.y, 18, 0, Math.PI*2)
-    ctx.fill()
-  }
+      requestAnimationFrame(loop)
+    }
 
-  if (joystick.active) {
-    ctx.strokeStyle = "rgba(255,255,255,0.25)"
+    loop()
+  </script>
+
+</body>
+</html>    ctx.strokeStyle = "rgba(255,255,255,0.25)"
     ctx.lineWidth = 2
     ctx.beginPath()
     ctx.arc(joystick.startX, joystick.startY, 40, 0, Math.PI*2)

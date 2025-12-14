@@ -2,18 +2,19 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>coop game</title>
+<title>coop survival</title>
 <style>
 body {
   margin: 0;
-  background: #0e0e0e;
+  background: #0b0b0b;
   color: white;
   font-family: sans-serif;
+  text-align: center;
 }
 canvas {
-  background: #1b1b1b;
+  background: #1a1a1a;
   display: block;
-  margin: auto;
+  margin: 10px auto;
 }
 button, input {
   margin: 4px;
@@ -22,7 +23,7 @@ button, input {
 </head>
 <body>
 
-<div style="text-align:center">
+<div>
   <button onclick="createRoom()">criar sala</button>
   <input id="roomInput" placeholder="id da sala">
   <button onclick="joinRoom()">entrar</button>
@@ -39,49 +40,106 @@ const ctx = canvas.getContext("2d")
 
 let roomId = null
 let players = {}
-let me = { x: 150, y: 150 }
+let enemies = []
+let bullets = []
+
+const me = { x: 200, y: 200 }
 
 function createRoom() {
   socket.emit("createRoom")
 }
-
 function joinRoom() {
-  roomId = document.getElementById("roomInput").value
+  roomId = roomInput.value
   socket.emit("joinRoom", roomId)
-  document.getElementById("roomLabel").innerText = "sala: " + roomId
+  roomLabel.innerText = "sala: " + roomId
 }
 
 socket.on("roomCreated", id => {
   roomId = id
-  document.getElementById("roomLabel").innerText = "sala: " + id
+  roomLabel.innerText = "sala: " + id
 })
 
-socket.on("updatePlayers", p => {
-  players = p
-})
+socket.on("updatePlayers", p => players = p)
 
 const keys = {}
 onkeydown = e => keys[e.key] = true
 onkeyup = e => keys[e.key] = false
 
+// som simples
+const shootSound = new Audio("https://actions.google.com/sounds/v1/foley/punch_strong_1.ogg")
+shootSound.volume = 0.2
+
+function spawnEnemy() {
+  enemies.push({
+    x: Math.random() * 380,
+    y: Math.random() * 380,
+    hp: 3
+  })
+}
+
+setInterval(() => {
+  if (roomId) spawnEnemy()
+}, 1500)
+
+setInterval(() => {
+  bullets.push({
+    x: me.x,
+    y: me.y,
+    dx: Math.random() * 2 - 1,
+    dy: Math.random() * 2 - 1
+  })
+  shootSound.currentTime = 0
+  shootSound.play()
+}, 600)
+
 function update() {
   if (!roomId) return
 
-  if (keys["w"]) me.y -= 2
-  if (keys["s"]) me.y += 2
-  if (keys["a"]) me.x -= 2
-  if (keys["d"]) me.x += 2
+  if (keys.w) me.y -= 2
+  if (keys.s) me.y += 2
+  if (keys.a) me.x -= 2
+  if (keys.d) me.x += 2
 
   socket.emit("move", { roomId, x: me.x, y: me.y })
+
+  bullets.forEach(b => {
+    b.x += b.dx * 4
+    b.y += b.dy * 4
+  })
+
+  enemies.forEach(e => {
+    const dx = me.x - e.x
+    const dy = me.y - e.y
+    const d = Math.hypot(dx, dy)
+    e.x += dx / d
+    e.y += dy / d
+  })
+
+  bullets.forEach(b => {
+    enemies.forEach(e => {
+      if (Math.hypot(b.x - e.x, b.y - e.y) < 10) {
+        e.hp--
+      }
+    })
+  })
+
+  enemies = enemies.filter(e => e.hp > 0)
 }
 
 function draw() {
   ctx.clearRect(0,0,400,400)
+
   for (const id in players) {
     const p = players[id]
     ctx.fillStyle = id === socket.id ? "#4af" : "#fa4"
-    ctx.fillRect(p.x, p.y, 16, 16)
+    ctx.fillRect(p.x, p.y, 14, 14)
   }
+
+  ctx.fillStyle = "#f33"
+  enemies.forEach(e => ctx.fillRect(e.x, e.y, 12, 12))
+
+  ctx.fillStyle = "#ff0"
+  bullets.forEach(b => ctx.fillRect(b.x, b.y, 4, 4))
 }
 
 function loop() {
@@ -89,7 +147,6 @@ function loop() {
   draw()
   requestAnimationFrame(loop)
 }
-
 loop()
 </script>
 </body>

@@ -7,10 +7,8 @@
 
 <style>
 body {
-  background: red;
-}
   margin: 0;
-  background: #111;
+  background: #0f0f14;
   color: white;
   font-family: Arial, sans-serif;
   display: flex;
@@ -42,8 +40,8 @@ button, input {
 }
 
 canvas {
-  background: #222;
-  border: 2px solid #444;
+  background: #14141c;
+  border: 2px solid #333;
   touch-action: none;
 }
 
@@ -54,8 +52,8 @@ canvas {
   right: 10px;
   width: 120px;
   height: 120px;
-  background: #111;
-  border: 2px solid #666;
+  background: #0b0b10;
+  border: 2px solid #555;
 }
 </style>
 </head>
@@ -77,16 +75,15 @@ canvas {
 <script src="/socket.io/socket.io.js"></script>
 
 <script>
-/* ======================================================
+/* =====================================================
    SETUP
-====================================================== */
+===================================================== */
 const socket = io()
 
 const canvas = document.getElementById("game")
 const ctx = canvas.getContext("2d")
-
-canvas.width = Math.min(window.innerWidth - 20, 420)
-canvas.height = Math.min(window.innerHeight - 140, 420)
+canvas.width = Math.min(innerWidth - 20, 420)
+canvas.height = Math.min(innerHeight - 140, 420)
 
 const minimap = document.getElementById("minimap")
 const mctx = minimap.getContext("2d")
@@ -98,16 +95,18 @@ let myId = null
 let localPlayer = { x: 0, y: 0 }
 let localInit = false
 
-const WORLD = { width: 2000, height: 2000 }
+const WORLD = { width: 2400, height: 2400 }
 let camera = { x: 0, y: 0 }
 
-/* ======================================================
-   UI
-====================================================== */
+/* =====================================================
+   UI / SOCKET
+===================================================== */
 const createBtn = document.getElementById("createBtn")
 const joinBtn = document.getElementById("joinBtn")
 const roomInput = document.getElementById("roomInput")
 const roomCode = document.getElementById("roomCode")
+
+socket.on("connect", () => myId = socket.id)
 
 createBtn.onclick = () => socket.emit("createRoom")
 
@@ -118,11 +117,6 @@ joinBtn.onclick = () => {
   roomCode.innerText = "Sala: " + code
   socket.emit("joinRoom", code)
 }
-
-/* ======================================================
-   SOCKET
-====================================================== */
-socket.on("connect", () => myId = socket.id)
 
 socket.on("roomCreated", id => {
   roomId = id
@@ -139,23 +133,150 @@ socket.on("updatePlayers", data => {
   }
 })
 
-/* ======================================================
-   FADINHAS (COMPANIONS)
-====================================================== */
-const companions = [
-  { angle: 0, dist: 26, speed: 0.05, color: "#b46cff" },
-  { angle: Math.PI, dist: 26, speed: -0.05, color: "#6cf0ff" }
+/* =====================================================
+   FADINHAS (SÓ NO PLAYER LOCAL)
+===================================================== */
+const fairies = [
+  { angle: 0, dist: 28, speed: 0.05, color: "#a66cff" },
+  { angle: Math.PI, dist: 28, speed: -0.05, color: "#6cdcff" }
 ]
 
-function updateCompanions() {
-  companions.forEach(c => c.angle += c.speed)
+function updateFairies() {
+  fairies.forEach(f => f.angle += f.speed)
 }
 
-function drawCompanions(player) {
-  companions.forEach(c => {
-    const x = player.x + Math.cos(c.angle) * c.dist
-    const y = player.y + Math.sin(c.angle) * c.dist
+function drawFairies(p) {
+  fairies.forEach(f => {
+    const x = p.x + Math.cos(f.angle) * f.dist
+    const y = p.y + Math.sin(f.angle) * f.dist
 
+    ctx.globalAlpha = 0.9
+    ctx.fillStyle = f.color
+    ctx.beginPath()
+    ctx.arc(x, y, 5, 0, Math.PI * 2)
+    ctx.fill()
+
+    ctx.globalAlpha = 0.2
+    ctx.beginPath()
+    ctx.arc(x, y, 11, 0, Math.PI * 2)
+    ctx.fill()
+
+    ctx.globalAlpha = 1
+  })
+}
+
+/* =====================================================
+   FUNDO (GRID + PARALLAX)
+===================================================== */
+function drawBackground() {
+  const grid = 80
+  ctx.strokeStyle = "#1f1f2a"
+  ctx.lineWidth = 1
+
+  const startX = Math.floor(camera.x / grid) * grid
+  const startY = Math.floor(camera.y / grid) * grid
+
+  for (let x = startX; x < camera.x + canvas.width; x += grid) {
+    ctx.beginPath()
+    ctx.moveTo(x, camera.y)
+    ctx.lineTo(x, camera.y + canvas.height)
+    ctx.stroke()
+  }
+
+  for (let y = startY; y < camera.y + canvas.height; y += grid) {
+    ctx.beginPath()
+    ctx.moveTo(camera.x, y)
+    ctx.lineTo(camera.x + canvas.width, y)
+    ctx.stroke()
+  }
+}
+
+/* =====================================================
+   LOOP
+===================================================== */
+function loop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+  /* MOVIMENTO */
+  if (roomId && window.joystick) {
+    const speed = 5
+    localPlayer.x += window.joystick.dx * speed
+    localPlayer.y += window.joystick.dy * speed
+
+    localPlayer.x = Math.max(0, Math.min(WORLD.width, localPlayer.x))
+    localPlayer.y = Math.max(0, Math.min(WORLD.height, localPlayer.y))
+
+    if (Math.random() < 0.25) {
+      socket.emit("move", {
+        roomId,
+        x: localPlayer.x,
+        y: localPlayer.y
+      })
+    }
+  }
+
+  /* CÂMERA */
+  camera.x += (localPlayer.x - camera.x - canvas.width / 2) * 0.1
+  camera.y += (localPlayer.y - camera.y - canvas.height / 2) * 0.1
+
+  ctx.save()
+  ctx.translate(-camera.x, -camera.y)
+
+  /* FUNDO */
+  drawBackground()
+
+  /* PLAYERS */
+  for (const id in players) {
+    const p = id === myId ? localPlayer : players[id]
+
+    // sombra
+    ctx.fillStyle = "rgba(0,0,0,0.4)"
+    ctx.beginPath()
+    ctx.ellipse(p.x, p.y + 11, 12, 4, 0, 0, Math.PI * 2)
+    ctx.fill()
+
+    // outro player mais apagado (só visual)
+    if (id !== myId) ctx.globalAlpha = 0.55
+
+    ctx.fillStyle = id === myId ? "#4da6ff" : "#ffa94d"
+    ctx.beginPath()
+    ctx.arc(p.x, p.y, 12, 0, Math.PI * 2)
+    ctx.fill()
+
+    ctx.globalAlpha = 1
+
+    // fadinhas só no player local
+    if (id === myId) {
+      updateFairies()
+      drawFairies(p)
+    }
+  }
+
+  ctx.restore()
+
+  /* MINIMAPA */
+  mctx.clearRect(0, 0, minimap.width, minimap.height)
+  mctx.fillStyle = "#0e0e14"
+  mctx.fillRect(0, 0, minimap.width, minimap.height)
+
+  for (const id in players) {
+    const p = id === myId ? localPlayer : players[id]
+    const mx = (p.x / WORLD.width) * minimap.width
+    const my = (p.y / WORLD.height) * minimap.height
+    mctx.fillStyle = id === myId ? "#4da6ff" : "#ffa94d"
+    mctx.fillRect(mx - 2, my - 2, 4, 4)
+  }
+
+  requestAnimationFrame(loop)
+}
+
+loop()
+</script>
+
+<script src="js/joystick.js"></script>
+
+</body>
+</html>
     // brilho
     ctx.globalAlpha = 0.9
     ctx.fillStyle = c.color

@@ -2,24 +2,35 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Edu & Kamy Arena - V3.0</title>
+<title>Edu & Kamy Arena - V4 ULTIMATE</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@500;700&display=swap');
 
-  /* ================= ESTILO GERAL (NEON/DARK) ================= */
+  /* ================= ESTILO GERAL ================= */
   * { box-sizing: border-box; user-select: none; -webkit-touch-callout: none; }
   body {
     margin: 0; background: #050505; overflow: hidden;
     font-family: 'Rajdhani', sans-serif; color: white;
   }
 
-  /* LAYERS */
+  /* CANVAS LAYERS */
   canvas { display: block; }
   #game-layer { position: absolute; top: 0; left: 0; z-index: 1; }
+  
+  /* MINIMAPA (Voltou!) */
+  #minimap {
+    position: fixed; top: 15px; right: 15px;
+    width: 120px; height: 120px;
+    background: rgba(0,0,0,0.8);
+    border: 2px solid #5aa9ff; border-radius: 6px;
+    z-index: 15;
+  }
+
+  /* UI LAYER */
   #ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
   
-  /* TELA DE MENU (FUNDO ESCURO) */
+  /* MENU DE ENTRADA */
   #menu-layer { 
     position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
     z-index: 20; background: rgba(5,5,12,0.98); 
@@ -27,17 +38,16 @@
     pointer-events: auto; 
   }
 
-  /* ================= MENU DE ENTRADA ================= */
   h1 {
-    font-family: 'Press Start 2P', cursive; color: #9fb4ff; font-size: 24px;
-    text-shadow: 0 0 20px #5aa9ff; text-align: center; line-height: 1.5; margin-bottom: 20px;
+    font-family: 'Press Start 2P', cursive; color: #9fb4ff; font-size: 20px;
+    text-shadow: 0 0 15px #5aa9ff; text-align: center; margin-bottom: 20px;
   }
   .class-selector { display: flex; gap: 15px; margin-bottom: 30px; }
   .class-card {
     background: #1a1d2a; border: 2px solid #333; padding: 15px; border-radius: 10px;
     cursor: pointer; transition: 0.3s; text-align: center; width: 110px;
   }
-  .class-card:hover, .class-card.selected { border-color: #5aa9ff; box-shadow: 0 0 15px #5aa9ff; transform: scale(1.05); }
+  .class-card.selected { border-color: #5aa9ff; background: #2a2e44; transform: scale(1.05); }
   .class-icon { font-size: 35px; display: block; margin-bottom: 10px; }
   
   input.code-input {
@@ -47,66 +57,53 @@
   button.start-btn {
     padding: 15px 30px; background: linear-gradient(90deg, #5aa9ff, #2a52be);
     border: none; color: white; font-family: 'Press Start 2P'; font-size: 12px;
-    cursor: pointer; clip-path: polygon(10% 0, 100% 0, 100% 80%, 90% 100%, 0 100%, 0 20%);
+    cursor: pointer;
   }
-  button.start-btn:active { transform: scale(0.95); }
 
-  /* ================= HUD (VIDA & XP) ================= */
-  .hud-top-left { position: absolute; top: 15px; left: 15px; width: 250px; }
-  
-  /* Barra de Vida */
-  .hp-bar-box { width: 100%; height: 20px; background: #222; border: 2px solid #000; transform: skewX(-20deg); overflow: hidden; margin-bottom: 4px; }
+  /* HUD */
+  .hud-top-left { position: absolute; top: 15px; left: 15px; width: 220px; pointer-events: none; }
+  .hp-bar-box { width: 100%; height: 18px; background: #222; border: 2px solid #000; transform: skewX(-20deg); overflow: hidden; margin-bottom: 4px; }
   .hp-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff3333, #aa0000); transition: width 0.2s; }
-  .hp-text { font-family: 'Press Start 2P'; font-size: 10px; color: #fff; margin-left: 2px; text-shadow: 1px 1px 0 #000; margin-bottom: 2px; }
-
-  /* Barra de XP */
-  .xp-bar-box { width: 80%; height: 8px; background: #111; border: 1px solid #444; transform: skewX(-20deg); overflow: hidden; }
+  .xp-bar-box { width: 80%; height: 6px; background: #111; border: 1px solid #444; transform: skewX(-20deg); overflow: hidden; }
   .xp-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #ffd700, #ffaa00); transition: width 0.5s; }
   .level-badge {
-    position: absolute; top: -5px; right: 60px; width: 35px; height: 35px;
+    position: absolute; top: -5px; right: 50px; width: 30px; height: 30px;
     background: #333; border: 2px solid #ffd700; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px;
+    display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; color: #ffd700;
   }
 
-  /* BOTÃO ATAQUE */
+  /* BOTÃO ATAQUE (Voltou!) */
   #btn-attack {
     pointer-events: auto; position: absolute; bottom: 30px; right: 30px;
-    width: 80px; height: 80px; border-radius: 50%;
+    width: 85px; height: 85px; border-radius: 50%;
     background: radial-gradient(circle, #ff5f5f, #c82828);
-    border: 4px solid rgba(255,255,255,0.3); box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
+    border: 4px solid rgba(255,255,255,0.3); box-shadow: 0 0 15px rgba(255,0,0,0.5);
     display: flex; align-items: center; justify-content: center;
-    font-weight: bold; font-size: 20px; cursor: pointer;
+    font-weight: bold; font-size: 20px; cursor: pointer; z-index: 100;
   }
+  #btn-attack:active { transform: scale(0.95); }
 
-  /* ================= POPUP DE CARDS (LEVEL UP) ================= */
+  /* CARDS LEVEL UP */
   #card-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.9); z-index: 50; display: none;
-    flex-direction: column; align-items: center; justify-content: center;
-    pointer-events: auto;
+    flex-direction: column; align-items: center; justify-content: center; pointer-events: auto;
   }
   .cards-container { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
   .powerup-card {
-    width: 120px; height: 180px; background: #1a1d2a; border: 2px solid #ffd700;
+    width: 120px; height: 170px; background: #1a1d2a; border: 2px solid #ffd700;
     border-radius: 8px; display: flex; flex-direction: column; align-items: center; padding: 10px;
-    cursor: pointer; animation: floatCard 3s infinite ease-in-out;
+    cursor: pointer;
   }
-  .powerup-card:active { transform: scale(0.95); background: #2a2e44; }
-  @keyframes floatCard { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-
-  /* FLOATING TEXT */
-  .floater { position: absolute; font-weight: bold; font-size: 24px; animation: popUp 0.8s forwards; text-shadow: 2px 2px 0 #000; pointer-events: none; }
-  @keyframes popUp { 0% { transform: translateY(0) scale(0.5); opacity: 1; } 100% { transform: translateY(-60px) scale(1.2); opacity: 0; } }
-
-  #version { position: fixed; bottom: 5px; left: 5px; color: #444; font-size: 10px; }
+  
+  .floater { position: absolute; font-weight: bold; font-size: 20px; animation: popUp 0.8s forwards; text-shadow: 2px 2px 0 #000; pointer-events: none; }
+  @keyframes popUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-50px); opacity: 0; } }
 </style>
 </head>
 <body>
 
 <div id="menu-layer">
   <h1>EDU & KAMY<br>ARENA</h1>
-  <div style="color: #666; font-size: 12px; margin-bottom: 20px;">ESCOLHA SEU ESTILO</div>
-  
   <div class="class-selector">
     <div class="class-card selected" onclick="selectClass('warrior', this)">
       <span class="class-icon">⚔️</span>
@@ -117,35 +114,12 @@
       <div style="font-size:12px;">MAGO</div>
     </div>
   </div>
-
   <input id="roomInput" class="code-input" placeholder="NOME DA SALA">
-  <button class="start-btn" onclick="joinGame()">ENTRAR NA ARENA</button>
-</div>
-
-<div id="card-overlay">
-  <h2 style="color: #ffd700; font-family: 'Press Start 2P'; margin-bottom: 30px; font-size: 16px;">LEVEL UP!</h2>
-  <div class="cards-container">
-    <div class="powerup-card" onclick="pickCard('dmg')">
-      <div style="font-size:30px; margin-top:20px;">💪</div>
-      <h3 style="font-size:14px;">FORÇA</h3>
-      <p style="font-size:10px; color:#aaa;">+Dano</p>
-    </div>
-    <div class="powerup-card" onclick="pickCard('spd')">
-      <div style="font-size:30px; margin-top:20px;">⚡</div>
-      <h3 style="font-size:14px;">AGILIDADE</h3>
-      <p style="font-size:10px; color:#aaa;">+Velocidade</p>
-    </div>
-    <div class="powerup-card" onclick="pickCard('hp')">
-      <div style="font-size:30px; margin-top:20px;">❤️</div>
-      <h3 style="font-size:14px;">VITALIDADE</h3>
-      <p style="font-size:10px; color:#aaa;">+Vida Max</p>
-    </div>
-  </div>
+  <button class="start-btn" onclick="joinGame()">JOGAR</button>
 </div>
 
 <div id="ui-layer" style="display: none;">
   <div class="hud-top-left">
-    <div class="hp-text" id="hp-text-val">100/100</div>
     <div class="hp-bar-box"><div class="hp-fill" id="hp-fill"></div></div>
     <div class="xp-bar-box"><div class="xp-fill" id="xp-fill"></div></div>
     <div class="level-badge" id="lvl-badge">1</div>
@@ -153,8 +127,301 @@
   <div id="btn-attack">⚔️</div>
 </div>
 
+<div id="card-overlay">
+  <h2 style="color: #ffd700; margin-bottom: 20px;">ESCOLHA UM PODER</h2>
+  <div class="cards-container">
+    <div class="powerup-card" onclick="pickCard('dmg')"><h3>⚔️</h3><p>+FORÇA</p></div>
+    <div class="powerup-card" onclick="pickCard('hp')"><h3>❤️</h3><p>+VIDA</p></div>
+    <div class="powerup-card" onclick="pickCard('spd')"><h3>⚡</h3><p>+VELOCIDADE</p></div>
+  </div>
+</div>
+
 <canvas id="game-layer"></canvas>
-<div id="version">V3.0 - Forçando Menu</div>
+<canvas id="minimap" width="120" height="120"></canvas>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="js/joystick.js"></script>
+
+<script>
+/* ================= SETUP ================= */
+const socket = io();
+const canvas = document.getElementById("game-layer");
+const ctx = canvas.getContext("2d");
+const minimap = document.getElementById("minimap");
+const mctx = minimap.getContext("2d");
+
+const WORLD = { w: 2400, h: 2400 };
+let camera = { x: 0, y: 0 };
+let myId = null;
+let gameState = 'MENU'; 
+
+/* ================= PLAYER LOCAL ================= */
+let player = {
+  x: 1200, y: 1200,
+  speed: 6,
+  hp: 100, maxHp: 100,
+  xp: 0, maxXp: 50, level: 1,
+  classType: 'warrior',
+  sprite: '🤠',
+  attacking: false
+};
+
+// Multiplayer Sync
+let serverPlayers = {};
+let smoothPlayers = {};
+
+// Inimigos (Simulação Local para fluidez)
+let enemies = [];
+function initEnemies() {
+  enemies = [];
+  for(let i=0; i<15; i++) {
+    enemies.push({
+      x: Math.random() * WORLD.w,
+      y: Math.random() * WORLD.h,
+      hp: 30, maxHp: 30,
+      sprite: '👾',
+      speed: 1.5 + Math.random()
+    });
+  }
+}
+
+/* ================= MENU ================= */
+function selectClass(type, el) {
+  player.classType = type;
+  document.querySelectorAll('.class-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function joinGame() {
+  const room = document.getElementById('roomInput').value || "arena1";
+  
+  // Configs da Classe
+  if(player.classType === 'warrior') { player.maxHp = 120; player.sprite = '⚔️'; player.speed = 6; }
+  else { player.maxHp = 80; player.sprite = '🧙‍♂️'; player.speed = 7; }
+  player.hp = player.maxHp;
+
+  document.getElementById('menu-layer').style.display = 'none';
+  document.getElementById('ui-layer').style.display = 'block';
+  
+  socket.emit('joinRoom', room);
+  gameState = 'PLAYING';
+  initEnemies();
+  resize();
+  loop();
+}
+
+/* ================= MULTIPLAYER ================= */
+socket.on('connect', () => myId = socket.id);
+
+socket.on('updatePlayers', data => {
+  serverPlayers = data;
+  for(let id in serverPlayers) {
+    if(id !== myId) {
+      if(!smoothPlayers[id]) smoothPlayers[id] = { x: data[id].x, y: data[id].y };
+    }
+  }
+});
+
+/* ================= CONTROLES ================= */
+const keys = {};
+window.onkeydown = e => keys[e.key.toLowerCase()] = true;
+window.onkeyup = e => keys[e.key.toLowerCase()] = false;
+
+const atkBtn = document.getElementById('btn-attack');
+atkBtn.addEventListener('mousedown', (e)=>{ e.preventDefault(); doAttack(); });
+atkBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); doAttack(); });
+window.addEventListener('keydown', e => { if(e.code === 'Space') doAttack(); });
+
+function doAttack() {
+  if(player.attacking) return;
+  player.attacking = true;
+  atkBtn.style.transform = "scale(0.8)";
+  setTimeout(() => { player.attacking = false; atkBtn.style.transform = "scale(1)"; }, 300);
+
+  // Lógica de Dano
+  const range = player.classType === 'warrior' ? 90 : 250;
+  
+  enemies.forEach(e => {
+    if(e.hp <= 0) return;
+    const dist = Math.hypot(e.x - player.x, e.y - player.y);
+    if(dist < range) {
+      const dmg = Math.floor(Math.random() * 10) + 10;
+      e.hp -= dmg;
+      spawnFloater(e.x, e.y, dmg, '#fff');
+      
+      // Knockback
+      const dx = e.x - player.x; const dy = e.y - player.y;
+      e.x += (dx/dist) * 40; e.y += (dy/dist) * 40;
+      
+      if(e.hp <= 0) giveXp(20);
+    }
+  });
+
+  socket.emit('attack', { x: player.x, y: player.y });
+}
+
+/* ================= XP SYSTEM ================= */
+function giveXp(amount) {
+  player.xp += amount;
+  if(player.xp >= player.maxXp) {
+    player.xp = 0; player.maxXp = Math.floor(player.maxXp * 1.5);
+    player.level++;
+    spawnFloater(player.x, player.y - 50, "LEVEL UP!", "#ffd700");
+    document.getElementById('card-overlay').style.display = 'flex';
+    gameState = 'PAUSED';
+  }
+  updateHud();
+}
+
+function pickCard(type) {
+  if(type === 'hp') { player.maxHp += 30; player.hp += 30; }
+  if(type === 'spd') player.speed += 1;
+  document.getElementById('card-overlay').style.display = 'none';
+  gameState = 'PLAYING';
+  updateHud();
+}
+
+function updateHud() {
+  document.getElementById('hp-fill').style.width = (player.hp/player.maxHp)*100 + '%';
+  document.getElementById('xp-fill').style.width = (player.xp/player.maxXp)*100 + '%';
+  document.getElementById('lvl-badge').innerText = player.level;
+}
+
+/* ================= GAME LOOP ================= */
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+
+function spawnFloater(x, y, text, color) {
+  const el = document.createElement('div');
+  el.className = 'floater'; el.innerText = text; el.style.color = color;
+  el.style.left = (x - camera.x + canvas.width/2) + 'px';
+  el.style.top = (y - camera.y + canvas.height/2) + 'px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 800);
+}
+
+function loop() {
+  if(gameState !== 'PLAYING') {
+    requestAnimationFrame(loop);
+    return;
+  }
+
+  // 1. INPUT (JOYSTICK + WASD)
+  let dx = 0, dy = 0;
+  if (window.joystick && window.joystick.active) {
+    dx = window.joystick.dx; dy = window.joystick.dy;
+  }
+  if (keys['w']) dy = -1; if (keys['s']) dy = 1;
+  if (keys['a']) dx = -1; if (keys['d']) dx = 1;
+
+  if (dx || dy) {
+    const len = Math.hypot(dx, dy);
+    // Normalizar se não for analógico puro
+    if (!window.joystick || !window.joystick.active) {
+       player.x += (dx/len) * player.speed;
+       player.y += (dy/len) * player.speed;
+    } else {
+       player.x += dx * player.speed;
+       player.y += dy * player.speed;
+    }
+    socket.emit('move', { x: player.x, y: player.y });
+  }
+
+  // Limites
+  player.x = Math.max(0, Math.min(WORLD.w, player.x));
+  player.y = Math.max(0, Math.min(WORLD.h, player.y));
+
+  // Câmera
+  camera.x += (player.x - camera.x - canvas.width/2) * 0.1;
+  camera.y += (player.y - camera.y - canvas.height/2) * 0.1;
+
+  // Atualizar Inimigos
+  enemies.forEach(e => {
+    if(e.hp <= 0) return;
+    const dist = Math.hypot(player.x - e.x, player.y - e.y);
+    if(dist < 500 && dist > 35) {
+      e.x += ((player.x - e.x)/dist) * e.speed;
+      e.y += ((player.y - e.y)/dist) * e.speed;
+    }
+  });
+
+  // Atualizar Players Remotos
+  for(let id in smoothPlayers) {
+    if(serverPlayers[id]) {
+      smoothPlayers[id].x += (serverPlayers[id].x - smoothPlayers[id].x) * 0.2;
+      smoothPlayers[id].y += (serverPlayers[id].y - smoothPlayers[id].y) * 0.2;
+    }
+  }
+
+  // ================= DRAW GAME =================
+  ctx.fillStyle = '#050505'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  ctx.save();
+  ctx.translate(-camera.x, -camera.y);
+
+  // Grid
+  ctx.strokeStyle = '#111'; ctx.lineWidth = 2;
+  const size = 100;
+  for(let x=Math.floor(camera.x/size)*size; x<camera.x+canvas.width; x+=size) {
+    ctx.beginPath(); ctx.moveTo(x, camera.y); ctx.lineTo(x, camera.y+canvas.height); ctx.stroke();
+  }
+  for(let y=Math.floor(camera.y/size)*size; y<camera.y+canvas.height; y+=size) {
+    ctx.beginPath(); ctx.moveTo(camera.x, y); ctx.lineTo(camera.x+canvas.width, y); ctx.stroke();
+  }
+
+  // Inimigos
+  enemies.forEach(e => {
+    if(e.hp <= 0) return;
+    ctx.font = "30px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(e.sprite, e.x, e.y);
+    // Vida
+    ctx.fillStyle = 'red'; ctx.fillRect(e.x-15, e.y-25, 30, 4);
+    ctx.fillStyle = '#0f0'; ctx.fillRect(e.x-15, e.y-25, 30*(e.hp/e.maxHp), 4);
+  });
+
+  // Outros Players
+  for(let id in smoothPlayers) {
+    let p = smoothPlayers[id];
+    ctx.font = "30px Arial"; ctx.fillText("👤", p.x, p.y);
+  }
+
+  // Player Local
+  if(player.attacking) {
+    ctx.save(); ctx.translate(player.x, player.y); ctx.rotate(Date.now()/50);
+    ctx.fillStyle = "rgba(255,255,255,0.3)"; ctx.beginPath(); ctx.arc(0,0,70,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+  ctx.font = "40px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText(player.sprite, player.x, player.y);
+  ctx.fillStyle = "#fff"; ctx.font = "10px Arial"; ctx.fillText("VOCÊ", player.x, player.y-30);
+
+  ctx.restore();
+
+  // ================= MINIMAPA (DESENHO) =================
+  mctx.clearRect(0, 0, minimap.width, minimap.height);
+  
+  // Função auxiliar pra converter posição mundo -> minimapa
+  function drawOnMini(wx, wy, color) {
+    const mx = (wx / WORLD.w) * minimap.width;
+    const my = (wy / WORLD.h) * minimap.height;
+    mctx.fillStyle = color; mctx.fillRect(mx-2, my-2, 4, 4);
+  }
+
+  // Inimigos no minimapa
+  enemies.forEach(e => { if(e.hp>0) drawOnMini(e.x, e.y, 'red'); });
+  // Players no minimapa
+  for(let id in smoothPlayers) drawOnMini(smoothPlayers[id].x, smoothPlayers[id].y, '#ffb86b');
+  // Você no minimapa
+  drawOnMini(player.x, player.y, '#5aa9ff');
+
+  requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="js/joystick.js" onerror="console.log('Joystick ausente, use WASD')"></script>

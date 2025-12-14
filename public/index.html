@@ -5,84 +5,71 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>RPG Legends: Reborn</title>
 <style>
-/* --- ESTILO ATUALIZADO --- */
-* { box-sizing: border-box; touch-action: none; user-select: none; font-family: 'Segoe UI', sans-serif; }
+* { box-sizing: border-box; touch-action: none; user-select: none; font-family: sans-serif; }
 body { margin: 0; background: #1a1a1a; overflow: hidden; color: white; }
 
-/* TELAS */
 .screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; z-index: 100; }
-.hidden { display: none !important; } /* FORÇA O DESAPARECIMENTO */
+.hidden { display: none !important; }
 
-h1 { color: #ffd700; text-shadow: 0 0 15px #ff4500; font-size: 2.5rem; text-transform: uppercase; margin-bottom: 20px; text-align: center; }
-input { background: #333; border: 2px solid #555; color: #fff; padding: 12px; font-size: 18px; border-radius: 8px; text-align: center; width: 80%; max-width: 300px; margin: 10px; }
-button { background: #2e8b57; color: white; border: none; padding: 15px 30px; font-size: 18px; font-weight: bold; border-radius: 8px; margin-top: 10px; cursor: pointer; box-shadow: 0 4px 0 #1e5c39; width: 200px; }
-button:active { transform: translateY(3px); box-shadow: none; }
+h1 { color: #ffd700; text-shadow: 0 0 10px #f00; font-size: 2rem; text-align: center; }
+input { background: #333; border: 1px solid #555; color: #fff; padding: 10px; font-size: 16px; border-radius: 5px; text-align: center; margin: 10px; }
+button { background: #2e8b57; color: white; border: none; padding: 12px 25px; font-size: 16px; font-weight: bold; border-radius: 5px; margin-top: 5px; cursor: pointer; }
 
-/* HUD */
 #hud { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: none; }
-.top-bar { position: absolute; top: 10px; left: 10px; display: flex; flex-direction: column; gap: 5px; }
-.bar-container { width: 180px; height: 18px; background: #222; border: 2px solid #444; border-radius: 10px; overflow: hidden; position: relative; }
-.fill { height: 100%; transition: width 0.3s; }
-.hp-fill { background: #ff4444; }
-.xp-fill { background: #4488ff; }
-.bar-text { position: absolute; width: 100%; text-align: center; font-size: 11px; line-height: 18px; text-shadow: 1px 1px 0 #000; font-weight: bold; }
+.top-bar { position: absolute; top: 10px; left: 10px; }
+.bar-con { width: 150px; height: 15px; background: #222; border: 1px solid #555; margin-bottom: 2px; position: relative; }
+.fill { height: 100%; } .hp { background: #f44; } .xp { background: #48f; }
 
-.inventory { position: absolute; top: 10px; right: 10px; display: flex; gap: 10px; }
-.inv-slot { background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 5px; border: 1px solid #555; font-size: 14px; display: flex; align-items: center; gap: 5px; }
+.inv { position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; }
+.slot { background: rgba(0,0,0,0.5); padding: 5px; border: 1px solid #555; font-size: 12px; }
 
-#buildBtn { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); background: #d35400; padding: 10px 20px; font-size: 14px; pointer-events: auto; display: none; }
+#buildBtn { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); background: #d35400; padding: 10px; pointer-events: auto; display: none; }
 
-/* MODAIS */
-#levelUpScreen { background: rgba(0,0,0,0.9); z-index: 200; }
-.cards-container { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
-.card { background: #2c3e50; border: 2px solid #f1c40f; padding: 15px; width: 130px; border-radius: 10px; text-align: center; cursor: pointer; pointer-events: auto; }
-.card:active { transform: scale(0.95); background: #34495e; }
+#levelScreen { background: rgba(0,0,0,0.9); z-index: 200; }
+.cards { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.card { background: #333; border: 2px solid #fd0; padding: 10px; width: 100px; text-align: center; pointer-events: auto; }
 
-#deathScreen { background: rgba(50, 0, 0, 0.95); z-index: 150; }
+#deathScreen { background: rgba(50,0,0,0.9); z-index: 150; }
 
-/* MINIMAPA & FPS */
-#minimap { position: absolute; top: 50px; right: 10px; background: rgba(0,0,0,0.5); border: 2px solid #fff; border-radius: 50%; width: 100px; height: 100px; }
-#fpsCounter { position: absolute; bottom: 5px; left: 5px; font-size: 10px; color: #0f0; opacity: 0.5; }
-
+#minimap { position: absolute; top: 50px; right: 10px; background: #000; border: 1px solid #fff; opacity: 0.7; }
 canvas { display: block; }
 </style>
 </head>
 <body>
 
 <div id="menuScreen" class="screen">
-    <h1>RPG LEGENDS<br><span style="font-size:1rem; color:#fff">REBORN</span></h1>
-    <input id="playerName" placeholder="SEU NOME">
+    <h1>RPG LEGENDS</h1>
+    <input id="playerName" placeholder="Nome do Heroi">
     <button id="createBtn">CRIAR MUNDO</button>
-    <div style="margin:10px; color:#666">- ou -</div>
-    <input id="roomInput" placeholder="CÓDIGO">
+    <div style="margin:5px; color:#888">- ou -</div>
+    <input id="roomInput" placeholder="CODIGO">
     <button id="joinBtn">ENTRAR</button>
 </div>
 
 <div id="hud">
     <div class="top-bar">
-        <div class="bar-container"><div id="hpBar" class="fill hp-fill"></div><div id="hpText" class="bar-text">100/100</div></div>
-        <div class="bar-container"><div id="xpBar" class="fill xp-fill"></div><div id="xpText" class="bar-text">LVL 1</div></div>
+        <div class="bar-con"><div id="hpBar" class="fill hp" style="width:100%"></div></div>
+        <div class="bar-con"><div id="xpBar" class="fill xp" style="width:0%"></div></div>
     </div>
-    <div class="inventory">
-        <div class="inv-slot">🪵 <span id="woodCount">0</span></div>
-        <div class="inv-slot">🪨 <span id="stoneCount">0</span></div>
+    <div class="inv">
+        <div class="slot">🪵 <span id="wd">0</span></div>
+        <div class="slot">🪨 <span id="st">0</span></div>
     </div>
-    <button id="buildBtn" onclick="buildWall()">🔨 PAREDE (10 Mad)</button>
-    <canvas id="minimap"></canvas>
-    <div id="fpsCounter">60 FPS</div>
+    <button id="buildBtn" onclick="buildWall()">🔨 PAREDE (10)</button>
+    <canvas id="minimap" width="100" height="100"></canvas>
 </div>
 
-<div id="levelUpScreen" class="screen hidden">
-    <h2 style="color:#f1c40f; text-align:center">LEVEL UP!<br>ESCOLHA UM PODER:</h2>
-    <div class="cards-container">
-        <div class="card" onclick="chooseCard('dmg')"><h3>⚔️ FORÇA</h3><p>+25% Dano</p></div>
-        <div class="card" onclick="chooseCard('hp')"><h3>❤️ VITALIDADE</h3><p>Recupera Vida</p><p>+50 Máx</p></div>
-        <div class="card" onclick="chooseCard('spd')"><h3>⚡ AGILIDADE</h3><p>+10% Speed</p></div>
+<div id="levelScreen" class="screen hidden">
+    <h2 style="color:#fd0">LEVEL UP!</h2>
+    <div class="cards">
+        <div class="card" onclick="up('dmg')">⚔️<br>Dano</div>
+        <div class="card" onclick="up('hp')">❤️<br>Vida</div>
+        <div class="card" onclick="up('spd')">⚡<br>Speed</div>
     </div>
 </div>
 
 <div id="deathScreen" class="screen hidden">
-    <h1 style="color:red">VOCÊ MORREU</h1>
+    <h1 style="color:red">MORREU</h1>
     <button onclick="respawn()">RENASCER</button>
 </div>
 
@@ -90,276 +77,229 @@ canvas { display: block; }
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-/* === CLIENTE OTIMIZADO === */
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-const mCanvas = document.getElementById("minimap");
-const mCtx = mCanvas.getContext("2d");
-mCanvas.width = 100; mCanvas.height = 100;
-
+const mCtx = document.getElementById("minimap").getContext("2d");
 let socket = io();
-let myId = null;
-let roomId = null;
+let myId = null, roomId = null;
 let camera = { x: 0, y: 0 };
+// INICIA O PLAYER COM VALORES SEGUROS PRA NÃO SUMIR
+let localPlayer = { x: 1200, y: 1200, hp: 100, maxHp: 100, role: 'warrior' };
 let state = { players: {}, enemies: [], resources: [], buildings: [], xpOrbs: [] };
-let localPlayer = {};
-let damageNums = [];
+let joyL = { on: false, id: null, dx: 0, dy: 0, ox: 0, oy: 0 };
+let joyR = { on: false, id: null, dx: 0, dy: 0, ox: 0, oy: 0, ang: 0 };
+let damage = [];
 
 function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 resize(); window.addEventListener("resize", resize);
 
-/* === REDE E MENU === */
 document.getElementById('createBtn').onclick = () => {
-    const name = document.getElementById('playerName').value || "Heroi";
-    socket.emit('createRoom', name);
+    socket.emit('createRoom', document.getElementById('playerName').value || "Heroi");
 }
-
 document.getElementById('joinBtn').onclick = () => {
-    const name = document.getElementById('playerName').value || "Visitante";
     const code = document.getElementById('roomInput').value.trim().toUpperCase();
-    if(code) socket.emit('joinRoom', {code, name});
+    if(code) socket.emit('joinRoom', { code: code, name: document.getElementById('playerName').value || "Visitante" });
 }
 
-function startGame(code) {
+const start = (code) => {
     roomId = code;
-    // Força o desaparecimento do menu
     document.getElementById('menuScreen').classList.add('hidden');
     document.getElementById('hud').style.display = 'block';
-    console.log("Jogo iniciado na sala:", code);
 }
 
-socket.on('roomCreated', startGame);
-socket.on('joinedRoom', startGame);
+socket.on('roomCreated', start);
+socket.on('joinedRoom', start);
 socket.on('connect', () => myId = socket.id);
 
 socket.on('updateWorld', (data) => {
     state = data;
     if(state.players[myId]) {
-        localPlayer = state.players[myId];
-        updateHUD(localPlayer);
+        // Atualiza localPlayer mas mantém X/Y suaves se quiser (aqui atualiza direto)
+        const s = state.players[myId];
+        localPlayer.hp = s.hp; localPlayer.maxHp = s.maxHp; 
+        localPlayer.xp = s.xp; localPlayer.level = s.level;
+        localPlayer.inv = s.inv; localPlayer.dead = s.dead;
+        localPlayer.nextLevel = s.nextLevel;
+        
+        // HUD
+        document.getElementById('hpBar').style.width = (s.hp/s.maxHp*100)+'%';
+        document.getElementById('xpBar').style.width = (s.xp/s.nextLevel*100)+'%';
+        document.getElementById('wd').innerText = s.inv.wood;
+        document.getElementById('st').innerText = s.inv.stone;
+        document.getElementById('buildBtn').style.display = s.inv.wood >= 10 ? 'block' : 'none';
+        
+        if(s.dead) document.getElementById('deathScreen').classList.remove('hidden');
+        else document.getElementById('deathScreen').classList.add('hidden');
     }
 });
 
-socket.on('levelUp', () => document.getElementById('levelUpScreen').classList.remove('hidden'));
+socket.on('levelUp', () => document.getElementById('levelScreen').classList.remove('hidden'));
+socket.on('damageEffect', (d) => damage.push({ x: d.x, y: d.y, val: d.dmg, t: 1 }));
 
-socket.on('damageEffect', (data) => {
-    damageNums.push({x: data.x, y: data.y, val: data.dmg, life: 1});
-});
-
-/* === INPUT (JOYSTICKS) === */
-let joyLeft = { active: false, id: null, dx: 0, dy: 0, ox: 0, oy: 0 };
-let joyRight = { active: false, id: null, dx: 0, dy: 0, ox: 0, oy: 0, angle: 0 };
-
-canvas.addEventListener('touchstart', (e) => {
+// INPUT
+canvas.addEventListener('touchstart', e => {
     e.preventDefault();
     for(let i=0; i<e.changedTouches.length; i++) {
         const t = e.changedTouches[i];
-        if(t.clientX < window.innerWidth/2 && !joyLeft.active) {
-            joyLeft.active = true; joyLeft.id = t.identifier; joyLeft.ox = t.clientX; joyLeft.oy = t.clientY;
-        } else if(t.clientX > window.innerWidth/2 && !joyRight.active) {
-            joyRight.active = true; joyRight.id = t.identifier; joyRight.ox = t.clientX; joyRight.oy = t.clientY;
+        if(t.clientX < window.innerWidth/2 && !joyL.on) {
+            joyL.on = true; joyL.id = t.identifier; joyL.ox = t.clientX; joyL.oy = t.clientY;
+        } else if(t.clientX > window.innerWidth/2 && !joyR.on) {
+            joyR.on = true; joyR.id = t.identifier; joyR.ox = t.clientX; joyR.oy = t.clientY;
         }
     }
 }, {passive:false});
 
-canvas.addEventListener('touchmove', (e) => {
+canvas.addEventListener('touchmove', e => {
     e.preventDefault();
     for(let i=0; i<e.changedTouches.length; i++) {
         const t = e.changedTouches[i];
-        if(t.identifier === joyLeft.id) {
-            const dx = t.clientX - joyLeft.ox; const dy = t.clientY - joyLeft.oy;
-            const dist = Math.min(Math.hypot(dx,dy), 50); const angle = Math.atan2(dy, dx);
-            joyLeft.dx = Math.cos(angle)*(dist/50); joyLeft.dy = Math.sin(angle)*(dist/50);
+        if(t.identifier === joyL.id) {
+            const dx = t.clientX - joyL.ox; const dy = t.clientY - joyL.oy;
+            const d = Math.min(Math.hypot(dx,dy), 40); const a = Math.atan2(dy, dx);
+            joyL.dx = Math.cos(a)*(d/40); joyL.dy = Math.sin(a)*(d/40);
         }
-        if(t.identifier === joyRight.id) {
-            const dx = t.clientX - joyRight.ox; const dy = t.clientY - joyRight.oy;
-            joyRight.dx = dx; joyRight.dy = dy; joyRight.angle = Math.atan2(dy, dx);
+        if(t.identifier === joyR.id) {
+            joyR.dx = t.clientX - joyR.ox; joyR.dy = t.clientY - joyR.oy;
+            joyR.ang = Math.atan2(joyR.dy, joyR.dx);
         }
     }
 }, {passive:false});
 
-canvas.addEventListener('touchend', (e) => {
+canvas.addEventListener('touchend', e => {
     e.preventDefault();
     for(let i=0; i<e.changedTouches.length; i++) {
         const t = e.changedTouches[i];
-        if(t.identifier === joyLeft.id) { joyLeft.active=false; joyLeft.dx=0; joyLeft.dy=0; }
-        if(t.identifier === joyRight.id) { joyRight.active=false; }
+        if(t.identifier === joyL.id) { joyL.on=false; joyL.dx=0; joyL.dy=0; }
+        if(t.identifier === joyR.id) joyR.on=false;
     }
 }, {passive:false});
 
-/* === GAME LOOP === */
 let lastShot = 0;
 
 function loop() {
     requestAnimationFrame(loop);
-    if(!localPlayer || !roomId) return;
+    if(!roomId) return;
 
-    // 1. Lógica Local (Movimento)
     let moveState = 'idle';
-    let myFacing = 0;
+    let facing = 0;
     
-    if(joyLeft.active) {
-        localPlayer.x += joyLeft.dx * (5 * (localPlayer.speedMult||1));
-        localPlayer.y += joyLeft.dy * (5 * (localPlayer.speedMult||1));
-        // Limites do mundo
+    // MOVIMENTO LOCAL (CLIENT-SIDE PREDICTION)
+    if(joyL.on) {
+        localPlayer.x += joyL.dx * 5;
+        localPlayer.y += joyL.dy * 5;
+        // Clamp
         localPlayer.x = Math.max(0, Math.min(2400, localPlayer.x));
         localPlayer.y = Math.max(0, Math.min(2400, localPlayer.y));
         moveState = 'run';
-        myFacing = joyLeft.dx > 0 ? 1 : -1;
+        facing = joyL.dx > 0 ? 1 : -1;
     }
 
-    // Auto-Aim ou Manual
-    let aimAngle = localPlayer.aimAngle || 0;
-    let shooting = false;
+    let aim = localPlayer.aimAngle || 0;
+    let shoot = false;
 
-    if(joyRight.active) {
-        aimAngle = joyRight.angle;
-        shooting = true;
+    if(joyR.on) {
+        aim = joyR.ang; shoot = true;
     } else {
-        // Auto-Aim simples
-        let minDist = 400; let target = null;
+        // Auto Aim
+        let min = 400; let t = null;
         state.enemies.forEach(e => {
             const d = Math.hypot(e.x - localPlayer.x, e.y - localPlayer.y);
-            if(d < minDist) { minDist = d; target = e; }
+            if(d < min) { min = d; t = e; }
         });
-        if(target) {
-            aimAngle = Math.atan2(target.y - localPlayer.y, target.x - localPlayer.x);
-            shooting = true;
-        }
+        if(t) { aim = Math.atan2(t.y - localPlayer.y, t.x - localPlayer.x); shoot = true; }
     }
 
-    // Envia dados pro server
-    socket.emit('move', { 
-        roomId, x: localPlayer.x, y: localPlayer.y, 
-        state: moveState, facing: myFacing, angle: aimAngle 
-    });
-
-    if(shooting && Date.now() - lastShot > 250) { // Cadência
+    socket.emit('move', { roomId, x: localPlayer.x, y: localPlayer.y, state: moveState, facing, angle: aim });
+    
+    if(shoot && Date.now() - lastShot > 250) {
         lastShot = Date.now();
-        socket.emit('attack', { roomId, angle: aimAngle });
+        socket.emit('attack', { roomId, angle: aim });
     }
 
     // Camera
     camera.x += (localPlayer.x - camera.x - canvas.width/2) * 0.1;
     camera.y += (localPlayer.y - camera.y - canvas.height/2) * 0.1;
 
-    // 2. Renderização
-    ctx.fillStyle = "#222"; ctx.fillRect(0,0,canvas.width, canvas.height);
-    
-    ctx.save();
-    ctx.translate(-camera.x, -camera.y);
+    // RENDER
+    ctx.fillStyle = "#111"; ctx.fillRect(0,0,canvas.width, canvas.height);
+    ctx.save(); ctx.translate(-camera.x, -camera.y);
 
-    // Grid e Elementos
-    drawGrid(ctx);
-    state.resources.forEach(r => drawResource(ctx, r));
+    // Grid
+    ctx.strokeStyle = "#222"; ctx.lineWidth = 2;
+    for(let i=0; i<2400; i+=100) { ctx.strokeRect(i,0,1,2400); ctx.strokeRect(0,i,2400,1); }
+
+    // World
+    state.resources.forEach(r => {
+        ctx.fillStyle = r.type==='tree' ? '#27ae60' : '#7f8c8d';
+        ctx.beginPath(); ctx.arc(r.x, r.y, 15, 0, Math.PI*2); ctx.fill();
+        if(r.type==='tree') ctx.fillRect(r.x-5, r.y, 10, 15);
+    });
+
     state.buildings.forEach(b => { ctx.fillStyle="#d35400"; ctx.fillRect(b.x-20, b.y-20, 40, 40); });
-    state.xpOrbs.forEach(o => { ctx.fillStyle="#00f"; ctx.beginPath(); ctx.arc(o.x, o.y, 5, 0, Math.PI*2); ctx.fill(); });
+    state.xpOrbs.forEach(o => { ctx.fillStyle="#0af"; ctx.beginPath(); ctx.arc(o.x, o.y, 4, 0, Math.PI*2); ctx.fill(); });
 
-    // Inimigos
     state.enemies.forEach(e => {
         if(e.dead) return;
-        ctx.fillStyle = "#e74c3c"; ctx.beginPath(); ctx.arc(e.x, e.y, 15, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = "red"; ctx.fillRect(e.x-15, e.y-25, 30, 4);
+        ctx.fillStyle = "#c0392b"; ctx.beginPath(); ctx.arc(e.x, e.y, 15, 0, Math.PI*2); ctx.fill();
         ctx.fillStyle = "#0f0"; ctx.fillRect(e.x-15, e.y-25, 30*(e.hp/e.maxHp), 4);
     });
 
     // Players
     Object.keys(state.players).forEach(id => {
         const p = state.players[id];
-        if(!p.dead) drawPlayer(ctx, p);
+        if(p.dead) return;
+        // Posição: Se for eu, usa localPlayer, senão usa do server
+        const x = id===myId ? localPlayer.x : p.x;
+        const y = id===myId ? localPlayer.y : p.y;
+        
+        ctx.fillStyle = p.role === 'warrior' ? '#3498db' : '#9b59b6';
+        ctx.beginPath(); ctx.arc(x, y, 15, 0, Math.PI*2); ctx.fill();
+        // Olhos
+        ctx.fillStyle="#fff"; ctx.fillRect(x-5, y-5, 4, 4); ctx.fillRect(x+2, y-5, 4, 4);
+        // Arma
+        ctx.save(); ctx.translate(x, y); ctx.rotate(p.aimAngle||0);
+        ctx.fillStyle="#ccc"; ctx.fillRect(10, -3, 20, 6);
+        ctx.restore();
+        
+        ctx.fillStyle="#fff"; ctx.font="10px Arial"; ctx.fillText(p.name, x-10, y-20);
     });
 
-    // Danos
-    damageNums.forEach((d, i) => {
-        d.y -= 1; d.life -= 0.05;
-        ctx.fillStyle = `rgba(255,255,255,${d.life})`; ctx.font="bold 16px Arial"; ctx.fillText(d.val, d.x, d.y);
-        if(d.life<=0) damageNums.splice(i,1);
+    // VFX
+    damage.forEach((d,i) => {
+        d.y-=1; d.t-=0.05; ctx.globalAlpha=d.t;
+        ctx.fillStyle="#fff"; ctx.font="16px Arial"; ctx.fillText(d.val, d.x, d.y);
+        ctx.globalAlpha=1; if(d.t<=0) damage.splice(i,1);
     });
 
     ctx.restore();
 
-    // 3. UI Overlay (Joystick & Mapa)
-    drawJoysticks(ctx);
-    drawMinimap();
+    // UI Draw
+    if(joyL.on) {
+        ctx.strokeStyle="rgba(255,255,255,0.3)"; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.arc(joyL.ox, joyL.oy, 40, 0, 7); ctx.stroke();
+        ctx.beginPath(); ctx.arc(joyL.ox+joyL.dx*40, joyL.oy+joyL.dy*40, 20, 0, 7); ctx.stroke();
+    }
+    if(joyR.on) {
+        ctx.strokeStyle="rgba(255,50,50,0.3)"; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.arc(joyR.ox, joyR.oy, 40, 0, 7); ctx.stroke();
+        ctx.beginPath(); ctx.arc(joyR.ox+Math.cos(joyR.ang)*40, joyR.oy+Math.sin(joyR.ang)*40, 20, 0, 7); ctx.stroke();
+    }
+
+    // Minimap
+    mCtx.fillStyle="#000"; mCtx.fillRect(0,0,100,100);
+    const s = 100/2400;
+    state.enemies.forEach(e => { if(!e.dead){ mCtx.fillStyle="red"; mCtx.fillRect(e.x*s, e.y*s, 2, 2); }});
+    Object.keys(state.players).forEach(id => { 
+        mCtx.fillStyle = id===myId ? "#fff" : "#00f";
+        const px = id===myId ? localPlayer.x : state.players[id].x;
+        const py = id===myId ? localPlayer.y : state.players[id].y;
+        mCtx.fillRect(px*s, py*s, 3, 3);
+    });
 }
 loop();
 
-/* === AUXILIARES === */
-function updateHUD(p) {
-    document.getElementById('hpBar').style.width = (p.hp/p.maxHp*100) + "%";
-    document.getElementById('hpText').innerText = Math.ceil(p.hp) + "/" + p.maxHp;
-    document.getElementById('xpBar').style.width = (p.xp/p.nextLevel*100) + "%";
-    document.getElementById('xpText').innerText = "LVL " + p.level;
-    document.getElementById('woodCount').innerText = p.inv.wood;
-    document.getElementById('stoneCount').innerText = p.inv.stone;
-    document.getElementById('buildBtn').style.display = p.inv.wood >= 10 ? 'block' : 'none';
-    
-    const dScreen = document.getElementById('deathScreen');
-    if(p.dead) dScreen.classList.remove('hidden');
-    else dScreen.classList.add('hidden');
-}
-
-function drawPlayer(ctx, p) {
-    const x = p.x; const y = p.y;
-    // Sombra
-    ctx.fillStyle="rgba(0,0,0,0.3)"; ctx.beginPath(); ctx.ellipse(x, y+10, 15, 8, 0, 0, Math.PI*2); ctx.fill();
-    // Personagem
-    ctx.save(); ctx.translate(x, y);
-    ctx.fillStyle = p.role === 'warrior' ? "#3498db" : "#9b59b6";
-    ctx.beginPath(); ctx.arc(0,0, 15, 0, Math.PI*2); ctx.fill();
-    // Olhos
-    ctx.fillStyle = "#fff"; ctx.fillRect(-8, -5, 5, 5); ctx.fillRect(3, -5, 5, 5);
-    ctx.fillStyle = "#000"; ctx.fillRect(p.facing > 0 ? 5 : -6, -3, 2, 2);
-    // Arma
-    ctx.rotate(p.aimAngle || 0);
-    ctx.fillStyle = "#ccc"; ctx.fillRect(12, -2, 20, 4);
-    ctx.restore();
-    // Nome
-    ctx.fillStyle="#fff"; ctx.font="10px Arial"; ctx.textAlign="center"; ctx.fillText(p.name, x, y-22);
-}
-
-function drawResource(ctx, r) {
-    ctx.fillStyle = r.type === 'tree' ? "#27ae60" : "#7f8c8d";
-    if(r.type === 'tree') { ctx.fillRect(r.x-5, r.y, 10, 20); ctx.beginPath(); ctx.arc(r.x, r.y-10, 15, 0, Math.PI*2); ctx.fill(); }
-    else { ctx.beginPath(); ctx.arc(r.x, r.y, 12, 0, Math.PI*2); ctx.fill(); }
-}
-
-function drawGrid(ctx) {
-    ctx.strokeStyle="rgba(255,255,255,0.05)"; ctx.lineWidth=2;
-    const gs = 100;
-    const sx = Math.floor(camera.x/gs)*gs; const sy = Math.floor(camera.y/gs)*gs;
-    for(let i=sx; i<camera.x+canvas.width; i+=gs) { ctx.beginPath(); ctx.moveTo(i,camera.y); ctx.lineTo(i,camera.y+canvas.height); ctx.stroke(); }
-    for(let i=sy; i<camera.y+canvas.height; i+=gs) { ctx.beginPath(); ctx.moveTo(camera.x,i); ctx.lineTo(camera.x+canvas.width,i); ctx.stroke(); }
-}
-
-function drawJoysticks(ctx) {
-    if(joyLeft.active) {
-        ctx.beginPath(); ctx.arc(joyLeft.ox, joyLeft.oy, 40, 0, Math.PI*2); ctx.strokeStyle="rgba(255,255,255,0.3)"; ctx.stroke();
-        ctx.beginPath(); ctx.arc(joyLeft.ox+joyLeft.dx*40, joyLeft.oy+joyLeft.dy*40, 20, 0, Math.PI*2); ctx.fillStyle="rgba(255,255,255,0.5)"; ctx.fill();
-    }
-    if(joyRight.active) {
-        ctx.beginPath(); ctx.arc(joyRight.ox, joyRight.oy, 40, 0, Math.PI*2); ctx.strokeStyle="rgba(255,50,50,0.3)"; ctx.stroke();
-        ctx.beginPath(); ctx.arc(joyRight.ox+Math.cos(joyRight.angle)*40, joyRight.oy+Math.sin(joyRight.angle)*40, 20, 0, Math.PI*2); ctx.fillStyle="rgba(255,50,50,0.5)"; ctx.fill();
-    }
-}
-
-function drawMinimap() {
-    mCtx.clearRect(0,0,100,100); mCtx.fillStyle="rgba(0,0,0,0.6)"; mCtx.fillRect(0,0,100,100);
-    const s = 100/2400;
-    state.resources.forEach(r => { mCtx.fillStyle=r.type==='tree'?"#0f0":"#aaa"; mCtx.fillRect(r.x*s, r.y*s, 2, 2); });
-    state.enemies.forEach(e => { if(!e.dead){ mCtx.fillStyle="red"; mCtx.fillRect(e.x*s, e.y*s, 2, 2); } });
-    Object.keys(state.players).forEach(id => {
-        const p = state.players[id];
-        mCtx.fillStyle = id===myId ? "#fff" : "#00f";
-        mCtx.beginPath(); mCtx.arc(p.x*s, p.y*s, 3, 0, Math.PI*2); mCtx.fill();
-    });
-}
-
-function chooseCard(type) {
-    socket.emit('levelUpChoice', { roomId, choice: type });
-    document.getElementById('levelUpScreen').classList.add('hidden');
-}
-function buildWall() { socket.emit('build', {roomId, type:'wall'}); }
+function up(t) { socket.emit('levelUpChoice', {roomId, choice:t}); document.getElementById('levelScreen').classList.add('hidden'); }
+function buildWall() { socket.emit('build', {roomId}); }
 function respawn() { socket.emit('respawn', roomId); }
 </script>
 </body>

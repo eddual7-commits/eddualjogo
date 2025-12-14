@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Edu & Kamy Arena - V6 INSTANT</title>
+<title>Edu & Kamy Arena - V7 MULTIPLAYER FIX</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@500;700&display=swap');
@@ -45,7 +45,7 @@
   }
   #btn-attack:active { transform: scale(0.95); background: #a02020; }
 
-  /* ================= MENU SIMPLIFICADO ================= */
+  /* ================= MENU (COM INPUT VOLTANDO) ================= */
   #menu-layer { 
     position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
     z-index: 30; background: rgba(5,5,12,0.98); 
@@ -55,13 +55,21 @@
 
   h1 { font-family: 'Press Start 2P'; color: #9fb4ff; font-size: 22px; text-align: center; margin-bottom: 30px; text-shadow: 0 0 10px #5aa9ff; }
   
-  .class-selector { display: flex; gap: 30px; margin-bottom: 40px; }
+  .class-selector { display: flex; gap: 30px; margin-bottom: 30px; }
   .class-card {
     background: #1a1d2a; border: 2px solid #333; padding: 20px; border-radius: 12px;
     cursor: pointer; text-align: center; width: 110px; transition: 0.2s;
   }
   .class-card.selected { border-color: #5aa9ff; background: #2a2e44; transform: scale(1.15); box-shadow: 0 0 20px rgba(90, 169, 255, 0.3); }
   
+  /* INPUT DA SALA (RESTAURADO) */
+  input.room-input {
+    padding: 15px; background: #000; border: 2px solid #555; color: #fff;
+    font-family: 'Press Start 2P'; text-align: center; margin-bottom: 20px; width: 250px;
+    text-transform: uppercase; border-radius: 6px;
+  }
+  input.room-input:focus { border-color: #5aa9ff; outline: none; }
+
   button.start-btn {
     padding: 20px 60px; background: linear-gradient(90deg, #5aa9ff, #2a52be);
     border: none; color: white; font-family: 'Press Start 2P'; font-size: 16px;
@@ -87,9 +95,11 @@
     </div>
   </div>
 
-  <button class="start-btn" onclick="startGame()">BORA JOGAR</button>
+  <input type="text" id="roomInput" class="room-input" placeholder="CÓDIGO DA SALA">
+
+  <button class="start-btn" onclick="startGame()">ENTRAR</button>
   
-  <p style="margin-top:20px; font-size:10px; color:#555;" id="connection-status">Status: Conectando...</p>
+  <p style="margin-top:20px; font-size:10px; color:#555;" id="connection-status">Servidor: Verificando...</p>
 </div>
 
 <div id="ui-layer" style="display: none;">
@@ -97,7 +107,7 @@
     <div class="level-badge" id="lvl-txt">1</div>
     <div class="bar-container"><div class="hp-bar" id="hp-bar"></div></div>
     <div class="bar-container" style="height:8px; border:1px solid #444;"><div class="xp-bar" id="xp-bar"></div></div>
-    <div style="font-size:12px; margin-top:5px;">VOCÊ <span style="color:#aaa;">(EDU)</span></div>
+    <div style="font-size:12px; margin-top:5px;">JOGADOR <span style="color:#aaa;">(VOCÊ)</span></div>
   </div>
   
   <div id="btn-attack">⚔️</div>
@@ -110,7 +120,7 @@
 
 <script>
 /* =================================================================
-   1. ANALÓGICO VIRTUAL (JOYSTICK) - EMBUTIDO
+   1. JOYSTICK EMBUTIDO
    ================================================================= */
 class VirtualJoystick {
     constructor() {
@@ -120,7 +130,6 @@ class VirtualJoystick {
         this.dx = 0; this.dy = 0;
         this.touchId = null;
         
-        // Canvas do Joystick (Overlay)
         this.canvas = document.createElement('canvas');
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
@@ -130,7 +139,6 @@ class VirtualJoystick {
         document.body.appendChild(this.canvas);
         this.ctx = this.canvas.getContext('2d');
 
-        // Touch Events
         document.addEventListener('touchstart', e => this.start(e), {passive: false});
         document.addEventListener('touchmove', e => this.move(e), {passive: false});
         document.addEventListener('touchend', e => this.end(e));
@@ -139,7 +147,6 @@ class VirtualJoystick {
     start(e) {
         for(let i=0; i<e.changedTouches.length; i++) {
             const t = e.changedTouches[i];
-            // Só ativa se tocar na metade esquerda da tela
             if(t.clientX < window.innerWidth / 2) {
                 this.touchId = t.identifier;
                 this.baseX = t.clientX; this.baseY = t.clientY;
@@ -187,37 +194,33 @@ class VirtualJoystick {
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         if(!this.active) return;
-        
-        // Base
         this.ctx.beginPath(); this.ctx.arc(this.baseX, this.baseY, 50, 0, Math.PI*2);
         this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)'; this.ctx.lineWidth = 4; this.ctx.stroke();
-        // Stick
         this.ctx.beginPath(); this.ctx.arc(this.stickX, this.stickY, 25, 0, Math.PI*2);
         this.ctx.fillStyle = 'rgba(90, 169, 255, 0.6)'; this.ctx.fill();
     }
 }
 
 /* =================================================================
-   2. CONFIGURAÇÕES E ONLINE
+   2. CONFIGS E SOCKET
    ================================================================= */
 const canvas = document.getElementById("game-layer");
 const ctx = canvas.getContext("2d");
 const minimap = document.getElementById("minimap");
 const mctx = minimap.getContext("2d");
 
-// Socket
+// Socket Init
 let socket;
 try {
     socket = io();
     socket.on('connect', () => {
-        document.getElementById('connection-status').innerText = "Status: Online (Pronto)";
+        document.getElementById('connection-status').innerText = "Status: Online";
         document.getElementById('connection-status').style.color = "#0f0";
     });
 } catch(e) {
-    document.getElementById('connection-status').innerText = "Status: Offline (Modo Solo)";
+    document.getElementById('connection-status').innerText = "Status: Offline";
 }
 
-// Mundo
 const WORLD = { w: 2000, h: 2000 };
 let camera = { x: 0, y: 0 };
 let joystick = new VirtualJoystick();
@@ -235,7 +238,6 @@ let player = {
 let enemies = [];
 let otherPlayers = {};
 
-// Inicia Inimigos
 function spawnEnemies() {
     enemies = [];
     for(let i=0; i<20; i++) {
@@ -250,7 +252,7 @@ function spawnEnemies() {
 }
 
 /* =================================================================
-   3. LÓGICA DE JOGO
+   3. LÓGICA DO JOGO
    ================================================================= */
 function selectClass(type, el) {
     player.class = type;
@@ -259,17 +261,23 @@ function selectClass(type, el) {
 }
 
 function startGame() {
-    // Configura Player
+    // 1. PEGAR CÓDIGO DA SALA
+    const roomCode = document.getElementById('roomInput').value.trim() || "global";
+
+    // Config Player
     if(player.class === 'warrior') { player.maxHp = 120; player.sprite = '⚔️'; player.speed = 6; }
     else { player.maxHp = 80; player.sprite = '🧙‍♂️'; player.speed = 7; }
     player.hp = player.maxHp;
 
-    // Troca Telas
+    // Interface
     document.getElementById('menu-layer').style.display = 'none';
     document.getElementById('ui-layer').style.display = 'block';
     
-    // Entra no Online
-    if(socket) socket.emit('joinRoom', 'arena_global');
+    // 2. ENTRAR NA SALA ESPECÍFICA
+    if(socket) {
+        socket.emit('joinRoom', roomCode);
+        console.log("Entrando na sala:", roomCode);
+    }
     
     spawnEnemies();
     gameState = 'PLAYING';
@@ -286,11 +294,9 @@ function doAttack() {
     if(player.attacking) return;
     player.attacking = true;
     
-    // Animação Botão
     atkBtn.style.transform = "scale(0.8)";
     setTimeout(() => { player.attacking = false; atkBtn.style.transform = "scale(1)"; }, 300);
 
-    // Hitbox
     const range = player.class === 'warrior' ? 100 : 250;
     
     enemies.forEach(e => {
@@ -299,7 +305,6 @@ function doAttack() {
         
         if(dist < range) {
             e.hp -= 15;
-            // Knockback
             const dx = e.x - player.x; const dy = e.y - player.y;
             e.x += (dx/dist) * 40; e.y += (dy/dist) * 40;
             
@@ -328,7 +333,7 @@ function updateHud() {
 }
 
 /* =================================================================
-   4. RENDERIZAÇÃO
+   4. RENDER
    ================================================================= */
 function resize() {
     canvas.width = window.innerWidth;
@@ -358,17 +363,16 @@ function spawnFloater(x, y, text, color) {
 function loop() {
     if(gameState !== 'PLAYING') { requestAnimationFrame(loop); return; }
 
-    // 1. INPUT
+    // Input
     if(joystick.active) {
         player.x += joystick.dx * player.speed;
         player.y += joystick.dy * player.speed;
         if(socket) socket.emit('move', { x: player.x, y: player.y });
     }
 
-    // 2. LOGICA
+    // Camera
     player.x = Math.max(0, Math.min(WORLD.w, player.x));
     player.y = Math.max(0, Math.min(WORLD.h, player.y));
-    
     camera.x += (player.x - camera.x - canvas.width/2) * 0.1;
     camera.y += (player.y - camera.y - canvas.height/2) * 0.1;
 
@@ -382,14 +386,14 @@ function loop() {
         }
     });
 
-    // Multiplayer Sync
+    // Multiplayer
     if(socket) {
         socket.on('updatePlayers', players => {
             for(let id in players) if(id !== socket.id) otherPlayers[id] = players[id];
         });
     }
 
-    // 3. DESENHO
+    // Draw Background
     ctx.fillStyle = '#050505'; ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     ctx.save();
@@ -413,6 +417,8 @@ function loop() {
     for(let id in otherPlayers) {
         let p = otherPlayers[id];
         ctx.font = "30px Arial"; ctx.fillText("👤", p.x, p.y);
+        // Barra de vida simples
+        ctx.fillStyle = '#5aa9ff'; ctx.fillRect(p.x-15, p.y-30, 30, 3);
     }
 
     // Player Local
@@ -427,7 +433,7 @@ function loop() {
 
     ctx.restore();
 
-    // 4. MINIMAPA
+    // Minimapa
     mctx.clearRect(0,0,110,110);
     mctx.fillStyle = '#000'; mctx.fillRect(0,0,110,110);
     function drawMini(ox, oy, color) {
@@ -437,6 +443,7 @@ function loop() {
     }
     drawMini(player.x, player.y, '#5aa9ff');
     enemies.forEach(e => { if(e.hp>0) drawMini(e.x, e.y, 'red'); });
+    for(let id in otherPlayers) drawMini(otherPlayers[id].x, otherPlayers[id].y, '#ffb86b');
 
     requestAnimationFrame(loop);
 }
@@ -444,4 +451,3 @@ function loop() {
 </script>
 </body>
 </html>
-

@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>eddual arena</title>
+<title>edu & kamy arena</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
 <style>
@@ -11,12 +11,11 @@
 body {
   margin: 0;
   background: #0b0d14;
-  color: white;
-  font-family: system-ui, Arial, sans-serif;
   overflow: hidden;
+  font-family: system-ui, Arial, sans-serif;
 }
 
-/* menu */
+/* UI */
 #menu {
   position: fixed;
   top: 10px;
@@ -38,19 +37,14 @@ button, input {
 
 #roomCode {
   font-weight: bold;
+  color: #9fb4ff;
 }
 
-/* jogo */
-#gameWrapper {
-  position: fixed;
-  inset: 0;
-}
-
+/* Canvas */
 canvas {
   display: block;
 }
 
-/* minimapa */
 #minimap {
   position: fixed;
   top: 12px;
@@ -73,10 +67,8 @@ canvas {
   <button id="joinBtn">Entrar</button>
 </div>
 
-<div id="gameWrapper">
-  <canvas id="game"></canvas>
-  <canvas id="minimap"></canvas>
-</div>
+<canvas id="game"></canvas>
+<canvas id="minimap"></canvas>
 
 <script src="/socket.io/socket.io.js"></script>
 
@@ -85,10 +77,8 @@ canvas {
    SETUP
 ===================================================== */
 const socket = io()
-
 const canvas = document.getElementById("game")
 const ctx = canvas.getContext("2d")
-
 const minimap = document.getElementById("minimap")
 const mctx = minimap.getContext("2d")
 
@@ -102,15 +92,15 @@ addEventListener("resize", resize)
 /* =====================================================
    ESTADO
 ===================================================== */
+const WORLD = { width: 2400, height: 2400 }
+let camera = { x: 0, y: 0 }
+
 let roomId = null
 let players = {}
 let myId = null
 
-let localPlayer = { x: 1200, y: 1200 }
+let localPlayer = { x: 1200, y: 1200, r: 14 }
 let localInit = false
-
-const WORLD = { width: 2400, height: 2400 }
-let camera = { x: 0, y: 0 }
 
 /* =====================================================
    UI / SOCKET
@@ -148,24 +138,27 @@ socket.on("updatePlayers", data => {
 })
 
 /* =====================================================
-   FADINHAS
+   FADINHAS (TODOS VEEM)
 ===================================================== */
-const fairies = [
-  { angle: 0, dist: 26, speed: 0.04, color: "#b36bff" },
-  { angle: Math.PI, dist: 26, speed: -0.04, color: "#6be1ff" }
-]
-
-function updateFairies() {
-  fairies.forEach(f => f.angle += f.speed)
+function createFairies() {
+  return [
+    { a: 0, d: 26, s: 0.04, c: "#b36bff" },
+    { a: Math.PI, d: 26, s: -0.04, c: "#6be1ff" }
+  ]
 }
 
-function drawFairies(p) {
-  fairies.forEach(f => {
-    const x = p.x + Math.cos(f.angle) * f.dist
-    const y = p.y + Math.sin(f.angle) * f.dist
+const fairiesMap = {}
+
+function updateAndDrawFairies(p, id) {
+  if (!fairiesMap[id]) fairiesMap[id] = createFairies()
+
+  fairiesMap[id].forEach(f => {
+    f.a += f.s
+    const x = p.x + Math.cos(f.a) * f.d
+    const y = p.y + Math.sin(f.a) * f.d
 
     ctx.globalAlpha = 0.8
-    ctx.fillStyle = f.color
+    ctx.fillStyle = f.c
     ctx.beginPath()
     ctx.arc(x, y, 4.5, 0, Math.PI * 2)
     ctx.fill()
@@ -174,30 +167,49 @@ function drawFairies(p) {
     ctx.beginPath()
     ctx.arc(x, y, 10, 0, Math.PI * 2)
     ctx.fill()
-
     ctx.globalAlpha = 1
   })
 }
 
 /* =====================================================
-   FUNDO (GRID REAL)
+   COLISÃO REAL (PLAYER vs PLAYER)
+===================================================== */
+function resolveCollision(a, b) {
+  const dx = a.x - b.x
+  const dy = a.y - b.y
+  const dist = Math.hypot(dx, dy)
+  const min = a.r + b.r
+
+  if (dist > 0 && dist < min) {
+    const overlap = (min - dist) / 2
+    const nx = dx / dist
+    const ny = dy / dist
+    a.x += nx * overlap
+    a.y += ny * overlap
+    b.x -= nx * overlap
+    b.y -= ny * overlap
+  }
+}
+
+/* =====================================================
+   FUNDO (GRID)
 ===================================================== */
 function drawBackground() {
   const grid = 120
   ctx.strokeStyle = "#171a26"
   ctx.lineWidth = 1
 
-  const startX = Math.floor(camera.x / grid) * grid
-  const startY = Math.floor(camera.y / grid) * grid
+  const sx = Math.floor(camera.x / grid) * grid
+  const sy = Math.floor(camera.y / grid) * grid
 
-  for (let x = startX; x < camera.x + canvas.width; x += grid) {
+  for (let x = sx; x < camera.x + canvas.width; x += grid) {
     ctx.beginPath()
     ctx.moveTo(x, camera.y)
     ctx.lineTo(x, camera.y + canvas.height)
     ctx.stroke()
   }
 
-  for (let y = startY; y < camera.y + canvas.height; y += grid) {
+  for (let y = sy; y < camera.y + canvas.height; y += grid) {
     ctx.beginPath()
     ctx.moveTo(camera.x, y)
     ctx.lineTo(camera.x + canvas.width, y)
@@ -206,35 +218,78 @@ function drawBackground() {
 }
 
 /* =====================================================
+   DESENHO DO PLAYER (SPRITE PLACEHOLDER)
+===================================================== */
+function drawPlayer(p, id) {
+  const isMe = id === myId
+  const name = isMe ? "edu" : "kamy"
+  const color = isMe ? "#5aa9ff" : "#ffb86b"
+
+  // sombra
+  ctx.fillStyle = "rgba(0,0,0,0.35)"
+  ctx.beginPath()
+  ctx.ellipse(p.x, p.y + 14, 14, 4, 0, 0, Math.PI * 2)
+  ctx.fill()
+
+  // corpo
+  ctx.fillStyle = color
+  ctx.beginPath()
+  ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
+  ctx.fill()
+
+  // OLHOS QUE OLHAM PRO OUTRO PLAYER
+  const others = Object.keys(players).filter(pid => pid !== id)
+  if (others.length) {
+    const t = others[0] === myId ? localPlayer : players[others[0]]
+    const dx = t.x - p.x
+    const dy = t.y - p.y
+    const ang = Math.atan2(dy, dx)
+    const ex = Math.cos(ang) * 4
+    const ey = Math.sin(ang) * 4
+
+    ctx.fillStyle = "#fff"
+    ctx.beginPath()
+    ctx.arc(p.x - 4 + ex, p.y - 2 + ey, 2, 0, Math.PI * 2)
+    ctx.arc(p.x + 4 + ex, p.y - 2 + ey, 2, 0, Math.PI * 2)
+    ctx.fill()
+  }
+
+  // nome
+  ctx.fillStyle = "#ffffff"
+  ctx.font = "12px Arial"
+  ctx.textAlign = "center"
+  ctx.fillText(name, p.x, p.y - 22)
+}
+
+/* =====================================================
    LOOP
 ===================================================== */
 let sendTimer = 0
+let last = 0
 
-function loop(dt) {
+function loop(ts) {
+  const dt = ts - last
+  last = ts
+
   ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-  /* movimento local */
+  // movimento local
   if (roomId && window.joystick) {
     const speed = 5
     localPlayer.x += window.joystick.dx * speed
     localPlayer.y += window.joystick.dy * speed
-
     localPlayer.x = Math.max(0, Math.min(WORLD.width, localPlayer.x))
     localPlayer.y = Math.max(0, Math.min(WORLD.height, localPlayer.y))
   }
 
-  /* envio pro server (intervalo fixo) */
+  // envio pro server
   sendTimer += dt
   if (sendTimer > 80 && roomId) {
     sendTimer = 0
-    socket.emit("move", {
-      roomId,
-      x: localPlayer.x,
-      y: localPlayer.y
-    })
+    socket.emit("move", { roomId, x: localPlayer.x, y: localPlayer.y })
   }
 
-  /* camera suave */
+  // camera
   camera.x += (localPlayer.x - camera.x - canvas.width / 2) * 0.12
   camera.y += (localPlayer.y - camera.y - canvas.height / 2) * 0.12
 
@@ -243,33 +298,24 @@ function loop(dt) {
 
   drawBackground()
 
-  /* players */
+  // colisão entre 2 players
+  const ids = Object.keys(players)
+  if (ids.length === 2) {
+    const a = ids[0] === myId ? localPlayer : players[ids[0]]
+    const b = ids[1] === myId ? localPlayer : players[ids[1]]
+    resolveCollision(a, b)
+  }
+
+  // draw players + fadinhas
   for (const id in players) {
     const p = id === myId ? localPlayer : players[id]
-
-    ctx.fillStyle = "rgba(0,0,0,0.35)"
-    ctx.beginPath()
-    ctx.ellipse(p.x, p.y + 12, 12, 4, 0, 0, Math.PI * 2)
-    ctx.fill()
-
-    if (id !== myId) ctx.globalAlpha = 0.55
-
-    ctx.fillStyle = id === myId ? "#5aa9ff" : "#ffb86b"
-    ctx.beginPath()
-    ctx.arc(p.x, p.y, 12, 0, Math.PI * 2)
-    ctx.fill()
-
-    ctx.globalAlpha = 1
-
-    if (id === myId) {
-      updateFairies()
-      drawFairies(p)
-    }
+    drawPlayer(p, id)
+    updateAndDrawFairies(p, id)
   }
 
   ctx.restore()
 
-  /* minimapa */
+  // minimapa
   mctx.clearRect(0, 0, minimap.width, minimap.height)
   mctx.fillStyle = "#0d0f17"
   mctx.fillRect(0, 0, minimap.width, minimap.height)
@@ -282,7 +328,7 @@ function loop(dt) {
     mctx.fillRect(mx - 2, my - 2, 4, 4)
   }
 
-  requestAnimationFrame(ts => loop(ts - (dt || ts)))
+  requestAnimationFrame(loop)
 }
 
 requestAnimationFrame(loop)

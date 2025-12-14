@@ -2,452 +2,221 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Edu & Kamy Arena - V7 MULTIPLAYER FIX</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>coop game</title>
+<script src="/socket.io/socket.io.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@500;700&display=swap');
-
-  /* ================= RESET & TELA ================= */
-  * { box-sizing: border-box; user-select: none; -webkit-touch-callout: none; outline: none; }
-  body { margin: 0; background: #050505; overflow: hidden; font-family: 'Rajdhani', sans-serif; color: white; }
-
-  /* ================= CAMADAS (LAYERS) ================= */
-  canvas { display: block; }
-  #game-layer { position: absolute; top: 0; left: 0; z-index: 1; }
-  
-  /* MINIMAPA */
-  #minimap {
-    position: fixed; top: 15px; right: 15px; width: 110px; height: 110px;
-    background: rgba(0,0,0,0.8); border: 2px solid #5aa9ff; border-radius: 6px; z-index: 20;
-    pointer-events: none;
-  }
-
-  /* HUD (VIDA/XP) */
-  #ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
-  .hud-box { position: absolute; top: 15px; left: 15px; width: 220px; pointer-events: none; }
-  .bar-container { width: 100%; background: #222; border: 2px solid #000; transform: skewX(-15deg); margin-bottom: 5px; overflow: hidden; }
-  .hp-bar { height: 18px; background: linear-gradient(90deg, #ff3333, #aa0000); width: 100%; transition: width 0.2s; }
-  .xp-bar { height: 6px; background: linear-gradient(90deg, #ffd700, #ffaa00); width: 0%; transition: width 0.5s; }
-  .level-badge {
-    position: absolute; top: 0; right: -10px; width: 30px; height: 30px;
-    background: #333; border: 2px solid #ffd700; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;
-  }
-
-  /* BOTÃO ATAQUE */
-  #btn-attack {
-    pointer-events: auto; position: absolute; bottom: 40px; right: 40px;
-    width: 90px; height: 90px; border-radius: 50%;
-    background: radial-gradient(circle, #ff5f5f, #c82828);
-    border: 4px solid rgba(255,255,255,0.4); box-shadow: 0 0 15px rgba(255,0,0,0.5);
-    display: flex; align-items: center; justify-content: center;
-    font-weight: bold; font-size: 24px; cursor: pointer; z-index: 100;
-  }
-  #btn-attack:active { transform: scale(0.95); background: #a02020; }
-
-  /* ================= MENU (COM INPUT VOLTANDO) ================= */
-  #menu-layer { 
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-    z-index: 30; background: rgba(5,5,12,0.98); 
-    display: flex; flex-direction: column; align-items: center; justify-content: center; 
-    pointer-events: auto; 
-  }
-
-  h1 { font-family: 'Press Start 2P'; color: #9fb4ff; font-size: 22px; text-align: center; margin-bottom: 30px; text-shadow: 0 0 10px #5aa9ff; }
-  
-  .class-selector { display: flex; gap: 30px; margin-bottom: 30px; }
-  .class-card {
-    background: #1a1d2a; border: 2px solid #333; padding: 20px; border-radius: 12px;
-    cursor: pointer; text-align: center; width: 110px; transition: 0.2s;
-  }
-  .class-card.selected { border-color: #5aa9ff; background: #2a2e44; transform: scale(1.15); box-shadow: 0 0 20px rgba(90, 169, 255, 0.3); }
-  
-  /* INPUT DA SALA (RESTAURADO) */
-  input.room-input {
-    padding: 15px; background: #000; border: 2px solid #555; color: #fff;
-    font-family: 'Press Start 2P'; text-align: center; margin-bottom: 20px; width: 250px;
-    text-transform: uppercase; border-radius: 6px;
-  }
-  input.room-input:focus { border-color: #5aa9ff; outline: none; }
-
-  button.start-btn {
-    padding: 20px 60px; background: linear-gradient(90deg, #5aa9ff, #2a52be);
-    border: none; color: white; font-family: 'Press Start 2P'; font-size: 16px;
-    cursor: pointer; border-radius: 6px; box-shadow: 0 5px 0 #1a3a8a;
-  }
-  button.start-btn:active { transform: translateY(5px); box-shadow: none; }
-
+html,body{
+  margin:0;
+  padding:0;
+  background:#0f172a;
+  overflow:hidden;
+  touch-action:none;
+  font-family:sans-serif;
+}
+canvas{display:block}
+#ui{
+  position:fixed;
+  top:10px;left:10px;right:10px;
+  display:flex;
+  gap:6px;
+  z-index:10;
+}
+#ui input,#ui button{
+  padding:6px;
+  border-radius:6px;
+  border:none;
+}
+#menu{
+  position:fixed;
+  inset:0;
+  background:#020617;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:16px;
+  z-index:20;
+}
+.classBtn{
+  padding:14px 22px;
+  font-size:18px;
+  border-radius:10px;
+  border:none;
+}
+#atk{
+  position:fixed;
+  right:24px;
+  bottom:24px;
+  width:80px;
+  height:80px;
+  border-radius:50%;
+  background:#ef4444;
+  color:white;
+  font-size:18px;
+  border:none;
+}
 </style>
 </head>
+
 <body>
 
-<div id="menu-layer">
-  <h1>EDU & KAMY<br>ARENA</h1>
-  
-  <div class="class-selector">
-    <div class="class-card selected" onclick="selectClass('warrior', this)">
-      <div style="font-size:40px; margin-bottom:10px;">⚔️</div>
-      <div style="font-size:12px; font-weight:bold;">GUERREIRO</div>
-    </div>
-    <div class="class-card" onclick="selectClass('mage', this)">
-      <div style="font-size:40px; margin-bottom:10px;">🔮</div>
-      <div style="font-size:12px; font-weight:bold;">MAGO</div>
-    </div>
-  </div>
-
-  <input type="text" id="roomInput" class="room-input" placeholder="CÓDIGO DA SALA">
-
-  <button class="start-btn" onclick="startGame()">ENTRAR</button>
-  
-  <p style="margin-top:20px; font-size:10px; color:#555;" id="connection-status">Servidor: Verificando...</p>
+<!-- MENU -->
+<div id="menu">
+  <h2 style="color:white">Escolha sua classe</h2>
+  <button class="classBtn" onclick="chooseClass('warrior')">⚔️ Guerreiro</button>
+  <button class="classBtn" onclick="chooseClass('mage')">✨ Mago</button>
 </div>
 
-<div id="ui-layer" style="display: none;">
-  <div class="hud-box">
-    <div class="level-badge" id="lvl-txt">1</div>
-    <div class="bar-container"><div class="hp-bar" id="hp-bar"></div></div>
-    <div class="bar-container" style="height:8px; border:1px solid #444;"><div class="xp-bar" id="xp-bar"></div></div>
-    <div style="font-size:12px; margin-top:5px;">JOGADOR <span style="color:#aaa;">(VOCÊ)</span></div>
-  </div>
-  
-  <div id="btn-attack">⚔️</div>
+<!-- UI SALA -->
+<div id="ui">
+  <button id="create">Criar sala</button>
+  <input id="roomInput" placeholder="Sala">
+  <button id="join">Entrar</button>
+  <span id="roomLabel"></span>
 </div>
 
-<canvas id="game-layer"></canvas>
-<canvas id="minimap" width="110" height="110"></canvas>
-
-<script src="/socket.io/socket.io.js"></script>
+<canvas id="game"></canvas>
+<button id="atk">ATK</button>
 
 <script>
-/* =================================================================
-   1. JOYSTICK EMBUTIDO
-   ================================================================= */
-class VirtualJoystick {
-    constructor() {
-        this.active = false;
-        this.baseX = 0; this.baseY = 0;
-        this.stickX = 0; this.stickY = 0;
-        this.dx = 0; this.dy = 0;
-        this.touchId = null;
-        
-        this.canvas = document.createElement('canvas');
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
-        Object.assign(this.canvas.style, {
-            position: 'fixed', top: '0', left: '0', zIndex: '50', pointerEvents: 'none'
-        });
-        document.body.appendChild(this.canvas);
-        this.ctx = this.canvas.getContext('2d');
+const socket = io()
 
-        document.addEventListener('touchstart', e => this.start(e), {passive: false});
-        document.addEventListener('touchmove', e => this.move(e), {passive: false});
-        document.addEventListener('touchend', e => this.end(e));
-    }
+const canvas = document.getElementById("game")
+const ctx = canvas.getContext("2d")
+function resize(){canvas.width=innerWidth;canvas.height=innerHeight}
+resize();addEventListener("resize",resize)
 
-    start(e) {
-        for(let i=0; i<e.changedTouches.length; i++) {
-            const t = e.changedTouches[i];
-            if(t.clientX < window.innerWidth / 2) {
-                this.touchId = t.identifier;
-                this.baseX = t.clientX; this.baseY = t.clientY;
-                this.stickX = this.baseX; this.stickY = this.baseY;
-                this.active = true;
-                this.draw();
-                break;
-            }
-        }
-    }
+// ---------- STATE ----------
+let myId=null
+let roomId=null
+let myClass=null
+let players={}
+let smoothPlayers={}
+let enemies=[]
+let local={x:0,y:0,hp:100}
+const SPEED=4
 
-    move(e) {
-        if(!this.active) return;
-        for(let i=0; i<e.changedTouches.length; i++) {
-            if(e.changedTouches[i].identifier === this.touchId) {
-                const t = e.changedTouches[i];
-                const dx = t.clientX - this.baseX;
-                const dy = t.clientY - this.baseY;
-                const dist = Math.hypot(dx, dy);
-                const maxDist = 50;
-                
-                const limit = Math.min(dist, maxDist);
-                const angle = Math.atan2(dy, dx);
-                
-                this.stickX = this.baseX + Math.cos(angle) * limit;
-                this.stickY = this.baseY + Math.sin(angle) * limit;
-                
-                this.dx = (this.stickX - this.baseX) / maxDist;
-                this.dy = (this.stickY - this.baseY) / maxDist;
-                
-                this.draw();
-            }
-        }
-    }
-
-    end(e) {
-        for(let i=0; i<e.changedTouches.length; i++) {
-            if(e.changedTouches[i].identifier === this.touchId) {
-                this.active = false; this.dx = 0; this.dy = 0;
-                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            }
-        }
-    }
-
-    draw() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        if(!this.active) return;
-        this.ctx.beginPath(); this.ctx.arc(this.baseX, this.baseY, 50, 0, Math.PI*2);
-        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)'; this.ctx.lineWidth = 4; this.ctx.stroke();
-        this.ctx.beginPath(); this.ctx.arc(this.stickX, this.stickY, 25, 0, Math.PI*2);
-        this.ctx.fillStyle = 'rgba(90, 169, 255, 0.6)'; this.ctx.fill();
-    }
+// ---------- MENU ----------
+function chooseClass(c){
+  myClass=c
+  document.getElementById("menu").style.display="none"
 }
 
-/* =================================================================
-   2. CONFIGS E SOCKET
-   ================================================================= */
-const canvas = document.getElementById("game-layer");
-const ctx = canvas.getContext("2d");
-const minimap = document.getElementById("minimap");
-const mctx = minimap.getContext("2d");
+// ---------- SOCKET ----------
+socket.on("connect",()=>myId=socket.id)
 
-// Socket Init
-let socket;
-try {
-    socket = io();
-    socket.on('connect', () => {
-        document.getElementById('connection-status').innerText = "Status: Online";
-        document.getElementById('connection-status').style.color = "#0f0";
-    });
-} catch(e) {
-    document.getElementById('connection-status').innerText = "Status: Offline";
+create.onclick=()=>socket.emit("createRoom")
+join.onclick=()=>{
+  const id=roomInput.value.trim()
+  if(id) socket.emit("joinRoom",id)
 }
 
-const WORLD = { w: 2000, h: 2000 };
-let camera = { x: 0, y: 0 };
-let joystick = new VirtualJoystick();
-let gameState = 'MENU';
+socket.on("roomCreated",id=>{
+  roomId=id
+  roomLabel.textContent="Sala: "+id
+})
 
-// Entidades
-let player = {
-    x: 1000, y: 1000,
-    speed: 6,
-    hp: 100, maxHp: 100,
-    xp: 0, maxXp: 50, level: 1,
-    class: 'warrior', sprite: '⚔️',
-    attacking: false
-};
-let enemies = [];
-let otherPlayers = {};
-
-function spawnEnemies() {
-    enemies = [];
-    for(let i=0; i<20; i++) {
-        enemies.push({
-            x: Math.random() * WORLD.w,
-            y: Math.random() * WORLD.h,
-            hp: 30, maxHp: 30,
-            sprite: '👾',
-            speed: 1 + Math.random()
-        });
+socket.on("updatePlayers",data=>{
+  players=data
+  for(const id in players){
+    if(!smoothPlayers[id]){
+      smoothPlayers[id]={x:players[id].x,y:players[id].y}
     }
+  }
+  if(players[myId]){
+    local.x=players[myId].x
+    local.y=players[myId].y
+    local.hp=players[myId].hp
+  }
+})
+
+// ---------- INPUT ----------
+let joy={x:0,y:0}
+canvas.addEventListener("pointerdown",e=>{
+  joy.x=e.clientX
+  joy.y=e.clientY
+})
+
+// ---------- INIMIGOS ----------
+function spawnEnemy(){
+  enemies.push({
+    x:Math.random()*canvas.width,
+    y:Math.random()*canvas.height,
+    hp:40,
+    speed:1.4,
+    lastHit:0
+  })
+}
+setInterval(spawnEnemy,2000)
+
+// ---------- ATAQUE ----------
+atk.onclick=()=>{
+  enemies.forEach(e=>{
+    const dx=e.x-local.x
+    const dy=e.y-local.y
+    const dist=Math.hypot(dx,dy)
+    const range=myClass==="mage"?90:50
+    const dmg=myClass==="mage"?6:12
+    if(dist<range) e.hp-=dmg
+  })
+  enemies=enemies.filter(e=>e.hp>0)
 }
 
-/* =================================================================
-   3. LÓGICA DO JOGO
-   ================================================================= */
-function selectClass(type, el) {
-    player.class = type;
-    document.querySelectorAll('.class-card').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-}
+// ---------- LOOP ----------
+function loop(){
+  ctx.clearRect(0,0,canvas.width,canvas.height)
 
-function startGame() {
-    // 1. PEGAR CÓDIGO DA SALA
-    const roomCode = document.getElementById('roomInput').value.trim() || "global";
+  // movimento local
+  if(roomId){
+    local.x+=Math.sign(joy.x-canvas.width/2)*SPEED
+    local.y+=Math.sign(joy.y-canvas.height/2)*SPEED
+    socket.emit("move",{roomId,x:local.x,y:local.y})
+  }
 
-    // Config Player
-    if(player.class === 'warrior') { player.maxHp = 120; player.sprite = '⚔️'; player.speed = 6; }
-    else { player.maxHp = 80; player.sprite = '🧙‍♂️'; player.speed = 7; }
-    player.hp = player.maxHp;
-
-    // Interface
-    document.getElementById('menu-layer').style.display = 'none';
-    document.getElementById('ui-layer').style.display = 'block';
-    
-    // 2. ENTRAR NA SALA ESPECÍFICA
-    if(socket) {
-        socket.emit('joinRoom', roomCode);
-        console.log("Entrando na sala:", roomCode);
+  // interpolação players
+  for(const id in smoothPlayers){
+    if(players[id]){
+      smoothPlayers[id].x+=(players[id].x-smoothPlayers[id].x)*0.15
+      smoothPlayers[id].y+=(players[id].y-smoothPlayers[id].y)*0.15
     }
-    
-    spawnEnemies();
-    gameState = 'PLAYING';
-    resize();
-    loop();
-}
+  }
 
-// Ataque
-const atkBtn = document.getElementById('btn-attack');
-atkBtn.addEventListener('mousedown', doAttack);
-atkBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); doAttack(); });
+  // draw players
+  for(const id in smoothPlayers){
+    const p=id===myId?local:smoothPlayers[id]
+    ctx.fillStyle=id===myId?"#38bdf8":"#22c55e"
+    ctx.beginPath()
+    ctx.arc(p.x,p.y,14,0,Math.PI*2)
+    ctx.fill()
+  }
 
-function doAttack() {
-    if(player.attacking) return;
-    player.attacking = true;
-    
-    atkBtn.style.transform = "scale(0.8)";
-    setTimeout(() => { player.attacking = false; atkBtn.style.transform = "scale(1)"; }, 300);
+  // inimigos IA
+  enemies.forEach(e=>{
+    const dx=local.x-e.x
+    const dy=local.y-e.y
+    const d=Math.hypot(dx,dy)
+    e.x+=dx/d*e.speed
+    e.y+=dy/d*e.speed
 
-    const range = player.class === 'warrior' ? 100 : 250;
-    
-    enemies.forEach(e => {
-        if(e.hp <= 0) return;
-        const dist = Math.hypot(e.x - player.x, e.y - player.y);
-        
-        if(dist < range) {
-            e.hp -= 15;
-            const dx = e.x - player.x; const dy = e.y - player.y;
-            e.x += (dx/dist) * 40; e.y += (dy/dist) * 40;
-            
-            spawnFloater(e.x, e.y, "15", "#fff");
-            
-            if(e.hp <= 0) {
-                player.xp += 10;
-                if(player.xp >= player.maxXp) {
-                    player.level++; player.xp = 0; player.maxXp *= 1.5;
-                    spawnFloater(player.x, player.y, "LEVEL UP!", "#ffd700");
-                }
-                updateHud();
-            }
-        }
-    });
-
-    if(socket) socket.emit('attack', { x: player.x, y: player.y });
-}
-
-function updateHud() {
-    const hpPct = (player.hp / player.maxHp) * 100;
-    const xpPct = (player.xp / player.maxXp) * 100;
-    document.getElementById('hp-bar').style.width = hpPct + '%';
-    document.getElementById('xp-bar').style.width = xpPct + '%';
-    document.getElementById('lvl-txt').innerText = player.level;
-}
-
-/* =================================================================
-   4. RENDER
-   ================================================================= */
-function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    if(joystick.canvas) {
-        joystick.canvas.width = window.innerWidth;
-        joystick.canvas.height = window.innerHeight;
-    }
-}
-window.addEventListener('resize', resize);
-
-function spawnFloater(x, y, text, color) {
-    const el = document.createElement('div');
-    el.innerText = text;
-    Object.assign(el.style, {
-        position: 'absolute', color: color, fontWeight: 'bold', fontSize: '20px',
-        textShadow: '2px 2px 0 #000', pointerEvents: 'none',
-        left: (x - camera.x + canvas.width/2) + 'px',
-        top: (y - camera.y + canvas.height/2) + 'px',
-        transition: 'all 0.8s'
-    });
-    document.body.appendChild(el);
-    setTimeout(() => { el.style.transform = "translateY(-50px)"; el.style.opacity = 0; }, 50);
-    setTimeout(() => el.remove(), 850);
-}
-
-function loop() {
-    if(gameState !== 'PLAYING') { requestAnimationFrame(loop); return; }
-
-    // Input
-    if(joystick.active) {
-        player.x += joystick.dx * player.speed;
-        player.y += joystick.dy * player.speed;
-        if(socket) socket.emit('move', { x: player.x, y: player.y });
+    if(d<28 && performance.now()-e.lastHit>800){
+      local.hp-=10
+      e.lastHit=performance.now()
     }
 
-    // Camera
-    player.x = Math.max(0, Math.min(WORLD.w, player.x));
-    player.y = Math.max(0, Math.min(WORLD.h, player.y));
-    camera.x += (player.x - camera.x - canvas.width/2) * 0.1;
-    camera.y += (player.y - camera.y - canvas.height/2) * 0.1;
+    ctx.fillStyle="red"
+    ctx.beginPath()
+    ctx.arc(e.x,e.y,12,0,Math.PI*2)
+    ctx.fill()
+  })
 
-    // Inimigos
-    enemies.forEach(e => {
-        if(e.hp <= 0) return;
-        const dist = Math.hypot(player.x - e.x, player.y - e.y);
-        if(dist < 500 && dist > 30) {
-            e.x += ((player.x - e.x)/dist) * e.speed;
-            e.y += ((player.y - e.y)/dist) * e.speed;
-        }
-    });
+  // hp
+  ctx.fillStyle="red"
+  ctx.fillRect(local.x-20,local.y-28,(local.hp/100)*40,5)
 
-    // Multiplayer
-    if(socket) {
-        socket.on('updatePlayers', players => {
-            for(let id in players) if(id !== socket.id) otherPlayers[id] = players[id];
-        });
-    }
-
-    // Draw Background
-    ctx.fillStyle = '#050505'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.save();
-    ctx.translate(-camera.x, -camera.y);
-
-    // Grid
-    ctx.strokeStyle = '#1a1d2a'; ctx.lineWidth = 2;
-    for(let x=0; x<WORLD.w; x+=100) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,WORLD.h); ctx.stroke(); }
-    for(let y=0; y<WORLD.h; y+=100) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(WORLD.w,y); ctx.stroke(); }
-
-    // Inimigos
-    enemies.forEach(e => {
-        if(e.hp <= 0) return;
-        ctx.font = "30px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-        ctx.fillText(e.sprite, e.x, e.y);
-        ctx.fillStyle='red'; ctx.fillRect(e.x-15, e.y-25, 30, 4);
-        ctx.fillStyle='#0f0'; ctx.fillRect(e.x-15, e.y-25, 30*(e.hp/e.maxHp), 4);
-    });
-
-    // Outros Players
-    for(let id in otherPlayers) {
-        let p = otherPlayers[id];
-        ctx.font = "30px Arial"; ctx.fillText("👤", p.x, p.y);
-        // Barra de vida simples
-        ctx.fillStyle = '#5aa9ff'; ctx.fillRect(p.x-15, p.y-30, 30, 3);
-    }
-
-    // Player Local
-    if(player.attacking) {
-        ctx.save(); ctx.translate(player.x, player.y); ctx.rotate(Date.now()/50);
-        ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.beginPath(); ctx.arc(0,0,70,0,Math.PI*2); ctx.fill();
-        ctx.restore();
-    }
-    ctx.font = "40px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText(player.sprite, player.x, player.y);
-    ctx.fillStyle = "#fff"; ctx.font = "10px Arial"; ctx.fillText("VOCÊ", player.x, player.y-30);
-
-    ctx.restore();
-
-    // Minimapa
-    mctx.clearRect(0,0,110,110);
-    mctx.fillStyle = '#000'; mctx.fillRect(0,0,110,110);
-    function drawMini(ox, oy, color) {
-        const mx = (ox / WORLD.w) * 110;
-        const my = (oy / WORLD.h) * 110;
-        mctx.fillStyle = color; mctx.fillRect(mx-2, my-2, 4, 4);
-    }
-    drawMini(player.x, player.y, '#5aa9ff');
-    enemies.forEach(e => { if(e.hp>0) drawMini(e.x, e.y, 'red'); });
-    for(let id in otherPlayers) drawMini(otherPlayers[id].x, otherPlayers[id].y, '#ffb86b');
-
-    requestAnimationFrame(loop);
+  requestAnimationFrame(loop)
 }
-
+loop()
 </script>
 </body>
 </html>

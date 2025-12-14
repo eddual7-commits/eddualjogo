@@ -16,6 +16,8 @@ app.get('/', (req, res) => {
   });
 });
 
+/* === CONFIGURAÇÕES === */
+const MAP_SIZE = 2400;
 const rooms = {};
 
 io.on('connection', (socket) => {
@@ -24,21 +26,11 @@ io.on('connection', (socket) => {
   socket.on('createRoom', (playerName) => {
     try {
         const roomId = Math.random().toString(36).substring(2, 6).toUpperCase();
-        console.log('Criando sala: ' + roomId);
-
-        rooms[roomId] = { 
-            players: {}, enemies: [], resources: generateResources(), 
-            buildings: [], difficulty: 1, xpOrbs: []
-        };
-        
+        rooms[roomId] = initRoom();
         rooms[roomId].players[socket.id] = createPlayer(playerName, 'warrior');
-        spawnEnemies(roomId);
-        
         socket.join(roomId);
         socket.emit('roomCreated', roomId);
-    } catch (e) {
-        console.error('Erro Criar: ' + e);
-    }
+    } catch (e) { console.error(e); }
   });
 
   socket.on('joinRoom', (data) => {
@@ -49,212 +41,228 @@ io.on('connection', (socket) => {
             room.players[socket.id] = createPlayer(data.name, role);
             socket.join(data.code);
             socket.emit('joinedRoom', data.code);
+        } else {
+            socket.emit('error', 'Sala não encontrada');
         }
-    } catch (e) {
-        console.error('Erro Entrar: ' + e);
-    }
+    } catch (e) { console.error(e); }
   });
 
   socket.on('move', (data) => {
-    const room = rooms[data.roomId];
-    if (room && room.players[socket.id]) {
-        const p = room.players[socket.id];
+    const r = rooms[data.roomId];
+    if (r && r.players[socket.id]) {
+        const p = r.players[socket.id];
         if (!p.dead) {
-            // BLINDAGEM CONTRA BUG DE POSIÇÃO
-            if (data.x && data.y && !isNaN(data.x) && !isNaN(data.y)) {
-                p.x = data.x; 
-                p.y = data.y;
+            // Validação de Colisão antes de mover
+            let newX = data.x;
+            let newY = data.y;
+            
+            // Checa colisão com paredes
+            let colidiu = false;
+            for(const b of r.buildings) {
+                if(Math.hypot(b.x - newX, b.y - newY) < 40) colidiu = true;
             }
-            p.state = data.state; 
-            p.facing = data.facing; 
-            p.aimAngle = data.angle;
+
+            if(!colidiu) {
+                p.x = newX; p.y = newY;
+            }
+            
+            p.state = data.state; p.facing = data.facing; p.angle = data.angle;
         }
     }
   });
 
   socket.on('attack', (data) => {
-    const room = rooms[data.roomId];
-    if (!room || !room.players[socket.id]) return;
-    const p = room.players[socket.id];
-    if (p.dead) return;
+    const r = rooms[data.roomId];
+    if (!r) return;
+    const p = r.players[socket.id];
+    if (!p || p.dead) return;
 
-    const range = p.role === 'warrior' ? 150 : 450;
+    const range = p.role === 'warrior' ? 160 : 450;
     const dmg = p.dmg;
 
-    // Inimigos
-    room.enemies.forEach(e => {
+    // 1. DANO EM INIMIGOS
+    r.enemies.forEach(e => {
         if (e.dead) return;
         const dist = Math.hypot(e.x - p.x, e.y - p.y);
-        if (dist < range) { 
+        
+        // Verifica cone de visão (Mira)
+        const angleToEnemy = Math.atan2(e.y - p.y, e.x - p.x);
+        let angleDiff = Math.abs(data.angle - angleToEnemy);
+        if (angleDiff > Math.PI) angleDiff = (2 * Math.PI) - angleDiff;
+        
+        // Guerreiro precisa mirar perto, Mago tem auto-aim mais tolerante
+        const tolerance = p.role === 'warrior' ? 1.2 : 0.5;
+
+        if (dist < range && angleDiff < tolerance) {
             e.hp -= dmg;
-            const angle = Math.atan2(e.y - p.y, e.x - p.x);
-            e.x += Math.cos(angle) * 30; 
-            e.y += Math.sin(angle) * 30;
-            
-            io.to(data.roomId).emit('damageEffect', { x: e.x, y: e.y, dmg: Math.floor(dmg) });
-            
+            // Knockback
+            e.x += Math.cos(angleToEnemy) * 30; e.y += Math.sin(angleToEnemy) * 30;
+            io.to(data.roomId).emit('damage', { x: e.x, y: e.y, val: Math.floor(dmg), crit: false });
+
             if (e.hp <= 0) {
-                e.dead = true; e.respawnTimer = 200;
-                room.xpOrbs.push({ x: e.x, y: e.y, val: 20 });
+                e.dead = true; e.respawn = 300;
+                r.xpOrbs.push({ x: e.x, y: e.y, val: 25 + (r.difficulty*5) });
             }
         }
     });
 
-    // Recursos (Arvores/Pedras)
-    room.resources.forEach((res, idx) => {
-        if (Math.hypot(res.x - p.x, res.y - p.y) < 80) {
-            res.hp -= dmg;
-            if (res.hp <= 0) {
-                if(res.type === 'tree') p.inv.wood += 5;
-                if(res.type === 'rock') p.inv.stone += 3;
-                room.resources.splice(idx, 1);
+    // 2. COLETA (ÁRVORES/PEDRAS)
+    r.resources.forEach((res, i) => {
+        if(Math.hypot(res.x - p.x, res.y - p.y) < 90) {
+            let harvestDmg = 10;
+            // Bonus de ferramenta (simulado)
+            if(res.type === 'tree') harvestDmg = 15; // Machado
+            if(res.type === 'rock') harvestDmg = 15; // Picareta
+            
+            res.hp -= harvestDmg;
+            io.to(data.roomId).emit('shake', res.id);
+            
+            if(res.hp <= 0) {
+                if(res.type === 'tree') p.wood += 5;
+                if(res.type === 'rock') p.stone += 3;
+                r.resources.splice(i, 1);
             }
         }
     });
   });
 
   socket.on('build', (data) => {
-      const room = rooms[data.roomId];
-      if (room && room.players[socket.id]) {
-          const p = room.players[socket.id];
-          if(p.inv.wood >= 10) {
-              p.inv.wood -= 10;
-              room.buildings.push({ x: p.x, y: p.y, hp: 150, maxHp: 150, type: 'wall' });
-          }
+      const r = rooms[data.roomId];
+      const p = r.players[socket.id];
+      if(p && p.wood >= 20) {
+          p.wood -= 20;
+          r.buildings.push({ x: p.x, y: p.y, hp: 200, maxHp: 200 });
       }
   });
 
-  socket.on('levelUpChoice', (data) => {
-      const room = rooms[data.roomId];
-      if (room && room.players[socket.id]) {
-          const p = room.players[socket.id];
-          if(data.choice === 'dmg') p.dmg *= 1.25;
-          if(data.choice === 'hp') { p.maxHp += 50; p.hp = p.maxHp; }
-          if(data.choice === 'spd') p.speedMult *= 1.1;
-          room.difficulty += 0.1;
-      }
+  socket.on('levelup', (data) => {
+      const p = rooms[data.roomId].players[socket.id];
+      if(data.choice === 'dmg') p.dmg *= 1.2;
+      if(data.choice === 'hp') { p.maxHp += 50; p.hp = p.maxHp; }
+      if(data.choice === 'spd') p.speed *= 1.1;
+      rooms[data.roomId].difficulty += 0.2;
   });
 
   socket.on('respawn', (roomId) => {
-      const room = rooms[roomId];
-      if(room && room.players[socket.id]) {
-          const p = room.players[socket.id];
-          p.dead = false; p.hp = p.maxHp; p.x = 1200; p.y = 1200;
-      }
+      const p = rooms[roomId].players[socket.id];
+      p.dead = false; p.hp = p.maxHp; p.x = 1200; p.y = 1200;
   });
 
-  socket.on('disconnect', () => {
-      for (const r in rooms) {
-          if (rooms[r].players[socket.id]) delete rooms[r].players[socket.id];
-          if (Object.keys(rooms[r].players).length === 0) delete rooms[r];
-      }
-  });
+  socket.on('disconnect', () => { /* Limpeza padrão */ });
 });
+
+/* === LÓGICA DO MUNDO === */
+function initRoom() {
+    return {
+        players: {}, enemies: [], buildings: [], xpOrbs: [], difficulty: 1,
+        resources: generateRes()
+    };
+}
 
 function createPlayer(name, role) {
     return {
         name: name || "Heroi", role: role,
         x: 1200, y: 1200, hp: 100, maxHp: 100,
-        dmg: role === 'warrior' ? 20 : 12,
-        speedMult: 1, xp: 0, level: 1, nextLevel: 100,
-        inv: { wood: 0, stone: 0 },
-        facing: 0, dead: false
+        dmg: role === 'warrior' ? 25 : 15,
+        speed: 1, xp: 0, level: 1, nextLevel: 200, // XP mais difícil
+        wood: 0, stone: 0,
+        pet: { active: true, dmg: 5, range: 300, cooldown: 0 },
+        dead: false
     };
 }
 
-function generateResources() {
-    const res = [];
-    for(let i=0; i<30; i++) res.push({ id: 't'+i, x: Math.random()*2400, y: Math.random()*2400, type: 'tree', hp: 30, maxHp: 30 });
-    for(let i=0; i<15; i++) res.push({ id: 'r'+i, x: Math.random()*2400, y: Math.random()*2400, type: 'rock', hp: 50, maxHp: 50 });
-    return res;
+function generateRes() {
+    let arr = [];
+    for(let i=0; i<40; i++) arr.push({id:'t'+i, x:Math.random()*MAP_SIZE, y:Math.random()*MAP_SIZE, type:'tree', hp:50, maxHp:50});
+    for(let i=0; i<20; i++) arr.push({id:'r'+i, x:Math.random()*MAP_SIZE, y:Math.random()*MAP_SIZE, type:'rock', hp:80, maxHp:80});
+    return arr;
 }
 
-function spawnEnemies(roomId) {
-    const room = rooms[roomId];
-    if (!room) return;
-    room.enemies = [];
-    const count = 5 + Math.floor(room.difficulty * 2);
-    for (let i = 0; i < count; i++) {
-        room.enemies.push({
-            id: i, x: Math.random()*2400, y: Math.random()*2400,
-            hp: 40 * room.difficulty, maxHp: 40 * room.difficulty,
-            speed: 2 + Math.random(), dead: false, respawnTimer: 0
-        });
-    }
-}
-
-// LOOP PRINCIPAL
+// LOOP PRINCIPAL (30 FPS)
 setInterval(() => {
-  try {
-      for (const rId in rooms) {
-        const room = rooms[rId];
-        if (!room || Object.keys(room.players).length === 0) continue;
+  for(const id in rooms) {
+      const r = rooms[id];
+      if(!r) continue;
 
-        // IA Inimigos
-        room.enemies.forEach(e => {
-            if (e.dead) {
-                e.respawnTimer--;
-                if (e.respawnTimer <= 0) {
-                    e.dead = false; e.hp = e.maxHp;
-                    e.x = Math.random()*2400; e.y = Math.random()*2400;
-                }
-                return;
-            }
-
-            let target = null;
-            let minDist = 9999;
-            for(const pid in room.players) {
-                const p = room.players[pid];
-                if(!p.dead) {
-                    const d = Math.hypot(p.x - e.x, p.y - e.y);
-                    if(d < minDist) { minDist = d; target = p; }
-                }
-            }
-
-            if (target && minDist < 800) {
-                const angle = Math.atan2(target.y - e.y, target.x - e.x);
-                let blocked = false;
-                
-                for(const b of room.buildings) {
-                    if(Math.hypot(b.x - e.x, b.y - e.y) < 35) {
-                         blocked = true; b.hp -= 0.5; if(b.hp<=0) b.dead = true;
-                    }
-                }
-                room.buildings = room.buildings.filter(b => !b.dead);
-
-                if(!blocked && minDist > 25) {
-                    e.x += Math.cos(angle) * e.speed; e.y += Math.sin(angle) * e.speed;
-                }
-                if(minDist < 30) { target.hp -= 0.5; if(target.hp <= 0) target.dead = true; }
-            }
-        });
-
-        // XP
-        for(const pid in room.players) {
-            const p = room.players[pid];
-            if(p.dead) continue;
-            room.xpOrbs = room.xpOrbs.filter(orb => {
-                if(Math.hypot(p.x - orb.x, p.y - orb.y) < 40) {
-                    p.xp += orb.val;
-                    if(p.xp >= p.nextLevel) {
-                        p.xp = 0; p.level++; p.nextLevel = Math.floor(p.nextLevel * 1.5);
-                        io.to(pid).emit('levelUp');
-                    }
-                    return false;
-                }
-                return true;
-            });
-        }
-
-        io.to(rId).emit('updateWorld', { 
-            players: room.players, enemies: room.enemies, 
-            resources: room.resources, buildings: room.buildings, xpOrbs: room.xpOrbs 
-        });
+      // Spawn Inimigos
+      if(r.enemies.length < 8 + r.difficulty) {
+          r.enemies.push({
+              x: Math.random()*MAP_SIZE, y: Math.random()*MAP_SIZE,
+              hp: 50 * r.difficulty, maxHp: 50 * r.difficulty,
+              speed: 3 + Math.random(), dead: false, respawn: 0
+          });
       }
-  } catch (err) {
-      console.error('Erro Loop: ' + err);
+
+      // Lógica Inimigos
+      r.enemies.forEach(e => {
+          if(e.dead) {
+              if(e.respawn > 0) e.respawn--;
+              else { e.dead = false; e.hp = e.maxHp; e.x = Math.random()*MAP_SIZE; e.y = Math.random()*MAP_SIZE; }
+              return;
+          }
+
+          let target = null, minDist = 9999;
+          for(const pid in r.players) {
+              const p = r.players[pid];
+              if(!p.dead) {
+                  const d = Math.hypot(p.x - e.x, p.y - e.y);
+                  if(d < minDist) { minDist = d; target = p; }
+              }
+          }
+
+          if(target && minDist < 800) {
+              const ang = Math.atan2(target.y - e.y, target.x - e.x);
+              
+              // Colisão Inimigo x Parede
+              let block = false;
+              r.buildings.forEach(b => { if(Math.hypot(b.x-e.x, b.y-e.y)<40) { block=true; b.hp-=0.2; if(b.hp<=0) b.dead=true; } });
+              r.buildings = r.buildings.filter(b => !b.dead);
+
+              if(!block && minDist > 30) {
+                  e.x += Math.cos(ang) * e.speed; e.y += Math.sin(ang) * e.speed;
+              }
+              if(minDist < 35) { target.hp -= 0.5; if(target.hp<=0) target.dead=true; }
+          }
+      });
+
+      // Lógica PETS (Auto-Attack)
+      for(const pid in r.players) {
+          const p = r.players[pid];
+          if(p.dead) continue;
+
+          // Pet atira
+          if(p.pet.cooldown <= 0) {
+              // Busca inimigo pro pet
+              let tPet = null;
+              for(const e of r.enemies) {
+                  if(!e.dead && Math.hypot(e.x - p.x, e.y - p.y) < p.pet.range) { tPet = e; break; }
+              }
+              if(tPet) {
+                  tPet.hp -= p.pet.dmg;
+                  io.to(id).emit('petShot', { x: p.x, y: p.y, tx: tPet.x, ty: tPet.y });
+                  if(tPet.hp <= 0) { tPet.dead = true; tPet.respawn = 300; r.xpOrbs.push({x:tPet.x, y:tPet.y, val:20}); }
+                  p.pet.cooldown = 30; // 1 tiro por segundo
+              }
+          } else {
+              p.pet.cooldown--;
+          }
+
+          // Coleta XP
+          r.xpOrbs = r.xpOrbs.filter(o => {
+              if(Math.hypot(p.x - o.x, p.y - o.y) < 50) {
+                  p.xp += o.val;
+                  if(p.xp >= p.nextLevel) {
+                      p.xp = 0; p.level++; p.nextLevel *= 1.4;
+                      io.to(pid).emit('levelUp');
+                  }
+                  return false;
+              }
+              return true;
+          });
+      }
+
+      io.to(id).emit('update', { players: r.players, enemies: r.enemies, resources: r.resources, buildings: r.buildings, orbs: r.xpOrbs });
   }
 }, 33);
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => { console.log('Server OK na porta ' + PORT); });
+server.listen(process.env.PORT || 3000, () => console.log('Server ON'));

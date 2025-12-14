@@ -2,58 +2,64 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>eddual game</title>
+<title>eddual arena</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
 <style>
+* { box-sizing: border-box; }
+
 body {
   margin: 0;
-  background: #0f0f14;
+  background: #0b0d14;
   color: white;
-  font-family: Arial, sans-serif;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  font-family: system-ui, Arial, sans-serif;
+  overflow: hidden;
 }
 
+/* menu */
 #menu {
-  margin: 8px;
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   gap: 6px;
-  flex-wrap: wrap;
-  justify-content: center;
+  z-index: 10;
 }
 
 button, input {
-  padding: 6px;
+  padding: 6px 8px;
   font-size: 14px;
+  background: #1a1d2a;
+  color: white;
+  border: 1px solid #333;
+  border-radius: 6px;
 }
 
 #roomCode {
-  width: 100%;
-  text-align: center;
   font-weight: bold;
 }
 
+/* jogo */
 #gameWrapper {
-  position: relative;
+  position: fixed;
+  inset: 0;
 }
 
 canvas {
-  background: #14141c;
-  border: 2px solid #333;
-  touch-action: none;
+  display: block;
 }
 
 /* minimapa */
 #minimap {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 120px;
-  height: 120px;
-  background: #0b0b10;
-  border: 2px solid #555;
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  width: 130px;
+  height: 130px;
+  background: #0a0c12;
+  border: 2px solid #2a2e44;
+  border-radius: 6px;
 }
 </style>
 </head>
@@ -61,9 +67,9 @@ canvas {
 <body>
 
 <div id="menu">
-  <div id="roomCode"></div>
+  <span id="roomCode"></span>
   <button id="createBtn">Criar sala</button>
-  <input id="roomInput" placeholder="Código da sala">
+  <input id="roomInput" placeholder="Código">
   <button id="joinBtn">Entrar</button>
 </div>
 
@@ -82,17 +88,25 @@ const socket = io()
 
 const canvas = document.getElementById("game")
 const ctx = canvas.getContext("2d")
-canvas.width = Math.min(innerWidth - 20, 420)
-canvas.height = Math.min(innerHeight - 140, 420)
 
 const minimap = document.getElementById("minimap")
 const mctx = minimap.getContext("2d")
 
+function resize() {
+  canvas.width = innerWidth
+  canvas.height = innerHeight
+}
+resize()
+addEventListener("resize", resize)
+
+/* =====================================================
+   ESTADO
+===================================================== */
 let roomId = null
 let players = {}
 let myId = null
 
-let localPlayer = { x: 0, y: 0 }
+let localPlayer = { x: 1200, y: 1200 }
 let localInit = false
 
 const WORLD = { width: 2400, height: 2400 }
@@ -134,11 +148,11 @@ socket.on("updatePlayers", data => {
 })
 
 /* =====================================================
-   FADINHAS (SÓ NO PLAYER LOCAL)
+   FADINHAS
 ===================================================== */
 const fairies = [
-  { angle: 0, dist: 28, speed: 0.05, color: "#a66cff" },
-  { angle: Math.PI, dist: 28, speed: -0.05, color: "#6cdcff" }
+  { angle: 0, dist: 26, speed: 0.04, color: "#b36bff" },
+  { angle: Math.PI, dist: 26, speed: -0.04, color: "#6be1ff" }
 ]
 
 function updateFairies() {
@@ -150,15 +164,15 @@ function drawFairies(p) {
     const x = p.x + Math.cos(f.angle) * f.dist
     const y = p.y + Math.sin(f.angle) * f.dist
 
-    ctx.globalAlpha = 0.9
+    ctx.globalAlpha = 0.8
     ctx.fillStyle = f.color
     ctx.beginPath()
-    ctx.arc(x, y, 5, 0, Math.PI * 2)
+    ctx.arc(x, y, 4.5, 0, Math.PI * 2)
     ctx.fill()
 
     ctx.globalAlpha = 0.2
     ctx.beginPath()
-    ctx.arc(x, y, 11, 0, Math.PI * 2)
+    ctx.arc(x, y, 10, 0, Math.PI * 2)
     ctx.fill()
 
     ctx.globalAlpha = 1
@@ -166,11 +180,11 @@ function drawFairies(p) {
 }
 
 /* =====================================================
-   FUNDO (GRID + PARALLAX)
+   FUNDO (GRID REAL)
 ===================================================== */
 function drawBackground() {
-  const grid = 80
-  ctx.strokeStyle = "#1f1f2a"
+  const grid = 120
+  ctx.strokeStyle = "#171a26"
   ctx.lineWidth = 1
 
   const startX = Math.floor(camera.x / grid) * grid
@@ -194,10 +208,12 @@ function drawBackground() {
 /* =====================================================
    LOOP
 ===================================================== */
-function loop() {
+let sendTimer = 0
+
+function loop(dt) {
   ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-  /* MOVIMENTO */
+  /* movimento local */
   if (roomId && window.joystick) {
     const speed = 5
     localPlayer.x += window.joystick.dx * speed
@@ -205,47 +221,46 @@ function loop() {
 
     localPlayer.x = Math.max(0, Math.min(WORLD.width, localPlayer.x))
     localPlayer.y = Math.max(0, Math.min(WORLD.height, localPlayer.y))
-
-    if (Math.random() < 0.25) {
-      socket.emit("move", {
-        roomId,
-        x: localPlayer.x,
-        y: localPlayer.y
-      })
-    }
   }
 
-  /* CÂMERA */
-  camera.x += (localPlayer.x - camera.x - canvas.width / 2) * 0.1
-  camera.y += (localPlayer.y - camera.y - canvas.height / 2) * 0.1
+  /* envio pro server (intervalo fixo) */
+  sendTimer += dt
+  if (sendTimer > 80 && roomId) {
+    sendTimer = 0
+    socket.emit("move", {
+      roomId,
+      x: localPlayer.x,
+      y: localPlayer.y
+    })
+  }
+
+  /* camera suave */
+  camera.x += (localPlayer.x - camera.x - canvas.width / 2) * 0.12
+  camera.y += (localPlayer.y - camera.y - canvas.height / 2) * 0.12
 
   ctx.save()
   ctx.translate(-camera.x, -camera.y)
 
-  /* FUNDO */
   drawBackground()
 
-  /* PLAYERS */
+  /* players */
   for (const id in players) {
     const p = id === myId ? localPlayer : players[id]
 
-    // sombra
-    ctx.fillStyle = "rgba(0,0,0,0.4)"
+    ctx.fillStyle = "rgba(0,0,0,0.35)"
     ctx.beginPath()
-    ctx.ellipse(p.x, p.y + 11, 12, 4, 0, 0, Math.PI * 2)
+    ctx.ellipse(p.x, p.y + 12, 12, 4, 0, 0, Math.PI * 2)
     ctx.fill()
 
-    // outro player mais apagado (só visual)
     if (id !== myId) ctx.globalAlpha = 0.55
 
-    ctx.fillStyle = id === myId ? "#4da6ff" : "#ffa94d"
+    ctx.fillStyle = id === myId ? "#5aa9ff" : "#ffb86b"
     ctx.beginPath()
     ctx.arc(p.x, p.y, 12, 0, Math.PI * 2)
     ctx.fill()
 
     ctx.globalAlpha = 1
 
-    // fadinhas só no player local
     if (id === myId) {
       updateFairies()
       drawFairies(p)
@@ -254,147 +269,23 @@ function loop() {
 
   ctx.restore()
 
-  /* MINIMAPA */
+  /* minimapa */
   mctx.clearRect(0, 0, minimap.width, minimap.height)
-  mctx.fillStyle = "#0e0e14"
+  mctx.fillStyle = "#0d0f17"
   mctx.fillRect(0, 0, minimap.width, minimap.height)
 
   for (const id in players) {
     const p = id === myId ? localPlayer : players[id]
     const mx = (p.x / WORLD.width) * minimap.width
     const my = (p.y / WORLD.height) * minimap.height
-    mctx.fillStyle = id === myId ? "#4da6ff" : "#ffa94d"
+    mctx.fillStyle = id === myId ? "#5aa9ff" : "#ffb86b"
     mctx.fillRect(mx - 2, my - 2, 4, 4)
   }
 
-  requestAnimationFrame(loop)
+  requestAnimationFrame(ts => loop(ts - (dt || ts)))
 }
 
-loop()
-</script>
-
-<script src="js/joystick.js"></script>
-
-</body>
-</html>
-    // brilho
-    ctx.globalAlpha = 0.9
-    ctx.fillStyle = c.color
-    ctx.beginPath()
-    ctx.arc(x, y, 5, 0, Math.PI * 2)
-    ctx.fill()
-
-    // glow fake
-    ctx.globalAlpha = 0.2
-    ctx.beginPath()
-    ctx.arc(x, y, 10, 0, Math.PI * 2)
-    ctx.fill()
-
-    ctx.globalAlpha = 1
-  })
-}
-
-/* ======================================================
-   COLISÃO SIMPLES
-====================================================== */
-function resolvePlayerCollision(a, b) {
-  const dx = a.x - b.x
-  const dy = a.y - b.y
-  const dist = Math.hypot(dx, dy)
-  const min = 24
-
-  if (dist > 0 && dist < min) {
-    const push = (min - dist) / 2
-    const nx = dx / dist
-    const ny = dy / dist
-    a.x += nx * push
-    a.y += ny * push
-    b.x -= nx * push
-    b.y -= ny * push
-  }
-}
-
-/* ======================================================
-   LOOP
-====================================================== */
-function loop() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-  /* MOVIMENTO */
-  if (roomId && window.joystick) {
-    const speed = 5
-    localPlayer.x += window.joystick.dx * speed
-    localPlayer.y += window.joystick.dy * speed
-
-    localPlayer.x = Math.max(0, Math.min(WORLD.width, localPlayer.x))
-    localPlayer.y = Math.max(0, Math.min(WORLD.height, localPlayer.y))
-
-    if (Math.random() < 0.25) {
-      socket.emit("move", {
-        roomId,
-        x: localPlayer.x,
-        y: localPlayer.y
-      })
-    }
-  }
-
-  /* CÂMERA */
-  camera.x += (localPlayer.x - camera.x - canvas.width / 2) * 0.1
-  camera.y += (localPlayer.y - camera.y - canvas.height / 2) * 0.1
-
-  ctx.save()
-  ctx.translate(-camera.x, -camera.y)
-
-  /* COLISÃO */
-  const ids = Object.keys(players)
-  if (ids.length === 2) {
-    const a = ids[0] === myId ? localPlayer : players[ids[0]]
-    const b = ids[1] === myId ? localPlayer : players[ids[1]]
-    resolvePlayerCollision(a, b)
-  }
-
-  /* PLAYERS */
-  for (const id in players) {
-    const p = id === myId ? localPlayer : players[id]
-
-    // sombra
-    ctx.fillStyle = "rgba(0,0,0,0.4)"
-    ctx.beginPath()
-    ctx.ellipse(p.x, p.y + 10, 10, 4, 0, 0, Math.PI * 2)
-    ctx.fill()
-
-    // corpo (placeholder de sprite)
-    ctx.fillStyle = id === myId ? "#4da6ff" : "#ffa94d"
-    ctx.beginPath()
-    ctx.arc(p.x, p.y, 12, 0, Math.PI * 2)
-    ctx.fill()
-
-    // fadinhas só no player local
-    if (id === myId) {
-      updateCompanions()
-      drawCompanions(p)
-    }
-  }
-
-  ctx.restore()
-
-  /* MINIMAPA */
-  mctx.clearRect(0, 0, minimap.width, minimap.height)
-  mctx.fillStyle = "#222"
-  mctx.fillRect(0, 0, minimap.width, minimap.height)
-
-  for (const id in players) {
-    const p = id === myId ? localPlayer : players[id]
-    const mx = (p.x / WORLD.width) * minimap.width
-    const my = (p.y / WORLD.height) * minimap.height
-    mctx.fillStyle = id === myId ? "#4da6ff" : "#ffa94d"
-    mctx.fillRect(mx - 2, my - 2, 4, 4)
-  }
-
-  requestAnimationFrame(loop)
-}
-
-loop()
+requestAnimationFrame(loop)
 </script>
 
 <script src="js/joystick.js"></script>

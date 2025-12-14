@@ -1,205 +1,347 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>coop base</title>
+<meta charset="UTF-8">
+<title>edu & kamy arena</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
 <style>
-html, body {
+* { box-sizing: border-box; }
+
+body {
   margin: 0;
-  padding: 0;
-  overflow: hidden;
   background: #0b0d14;
-  touch-action: none;
-  font-family: Arial, sans-serif;
+  overflow: hidden;
+  font-family: system-ui, Arial;
 }
 
-#ui {
+/* topo */
+#menu {
   position: fixed;
   top: 10px;
-  left: 10px;
-  z-index: 10;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   gap: 6px;
+  z-index: 10;
 }
 
-#ui input, #ui button {
-  padding: 6px 10px;
+button, input {
+  padding: 6px 8px;
+  font-size: 14px;
+  background: #1a1d2a;
+  color: white;
+  border: 1px solid #333;
   border-radius: 6px;
-  border: none;
-  background: #1f2233;
-  color: #fff;
 }
 
-#joystick {
+#roomCode {
+  font-weight: bold;
+  color: #9fb4ff;
+}
+
+/* ataque */
+#attackBtn {
   position: fixed;
-  left: 20px;
-  bottom: 30px;
-  width: 120px;
-  height: 120px;
+  right: 24px;
+  bottom: 24px;
+  width: 90px;
+  height: 90px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.08);
+  background: radial-gradient(#ff5f5f, #c82828);
+  border: none;
+  color: white;
+  font-size: 16px;
+  z-index: 10;
 }
 
-#stick {
-  position: absolute;
-  left: 40px;
-  top: 40px;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.4);
+/* minimapa */
+#minimap {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  width: 130px;
+  height: 130px;
+  background: #0a0c12;
+  border: 2px solid #2a2e44;
+  border-radius: 6px;
 }
 
-canvas {
-  display: block;
-}
+canvas { display: block; }
 </style>
 </head>
 
 <body>
 
-<div id="ui">
-  <button onclick="createRoom()">Criar</button>
-  <input id="roomInput" placeholder="sala" />
-  <button onclick="joinRoom()">Entrar</button>
+<div id="menu">
+  <span id="roomCode"></span>
+  <button id="createBtn">Criar sala</button>
+  <input id="roomInput" placeholder="Código">
+  <button id="joinBtn">Entrar</button>
 </div>
+
+<button id="attackBtn">ATK</button>
 
 <canvas id="game"></canvas>
-
-<div id="joystick">
-  <div id="stick"></div>
-</div>
+<canvas id="minimap"></canvas>
 
 <script src="/socket.io/socket.io.js"></script>
 
 <script>
-/* ===== CANVAS FULLSCREEN ===== */
+/* ================= SETUP ================= */
+const socket = io()
 const canvas = document.getElementById("game")
 const ctx = canvas.getContext("2d")
+const minimap = document.getElementById("minimap")
+const mctx = minimap.getContext("2d")
 
 function resize() {
-  const dpr = window.devicePixelRatio || 1
-  canvas.style.width = innerWidth + "px"
-  canvas.style.height = innerHeight + "px"
-  canvas.width = innerWidth * dpr
-  canvas.height = innerHeight * dpr
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  canvas.width = innerWidth
+  canvas.height = innerHeight
 }
-addEventListener("resize", resize)
 resize()
+addEventListener("resize", resize)
 
-/* ===== SOCKET ===== */
-const socket = io()
-let myId = null
+/* ================= MUNDO ================= */
+const WORLD = { w: 2400, h: 2400 }
+let camera = { x: 0, y: 0 }
+
+/* ================= ESTADO ================= */
 let roomId = null
-let players = {}
+let myId = null
 
-socket.on("connect", () => {
-  myId = socket.id
-})
+let serverPlayers = {}
+const smoothPlayers = {}
+
+let localPlayer = { x: 1200, y: 1200, r: 14 }
+let localInit = false
+
+/* ================= UI / SALA ================= */
+const createBtn = document.getElementById("createBtn")
+const joinBtn = document.getElementById("joinBtn")
+const roomInput = document.getElementById("roomInput")
+const roomCode = document.getElementById("roomCode")
+
+socket.on("connect", () => myId = socket.id)
+
+createBtn.onclick = () => socket.emit("createRoom")
+
+joinBtn.onclick = () => {
+  const code = roomInput.value.trim()
+  if (!code) return
+  roomId = code
+  socket.emit("joinRoom", code)
+  roomCode.innerText = "Sala: " + code
+}
 
 socket.on("roomCreated", id => {
   roomId = id
-  document.getElementById("roomInput").value = id
+  roomCode.innerText = "Sala: " + id
+  roomInput.value = id
 })
 
 socket.on("updatePlayers", data => {
-  players = data
-})
+  serverPlayers = data
 
-function createRoom() {
-  socket.emit("createRoom")
-}
-
-function joinRoom() {
-  const id = document.getElementById("roomInput").value.trim()
-  if (id) {
-    roomId = id
-    socket.emit("joinRoom", id)
-  }
-}
-
-/* ===== JOYSTICK ===== */
-const joy = { dx: 0, dy: 0 }
-const joyEl = document.getElementById("joystick")
-const stick = document.getElementById("stick")
-
-let active = false
-
-joyEl.addEventListener("pointerdown", e => {
-  active = true
-})
-
-addEventListener("pointerup", () => {
-  active = false
-  joy.dx = joy.dy = 0
-  stick.style.left = "40px"
-  stick.style.top = "40px"
-})
-
-addEventListener("pointermove", e => {
-  if (!active) return
-
-  const r = joyEl.getBoundingClientRect()
-  const cx = r.left + 60
-  const cy = r.top + 60
-
-  let dx = e.clientX - cx
-  let dy = e.clientY - cy
-
-  const dist = Math.hypot(dx, dy)
-  if (dist > 40) {
-    dx *= 40 / dist
-    dy *= 40 / dist
-  }
-
-  joy.dx = dx / 40
-  joy.dy = dy / 40
-
-  stick.style.left = 40 + dx + "px"
-  stick.style.top = 40 + dy + "px"
-})
-
-/* ===== GAME LOOP ===== */
-const WORLD = { w: 2000, h: 2000 }
-const camera = { x: 0, y: 0 }
-
-function loop() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-  const me = players[myId]
-  if (me) {
-    camera.x = me.x - canvas.width / 2
-    camera.y = me.y - canvas.height / 2
-
-    if (roomId) {
-      socket.emit("move", {
-        roomId,
-        x: me.x + joy.dx * 5,
-        y: me.y + joy.dy * 5
-      })
+  for (const id in serverPlayers) {
+    if (id === myId) continue
+    if (!smoothPlayers[id]) {
+      smoothPlayers[id] = { x: data[id].x, y: data[id].y, r: 14 }
     }
   }
 
-  /* fundo simples */
-  ctx.fillStyle = "#0b0d14"
-  ctx.fillRect(-camera.x, -camera.y, WORLD.w, WORLD.h)
+  if (!localInit && serverPlayers[myId]) {
+    localPlayer.x = serverPlayers[myId].x
+    localPlayer.y = serverPlayers[myId].y
+    localInit = true
+  }
+})
+
+/* ================= IDENTIDADE / CLASSE ================= */
+function getName(id) {
+  const ids = Object.keys(serverPlayers)
+  return ids[0] === id ? "edu" : "kamy"
+}
+
+function getClass(id) {
+  const ids = Object.keys(serverPlayers)
+  return ids[0] === id ? "warrior" : "mage"
+}
+
+/* ================= INIMIGOS ================= */
+let enemies = []
+
+function initEnemies() {
+  enemies = []
+  for (let i = 0; i < 8; i++) {
+    enemies.push({
+      x: 600 + i * 200,
+      y: 600,
+      r: 14,
+      hp: 5,
+      speed: 1.1
+    })
+  }
+}
+initEnemies()
+
+/* ================= ATAQUE ================= */
+let atkCooldown = false
+document.getElementById("attackBtn").onclick = () => {
+  if (atkCooldown) return
+  atkCooldown = true
+  setTimeout(() => atkCooldown = false, 400)
+
+  const myClass = getClass(myId)
+
+  enemies.forEach(e => {
+    const dx = e.x - localPlayer.x
+    const dy = e.y - localPlayer.y
+    const dist = Math.hypot(dx, dy)
+
+    if (myClass === "warrior" && dist < 60) {
+      e.hp -= 2
+      e.x += dx * 0.2
+      e.y += dy * 0.2
+    }
+
+    if (myClass === "mage" && dist < 220) {
+      e.hp -= 1
+    }
+  })
+
+  enemies = enemies.filter(e => e.hp > 0)
+}
+
+/* ================= FUNÇÕES ================= */
+function drawBackground() {
+  const grid = 120
+  ctx.strokeStyle = "#171a26"
+
+  const sx = Math.floor(camera.x / grid) * grid
+  const sy = Math.floor(camera.y / grid) * grid
+
+  for (let x = sx; x < camera.x + canvas.width; x += grid) {
+    ctx.beginPath()
+    ctx.moveTo(x, camera.y)
+    ctx.lineTo(x, camera.y + canvas.height)
+    ctx.stroke()
+  }
+
+  for (let y = sy; y < camera.y + canvas.height; y += grid) {
+    ctx.beginPath()
+    ctx.moveTo(camera.x, y)
+    ctx.lineTo(camera.x + canvas.width, y)
+    ctx.stroke()
+  }
+}
+
+/* ================= LOOP ================= */
+let last = 0
+let sendTimer = 0
+
+function loop(ts) {
+  const dt = ts - last
+  last = ts
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+  /* movimento local */
+  if (roomId && window.joystick) {
+    const speed = 5
+    localPlayer.x += window.joystick.dx * speed
+    localPlayer.y += window.joystick.dy * speed
+  }
+
+  localPlayer.x = Math.max(0, Math.min(WORLD.w, localPlayer.x))
+  localPlayer.y = Math.max(0, Math.min(WORLD.h, localPlayer.y))
+
+  sendTimer += dt
+  if (sendTimer > 80 && roomId) {
+    sendTimer = 0
+    socket.emit("move", { roomId, x: localPlayer.x, y: localPlayer.y })
+  }
+
+  for (const id in smoothPlayers) {
+    const t = serverPlayers[id]
+    if (!t) continue
+    smoothPlayers[id].x += (t.x - smoothPlayers[id].x) * 0.18
+    smoothPlayers[id].y += (t.y - smoothPlayers[id].y) * 0.18
+  }
+
+  camera.x += (localPlayer.x - camera.x - canvas.width / 2) * 0.12
+  camera.y += (localPlayer.y - camera.y - canvas.height / 2) * 0.12
+
+  ctx.save()
+  ctx.translate(-camera.x, -camera.y)
+
+  drawBackground()
+
+  /* inimigos */
+  enemies.forEach(e => {
+    const dx = localPlayer.x - e.x
+    const dy = localPlayer.y - e.y
+    const d = Math.hypot(dx, dy)
+    if (d > 2) {
+      e.x += (dx / d) * e.speed
+      e.y += (dy / d) * e.speed
+    }
+
+    ctx.fillStyle = "#6bff9a"
+    ctx.beginPath()
+    ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2)
+    ctx.fill()
+  })
 
   /* players */
-  for (const id in players) {
-    const p = players[id]
-    ctx.fillStyle = id === myId ? "#4da6ff" : "#6f6"
+  for (const id in serverPlayers) {
+    const p = id === myId ? localPlayer : smoothPlayers[id]
+    if (!p) continue
+
+    ctx.fillStyle = id === myId ? "#5aa9ff" : "#ffb86b"
     ctx.beginPath()
-    ctx.arc(p.x - camera.x, p.y - camera.y, 16, 0, Math.PI * 2)
+    ctx.arc(p.x, p.y, 14, 0, Math.PI * 2)
     ctx.fill()
+
+    ctx.fillStyle = "#fff"
+    ctx.font = "12px Arial"
+    ctx.textAlign = "center"
+    ctx.fillText(getName(id), p.x, p.y - 22)
+  }
+
+  ctx.restore()
+
+  /* minimapa */
+  mctx.clearRect(0, 0, minimap.width, minimap.height)
+  mctx.fillStyle = "#0d0f17"
+  mctx.fillRect(0, 0, minimap.width, minimap.height)
+
+  enemies.forEach(e => {
+    const mx = (e.x / WORLD.w) * minimap.width
+    const my = (e.y / WORLD.h) * minimap.height
+    mctx.fillStyle = "#6bff9a"
+    mctx.fillRect(mx - 2, my - 2, 4, 4)
+  })
+
+  for (const id in serverPlayers) {
+    const p = id === myId ? localPlayer : smoothPlayers[id]
+    if (!p) continue
+    const mx = (p.x / WORLD.w) * minimap.width
+    const my = (p.y / WORLD.h) * minimap.height
+    mctx.fillStyle = id === myId ? "#5aa9ff" : "#ffb86b"
+    mctx.fillRect(mx - 2, my - 2, 4, 4)
   }
 
   requestAnimationFrame(loop)
 }
 
-loop()
+requestAnimationFrame(loop)
 </script>
+
+<script src="js/joystick.js"></script>
 </body>
 </html>
+
+
+
+preciso q vc me ajude a programar, quero que tenha um menu, quero inimigos com ia, sistema de vida/dano/idle/atacar... me manda numa caixa de prompt pra eu so copiar e colar la na parte do index certinho

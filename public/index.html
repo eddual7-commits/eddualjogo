@@ -15,7 +15,6 @@ body {
   font-family: system-ui, Arial;
 }
 
-/* UI */
 #menu {
   position: fixed;
   top: 10px;
@@ -65,9 +64,7 @@ button, input {
   border-radius: 6px;
 }
 
-canvas {
-  display: block;
-}
+canvas { display: block; }
 </style>
 </head>
 
@@ -106,17 +103,17 @@ addEventListener("resize", resize)
 const WORLD = { w: 2400, h: 2400 }
 let camera = { x: 0, y: 0 }
 
-/* ================= ESTADO BASE (NÃO MEXER) ================= */
+/* ================= ESTADO BASE ================= */
 let roomId = null
 let myId = null
 
 let serverPlayers = {}
 const smoothPlayers = {}
 
-let localPlayer = { x: 1200, y: 1200, r: 14 }
+let localPlayer = { x: 1200, y: 1200, r: 14, hp: 100 }
 let localInit = false
 
-/* ================= UI / SOCKET ================= */
+/* ================= UI / SALA ================= */
 const createBtn = document.getElementById("createBtn")
 const joinBtn = document.getElementById("joinBtn")
 const roomInput = document.getElementById("roomInput")
@@ -157,14 +154,18 @@ socket.on("updatePlayers", data => {
   }
 })
 
-/* ================= IDENTIDADE (BASE) ================= */
+/* ================= IDENTIDADE / CLASSE ================= */
 function getNameBySlot(id) {
   const ids = Object.keys(serverPlayers)
-  if (ids.length < 2) return "edu"
   return ids[0] === id ? "edu" : "kamy"
 }
 
-/* ================= FADINHAS (BASE) ================= */
+function getClassBySlot(id) {
+  const ids = Object.keys(serverPlayers)
+  return ids[0] === id ? "warrior" : "mage"
+}
+
+/* ================= FADINHAS ================= */
 function createFairies() {
   return [
     { a: 0, d: 26, s: 0.04, c: "#b36bff" },
@@ -199,43 +200,66 @@ function drawFairies(p, id) {
   })
 }
 
-/* ================= FUNDO (BASE) ================= */
-function drawBackground() {
-  const grid = 120
-  ctx.strokeStyle = "#171a26"
+/* ================= INIMIGOS ================= */
+let enemies = []
+function spawnEnemy() {
+  enemies.push({
+    x: Math.random() * WORLD.w,
+    y: Math.random() * WORLD.h,
+    r: 14,
+    hp: 30,
+    speed: 1.2,
+    lastHit: 0
+  })
+}
+for (let i = 0; i < 6; i++) spawnEnemy()
 
-  const sx = Math.floor(camera.x / grid) * grid
-  const sy = Math.floor(camera.y / grid) * grid
+/* ================= ATAQUE ================= */
+let atkCooldown = false
+let attackFlash = 0
+let projectiles = []
 
-  for (let x = sx; x < camera.x + canvas.width; x += grid) {
-    ctx.beginPath()
-    ctx.moveTo(x, camera.y)
-    ctx.lineTo(x, camera.y + canvas.height)
-    ctx.stroke()
+document.getElementById("attackBtn").onclick = () => {
+  if (atkCooldown) return
+  atkCooldown = true
+  setTimeout(() => atkCooldown = false, 400)
+
+  const myClass = getClassBySlot(myId)
+  attackFlash = 6
+
+  if (myClass === "warrior") {
+    enemies.forEach(e => {
+      const d = Math.hypot(e.x - localPlayer.x, e.y - localPlayer.y)
+      if (d < 70) e.hp -= 10
+    })
   }
 
-  for (let y = sy; y < camera.y + canvas.height; y += grid) {
-    ctx.beginPath()
-    ctx.moveTo(camera.x, y)
-    ctx.lineTo(camera.x + canvas.width, y)
-    ctx.stroke()
+  if (myClass === "mage") {
+    projectiles.push({
+      x: localPlayer.x,
+      y: localPlayer.y,
+      vx: 8,
+      life: 40
+    })
   }
+
+  enemies = enemies.filter(e => e.hp > 0)
 }
 
-/* ================= LOOP BASE ================= */
+/* ================= LOOP ================= */
 let last = 0
 let sendTimer = 0
 
-function baseLoop(ts) {
+function loop(ts) {
   const dt = ts - last
   last = ts
 
   ctx.clearRect(0, 0, canvas.width, canvas.height)
 
+  /* movimento */
   if (roomId && window.joystick) {
-    const speed = 5
-    localPlayer.x += window.joystick.dx * speed
-    localPlayer.y += window.joystick.dy * speed
+    localPlayer.x += window.joystick.dx * 5
+    localPlayer.y += window.joystick.dy * 5
   }
 
   localPlayer.x = Math.max(0, Math.min(WORLD.w, localPlayer.x))
@@ -260,93 +284,11 @@ function baseLoop(ts) {
   ctx.save()
   ctx.translate(-camera.x, -camera.y)
 
+  /* fundo */
   drawBackground()
   ensureFairies()
 
-  for (const id in serverPlayers) {
-    const p = id === myId ? localPlayer : smoothPlayers[id]
-    if (!p) continue
-
-    ctx.fillStyle = id === myId ? "#5aa9ff" : "#ffb86b"
-    ctx.beginPath()
-    ctx.arc(p.x, p.y, 14, 0, Math.PI * 2)
-    ctx.fill()
-
-    ctx.fillStyle = "#fff"
-    ctx.font = "12px Arial"
-    ctx.textAlign = "center"
-    ctx.fillText(getNameBySlot(id), p.x, p.y - 22)
-
-    drawFairies(p, id)
-  }
-
-  ctx.restore()
-
-  /* minimapa base */
-  mctx.clearRect(0, 0, minimap.width, minimap.height)
-  mctx.fillStyle = "#0d0f17"
-  mctx.fillRect(0, 0, minimap.width, minimap.height)
-
-  for (const id in serverPlayers) {
-    const p = id === myId ? localPlayer : smoothPlayers[id]
-    if (!p) continue
-    const mx = (p.x / WORLD.w) * minimap.width
-    const my = (p.y / WORLD.h) * minimap.height
-    mctx.fillStyle = id === myId ? "#5aa9ff" : "#ffb86b"
-    mctx.fillRect(mx - 2, my - 2, 4, 4)
-  }
-
-  requestAnimationFrame(baseLoop)
-}
-
-/* ================= SISTEMA NOVO (PODE REMOVER SEM QUEBRAR) ================= */
-
-/* CLASSES */
-function getClassBySlot(id) {
-  const ids = Object.keys(serverPlayers)
-  return ids[0] === id ? "warrior" : "mage"
-}
-
-/* PLAYER HP */
-localPlayer.hp = 100
-
-/* INIMIGOS */
-let enemies = []
-function spawnEnemy() {
-  enemies.push({
-    x: Math.random() * WORLD.w,
-    y: Math.random() * WORLD.h,
-    r: 14,
-    hp: 30,
-    speed: 1.2,
-    lastHit: 0
-  })
-}
-for (let i = 0; i < 6; i++) spawnEnemy()
-
-/* ATAQUE */
-let atkCooldown = false
-document.getElementById("attackBtn").onclick = () => {
-  if (atkCooldown) return
-  atkCooldown = true
-  setTimeout(() => atkCooldown = false, 400)
-
-  const myClass = getClassBySlot(myId)
-
-  enemies.forEach(e => {
-    const dx = e.x - localPlayer.x
-    const dy = e.y - localPlayer.y
-    const dist = Math.hypot(dx, dy)
-
-    if (myClass === "warrior" && dist < 60) e.hp -= 8
-    if (myClass === "mage" && dist < 200) e.hp -= 5
-  })
-
-  enemies = enemies.filter(e => e.hp > 0)
-}
-
-/* IA + DANO */
-function updateEnemies() {
+  /* inimigos IA + dano */
   enemies.forEach(e => {
     const dx = localPlayer.x - e.x
     const dy = localPlayer.y - e.y
@@ -370,22 +312,93 @@ function updateEnemies() {
     ctx.fill()
   })
 
+  /* projéteis */
+  projectiles.forEach(p => {
+    p.x += p.vx
+    p.life--
+
+    enemies.forEach(e => {
+      const d = Math.hypot(e.x - p.x, e.y - p.y)
+      if (d < e.r) {
+        e.hp -= 6
+        p.life = 0
+      }
+    })
+
+    ctx.fillStyle = "#a78bfa"
+    ctx.beginPath()
+    ctx.arc(p.x, p.y, 5, 0, Math.PI * 2)
+    ctx.fill()
+  })
+
+  projectiles = projectiles.filter(p => p.life > 0)
+  enemies = enemies.filter(e => e.hp > 0)
+
+  /* players */
+  for (const id in serverPlayers) {
+    const p = id === myId ? localPlayer : smoothPlayers[id]
+    if (!p) continue
+
+    ctx.fillStyle = id === myId ? "#5aa9ff" : "#ffb86b"
+    ctx.beginPath()
+    ctx.arc(p.x, p.y, 14, 0, Math.PI * 2)
+    ctx.fill()
+
+    ctx.fillStyle = "#fff"
+    ctx.font = "12px Arial"
+    ctx.textAlign = "center"
+    ctx.fillText(getNameBySlot(id), p.x, p.y - 22)
+
+    drawFairies(p, id)
+  }
+
+  /* feedback ataque */
+  if (attackFlash > 0) {
+    attackFlash--
+    ctx.strokeStyle = "rgba(255,255,255,0.4)"
+    ctx.beginPath()
+    ctx.arc(localPlayer.x, localPlayer.y, 50, 0, Math.PI * 2)
+    ctx.stroke()
+  }
+
+  /* hp */
+  localPlayer.hp = Math.max(0, localPlayer.hp)
   ctx.fillStyle = "red"
   ctx.fillRect(localPlayer.x - 20, localPlayer.y - 32, (localPlayer.hp / 100) * 40, 5)
-}
 
-/* INJETAR INIMIGOS NO LOOP */
-const originalLoop = baseLoop
-baseLoop = function(ts) {
-  originalLoop(ts)
-  ctx.save()
-  ctx.translate(-camera.x, -camera.y)
-  updateEnemies()
+  if (localPlayer.hp <= 0) {
+    localPlayer.hp = 100
+    localPlayer.x = WORLD.w / 2
+    localPlayer.y = WORLD.h / 2
+  }
+
   ctx.restore()
+
+  /* minimapa */
+  mctx.clearRect(0, 0, minimap.width, minimap.height)
+  mctx.fillStyle = "#0d0f17"
+  mctx.fillRect(0, 0, minimap.width, minimap.height)
+
+  enemies.forEach(e => {
+    const mx = (e.x / WORLD.w) * minimap.width
+    const my = (e.y / WORLD.h) * minimap.height
+    mctx.fillStyle = "#6bff9a"
+    mctx.fillRect(mx - 2, my - 2, 4, 4)
+  })
+
+  for (const id in serverPlayers) {
+    const p = id === myId ? localPlayer : smoothPlayers[id]
+    if (!p) continue
+    const mx = (p.x / WORLD.w) * minimap.width
+    const my = (p.y / WORLD.h) * minimap.height
+    mctx.fillStyle = id === myId ? "#5aa9ff" : "#ffb86b"
+    mctx.fillRect(mx - 2, my - 2, 4, 4)
+  }
+
+  requestAnimationFrame(loop)
 }
 
-/* ================= START ================= */
-requestAnimationFrame(baseLoop)
+requestAnimationFrame(loop)
 </script>
 
 <script src="js/joystick.js"></script>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>coop game</title>
+<style>
+body {
+  margin: 0;
+  background: #0e0e0e;
+  color: white;
+  font-family: sans-serif;
+}
+canvas {
+  background: #1b1b1b;
+  display: block;
+  margin: auto;
+}
+button, input {
+  margin: 4px;
+}
+</style>
+</head>
+<body>
+
+<div style="text-align:center">
+  <button onclick="createRoom()">criar sala</button>
+  <input id="roomInput" placeholder="id da sala">
+  <button onclick="joinRoom()">entrar</button>
+  <p id="roomLabel"></p>
+</div>
+
+<canvas id="game" width="400" height="400"></canvas>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io()
+const canvas = document.getElementById("game")
+const ctx = canvas.getContext("2d")
+
+let roomId = null
+let players = {}
+let me = { x: 150, y: 150 }
+
+function createRoom() {
+  socket.emit("createRoom")
+}
+
+function joinRoom() {
+  roomId = document.getElementById("roomInput").value
+  socket.emit("joinRoom", roomId)
+  document.getElementById("roomLabel").innerText = "sala: " + roomId
+}
+
+socket.on("roomCreated", id => {
+  roomId = id
+  document.getElementById("roomLabel").innerText = "sala: " + id
+})
+
+socket.on("updatePlayers", p => {
+  players = p
+})
+
+const keys = {}
+onkeydown = e => keys[e.key] = true
+onkeyup = e => keys[e.key] = false
+
+function update() {
+  if (!roomId) return
+
+  if (keys["w"]) me.y -= 2
+  if (keys["s"]) me.y += 2
+  if (keys["a"]) me.x -= 2
+  if (keys["d"]) me.x += 2
+
+  socket.emit("move", { roomId, x: me.x, y: me.y })
+}
+
+function draw() {
+  ctx.clearRect(0,0,400,400)
+  for (const id in players) {
+    const p = players[id]
+    ctx.fillStyle = id === socket.id ? "#4af" : "#fa4"
+    ctx.fillRect(p.x, p.y, 16, 16)
+  }
+}
+
+function loop() {
+  update()
+  draw()
+  requestAnimationFrame(loop)
+}
+
+loop()
+</script>
+</body>
+</html>

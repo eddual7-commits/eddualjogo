@@ -11,11 +11,42 @@
 body {
   margin: 0;
   background: #0b0d14;
+  color: white;
+  font-family: system-ui, Arial;
   overflow: hidden;
-  font-family: system-ui, Arial, sans-serif;
 }
 
-/* UI */
+/* ===== MENU ===== */
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,12,20,0.95);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  z-index: 20;
+}
+
+#overlay h1 {
+  margin: 0;
+}
+
+.class-btn {
+  padding: 10px 20px;
+  border: 1px solid #333;
+  background: #1a1d2a;
+  color: white;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.class-btn.selected {
+  outline: 2px solid #5aa9ff;
+}
+
+/* ===== UI TOP ===== */
 #menu {
   position: fixed;
   top: 10px;
@@ -26,40 +57,38 @@ body {
   z-index: 10;
 }
 
-button, input {
-  padding: 6px 8px;
-  font-size: 14px;
-  background: #1a1d2a;
+/* ===== ATTACK BUTTON ===== */
+#attackBtn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: radial-gradient(#ff5f5f, #c82828);
+  border: none;
+  font-size: 16px;
   color: white;
-  border: 1px solid #333;
-  border-radius: 6px;
+  z-index: 10;
 }
 
-#roomCode {
-  font-weight: bold;
-  color: #9fb4ff;
-}
-
-/* Canvas */
 canvas {
   display: block;
-}
-
-#minimap {
-  position: fixed;
-  top: 12px;
-  right: 12px;
-  width: 130px;
-  height: 130px;
-  background: #0a0c12;
-  border: 2px solid #2a2e44;
-  border-radius: 6px;
 }
 </style>
 </head>
 
 <body>
 
+<!-- OVERLAY -->
+<div id="overlay">
+  <h1>Escolhe tua classe</h1>
+  <button class="class-btn" data-class="warrior">⚔️ Guerreiro</button>
+  <button class="class-btn" data-class="mage">🔮 Mago</button>
+  <button id="startBtn">Jogar</button>
+</div>
+
+<!-- UI -->
 <div id="menu">
   <span id="roomCode"></span>
   <button id="createBtn">Criar sala</button>
@@ -67,8 +96,9 @@ canvas {
   <button id="joinBtn">Entrar</button>
 </div>
 
+<button id="attackBtn">ATK</button>
+
 <canvas id="game"></canvas>
-<canvas id="minimap"></canvas>
 
 <script src="/socket.io/socket.io.js"></script>
 
@@ -79,255 +109,158 @@ canvas {
 const socket = io()
 const canvas = document.getElementById("game")
 const ctx = canvas.getContext("2d")
-const minimap = document.getElementById("minimap")
-const mctx = minimap.getContext("2d")
-
-function resize() {
+canvas.width = innerWidth
+canvas.height = innerHeight
+addEventListener("resize", () => {
   canvas.width = innerWidth
   canvas.height = innerHeight
-}
-resize()
-addEventListener("resize", resize)
+})
 
 /* =====================================================
    ESTADO
 ===================================================== */
-const WORLD = { width: 2400, height: 2400 }
+let roomId = null
+let myId = null
+let players = {}
+let localPlayer = { x: 1200, y: 1200, r: 14 }
+let playerClass = "warrior"
+let gameStarted = false
+
+const WORLD = { w: 2400, h: 2400 }
 let camera = { x: 0, y: 0 }
 
-let roomId = null
-let players = {}
-let myId = null
+/* =====================================================
+   INIMIGOS
+===================================================== */
+let enemies = []
 
-let localPlayer = { x: 1200, y: 1200, r: 14 }
-let localInit = false
+function spawnEnemy() {
+  enemies.push({
+    x: Math.random() * WORLD.w,
+    y: Math.random() * WORLD.h,
+    hp: 3,
+    r: 12
+  })
+}
+
+for (let i = 0; i < 5; i++) spawnEnemy()
 
 /* =====================================================
-   UI / SOCKET
+   UI / MENU
 ===================================================== */
+document.querySelectorAll(".class-btn").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll(".class-btn").forEach(b => b.classList.remove("selected"))
+    btn.classList.add("selected")
+    playerClass = btn.dataset.class
+  }
+})
+
+document.getElementById("startBtn").onclick = () => {
+  gameStarted = true
+  document.getElementById("overlay").style.display = "none"
+}
+
 const createBtn = document.getElementById("createBtn")
 const joinBtn = document.getElementById("joinBtn")
 const roomInput = document.getElementById("roomInput")
 const roomCode = document.getElementById("roomCode")
 
 socket.on("connect", () => myId = socket.id)
-
 createBtn.onclick = () => socket.emit("createRoom")
 
 joinBtn.onclick = () => {
-  const code = roomInput.value.trim()
-  if (!code) return
-  roomId = code
-  roomCode.innerText = "Sala: " + code
-  socket.emit("joinRoom", code)
+  roomId = roomInput.value.trim()
+  socket.emit("joinRoom", roomId)
 }
 
 socket.on("roomCreated", id => {
   roomId = id
   roomCode.innerText = "Sala: " + id
-  roomInput.value = id
 })
 
-socket.on("updatePlayers", data => {
-  players = data
-  if (!localInit && players[myId]) {
-    localPlayer.x = players[myId].x
-    localPlayer.y = players[myId].y
-    localInit = true
-  }
-})
+socket.on("updatePlayers", data => players = data)
 
 /* =====================================================
-   FADINHAS (TODOS VEEM)
+   ATAQUE
 ===================================================== */
-function createFairies() {
-  return [
-    { a: 0, d: 26, s: 0.04, c: "#b36bff" },
-    { a: Math.PI, d: 26, s: -0.04, c: "#6be1ff" }
-  ]
-}
+let atkCooldown = false
 
-const fairiesMap = {}
+document.getElementById("attackBtn").onclick = () => {
+  if (atkCooldown || !gameStarted) return
+  atkCooldown = true
+  setTimeout(() => atkCooldown = false, 500)
 
-function updateAndDrawFairies(p, id) {
-  if (!fairiesMap[id]) fairiesMap[id] = createFairies()
+  enemies.forEach(e => {
+    const dx = e.x - localPlayer.x
+    const dy = e.y - localPlayer.y
+    const dist = Math.hypot(dx, dy)
 
-  fairiesMap[id].forEach(f => {
-    f.a += f.s
-    const x = p.x + Math.cos(f.a) * f.d
-    const y = p.y + Math.sin(f.a) * f.d
-
-    ctx.globalAlpha = 0.8
-    ctx.fillStyle = f.c
-    ctx.beginPath()
-    ctx.arc(x, y, 4.5, 0, Math.PI * 2)
-    ctx.fill()
-
-    ctx.globalAlpha = 0.2
-    ctx.beginPath()
-    ctx.arc(x, y, 10, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.globalAlpha = 1
+    if (
+      (playerClass === "warrior" && dist < 60) ||
+      (playerClass === "mage" && dist < 180)
+    ) {
+      e.hp--
+    }
   })
-}
 
-/* =====================================================
-   COLISÃO REAL (PLAYER vs PLAYER)
-===================================================== */
-function resolveCollision(a, b) {
-  const dx = a.x - b.x
-  const dy = a.y - b.y
-  const dist = Math.hypot(dx, dy)
-  const min = a.r + b.r
-
-  if (dist > 0 && dist < min) {
-    const overlap = (min - dist) / 2
-    const nx = dx / dist
-    const ny = dy / dist
-    a.x += nx * overlap
-    a.y += ny * overlap
-    b.x -= nx * overlap
-    b.y -= ny * overlap
-  }
-}
-
-/* =====================================================
-   FUNDO (GRID)
-===================================================== */
-function drawBackground() {
-  const grid = 120
-  ctx.strokeStyle = "#171a26"
-  ctx.lineWidth = 1
-
-  const sx = Math.floor(camera.x / grid) * grid
-  const sy = Math.floor(camera.y / grid) * grid
-
-  for (let x = sx; x < camera.x + canvas.width; x += grid) {
-    ctx.beginPath()
-    ctx.moveTo(x, camera.y)
-    ctx.lineTo(x, camera.y + canvas.height)
-    ctx.stroke()
-  }
-
-  for (let y = sy; y < camera.y + canvas.height; y += grid) {
-    ctx.beginPath()
-    ctx.moveTo(camera.x, y)
-    ctx.lineTo(camera.x + canvas.width, y)
-    ctx.stroke()
-  }
-}
-
-/* =====================================================
-   DESENHO DO PLAYER (SPRITE PLACEHOLDER)
-===================================================== */
-function drawPlayer(p, id) {
-  const isMe = id === myId
-  const name = isMe ? "edu" : "kamy"
-  const color = isMe ? "#5aa9ff" : "#ffb86b"
-
-  // sombra
-  ctx.fillStyle = "rgba(0,0,0,0.35)"
-  ctx.beginPath()
-  ctx.ellipse(p.x, p.y + 14, 14, 4, 0, 0, Math.PI * 2)
-  ctx.fill()
-
-  // corpo
-  ctx.fillStyle = color
-  ctx.beginPath()
-  ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
-  ctx.fill()
-
-  // OLHOS QUE OLHAM PRO OUTRO PLAYER
-  const others = Object.keys(players).filter(pid => pid !== id)
-  if (others.length) {
-    const t = others[0] === myId ? localPlayer : players[others[0]]
-    const dx = t.x - p.x
-    const dy = t.y - p.y
-    const ang = Math.atan2(dy, dx)
-    const ex = Math.cos(ang) * 4
-    const ey = Math.sin(ang) * 4
-
-    ctx.fillStyle = "#fff"
-    ctx.beginPath()
-    ctx.arc(p.x - 4 + ex, p.y - 2 + ey, 2, 0, Math.PI * 2)
-    ctx.arc(p.x + 4 + ex, p.y - 2 + ey, 2, 0, Math.PI * 2)
-    ctx.fill()
-  }
-
-  // nome
-  ctx.fillStyle = "#ffffff"
-  ctx.font = "12px Arial"
-  ctx.textAlign = "center"
-  ctx.fillText(name, p.x, p.y - 22)
+  enemies = enemies.filter(e => e.hp > 0)
 }
 
 /* =====================================================
    LOOP
 ===================================================== */
-let sendTimer = 0
-let last = 0
+function loop() {
+  ctx.clearRect(0,0,canvas.width,canvas.height)
 
-function loop(ts) {
-  const dt = ts - last
-  last = ts
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-  // movimento local
-  if (roomId && window.joystick) {
+  if (gameStarted && window.joystick) {
     const speed = 5
     localPlayer.x += window.joystick.dx * speed
     localPlayer.y += window.joystick.dy * speed
-    localPlayer.x = Math.max(0, Math.min(WORLD.width, localPlayer.x))
-    localPlayer.y = Math.max(0, Math.min(WORLD.height, localPlayer.y))
   }
 
-  // envio pro server
-  sendTimer += dt
-  if (sendTimer > 80 && roomId) {
-    sendTimer = 0
-    socket.emit("move", { roomId, x: localPlayer.x, y: localPlayer.y })
-  }
-
-  // camera
-  camera.x += (localPlayer.x - camera.x - canvas.width / 2) * 0.12
-  camera.y += (localPlayer.y - camera.y - canvas.height / 2) * 0.12
+  camera.x += (localPlayer.x - camera.x - canvas.width/2) * 0.12
+  camera.y += (localPlayer.y - camera.y - canvas.height/2) * 0.12
 
   ctx.save()
   ctx.translate(-camera.x, -camera.y)
 
-  drawBackground()
-
-  // colisão entre 2 players
-  const ids = Object.keys(players)
-  if (ids.length === 2) {
-    const a = ids[0] === myId ? localPlayer : players[ids[0]]
-    const b = ids[1] === myId ? localPlayer : players[ids[1]]
-    resolveCollision(a, b)
+  /* fundo */
+  ctx.strokeStyle = "#161a26"
+  for (let x = 0; x < WORLD.w; x += 120) {
+    ctx.beginPath()
+    ctx.moveTo(x, 0)
+    ctx.lineTo(x, WORLD.h)
+    ctx.stroke()
+  }
+  for (let y = 0; y < WORLD.h; y += 120) {
+    ctx.beginPath()
+    ctx.moveTo(0, y)
+    ctx.lineTo(WORLD.w, y)
+    ctx.stroke()
   }
 
-  // draw players + fadinhas
+  /* inimigos */
+  enemies.forEach(e => {
+    ctx.fillStyle = "#6bff9a"
+    ctx.beginPath()
+    ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2)
+    ctx.fill()
+  })
+
+  /* players */
   for (const id in players) {
     const p = id === myId ? localPlayer : players[id]
-    drawPlayer(p, id)
-    updateAndDrawFairies(p, id)
+    ctx.fillStyle = id === myId ? "#5aa9ff" : "#ffb86b"
+    ctx.beginPath()
+    ctx.arc(p.x, p.y, 14, 0, Math.PI * 2)
+    ctx.fill()
+
+    ctx.fillStyle = "#fff"
+    ctx.fillText(id === myId ? "edu" : "kamy", p.x, p.y - 20)
   }
 
   ctx.restore()
-
-  // minimapa
-  mctx.clearRect(0, 0, minimap.width, minimap.height)
-  mctx.fillStyle = "#0d0f17"
-  mctx.fillRect(0, 0, minimap.width, minimap.height)
-
-  for (const id in players) {
-    const p = id === myId ? localPlayer : players[id]
-    const mx = (p.x / WORLD.width) * minimap.width
-    const my = (p.y / WORLD.height) * minimap.height
-    mctx.fillStyle = id === myId ? "#5aa9ff" : "#ffb86b"
-    mctx.fillRect(mx - 2, my - 2, 4, 4)
-  }
-
   requestAnimationFrame(loop)
 }
 
@@ -335,6 +268,5 @@ requestAnimationFrame(loop)
 </script>
 
 <script src="js/joystick.js"></script>
-
 </body>
 </html>

@@ -8,7 +8,7 @@ const io = new Server(server);
 app.use(express.static(__dirname));
 
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
+  res.sendFile(__dirname + '/Index.html');
 });
 
 // Estado das Salas

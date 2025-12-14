@@ -4,94 +4,92 @@ const http = require('http');
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server);
+const fs = require('fs');
+const path = require('path');
+
+// === ÁREA DE DIAGNÓSTICO ===
+console.log("========================================");
+console.log("DIAGNÓSTICO DO SERVIDOR INICIADO");
+console.log("Pasta onde o server.js está (__dirname):", __dirname);
+console.log("Pasta onde o Node está rodando (cwd):", process.cwd());
+
+try {
+    const arquivos = fs.readdirSync(__dirname);
+    console.log("ARQUIVOS ENCONTRADOS NESTA PASTA:", arquivos);
+} catch (e) {
+    console.log("ERRO AO LER PASTA:", e.message);
+}
+console.log("========================================");
+// =============================
 
 app.use(express.static(__dirname));
 
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/Index.html');
+  // Tenta achar o arquivo de forma robusta
+  const caminhoArquivo = path.join(__dirname, 'index.html');
+  
+  if (fs.existsSync(caminhoArquivo)) {
+      res.sendFile(caminhoArquivo);
+  } else {
+      res.status(404).send(`
+        <h1>ERRO CRÍTICO</h1>
+        <p>O arquivo index.html não foi encontrado no servidor.</p>
+        <p>O servidor procurou em: ${caminhoArquivo}</p>
+        <p>Verifique os Logs do Render para ver a lista de arquivos disponíveis.</p>
+      `);
+  }
 });
 
-// Estado das Salas
-// Formato: { "ABCD": { socketId1: {x,y}, socketId2: {x,y} } }
+// Lógica do Jogo (Mantida para quando funcionar)
 const rooms = {};
 
-// Função para gerar código de sala (4 letras)
 function generateRoomId() {
   return Math.random().toString(36).substring(2, 6).toUpperCase();
 }
 
 io.on('connection', (socket) => {
-  console.log('Um jogador conectou:', socket.id);
+  console.log('Player conectado:', socket.id);
 
-  // 1. CRIAR SALA
   socket.on('createRoom', () => {
     const roomId = generateRoomId();
-    rooms[roomId] = {}; // Cria a sala vazia
-    
-    // Adiciona o player que criou na sala
+    rooms[roomId] = {};
     rooms[roomId][socket.id] = { x: 1200, y: 1200 };
-    
     socket.join(roomId);
-    socket.emit('roomCreated', roomId); // Avisa o criador qual é o código
-    console.log(`Sala criada: ${roomId} por ${socket.id}`);
+    socket.emit('roomCreated', roomId);
   });
 
-  // 2. ENTRAR NA SALA
   socket.on('joinRoom', (roomId) => {
-    // Verifica se a sala existe
     if (rooms[roomId]) {
-      // Adiciona o player na sala
       rooms[roomId][socket.id] = { x: 1200, y: 1200 };
-      
       socket.join(roomId);
-      socket.emit('joinedRoom', roomId); // Confirmação (opcional mas bom)
-      console.log(`${socket.id} entrou na sala ${roomId}`);
-    } else {
-      console.log(`Tentativa de entrar em sala inexistente: ${roomId}`);
+      socket.emit('joinedRoom', roomId);
     }
   });
 
-  // 3. MOVIMENTAÇÃO
   socket.on('move', (data) => {
-    // data = { roomId, x, y, state }
-    const { roomId, x, y, state } = data;
-
-    // Segurança básica: só atualiza se a sala e o player existirem
+    const { roomId, x, y } = data;
     if (rooms[roomId] && rooms[roomId][socket.id]) {
       rooms[roomId][socket.id].x = x;
       rooms[roomId][socket.id].y = y;
-      // Se quiser passar o estado (run/attack), adicione ao objeto aqui
     }
   });
-
-  // 4. DESCONEXÃO
+  
+  // Limpeza de desconexão
   socket.on('disconnect', () => {
-    console.log('Desconectou:', socket.id);
-    
-    // Procura em qual sala o player estava e remove
-    for (const roomId in rooms) {
-      if (rooms[roomId][socket.id]) {
-        delete rooms[roomId][socket.id];
-        
-        // Se a sala ficar vazia, deleta a sala para economizar memória
-        if (Object.keys(rooms[roomId]).length === 0) {
-          delete rooms[roomId];
-        }
-        break; 
+      for (const roomId in rooms) {
+          if (rooms[roomId][socket.id]) {
+              delete rooms[roomId][socket.id];
+              if(Object.keys(rooms[roomId]).length === 0) delete rooms[roomId];
+          }
       }
-    }
   });
 });
 
-// Loop do Servidor (Broadcast de Posições)
-// Envia o estado do mundo 20 vezes por segundo para todos na sala
 setInterval(() => {
   for (const roomId in rooms) {
-    const playersInRoom = rooms[roomId];
-    // Envia APENAS para quem está nessa sala específica (roomId)
-    io.to(roomId).emit('updatePlayers', playersInRoom);
+    io.to(roomId).emit('updatePlayers', rooms[roomId]);
   }
-}, 50); // 50ms = 20 ticks por segundo
+}, 50);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {

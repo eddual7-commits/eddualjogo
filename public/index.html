@@ -111,7 +111,16 @@ function loop() {
     ctx.fillStyle = id === myId ? "#4da6ff" : "#ffa94d"
     ctx.fillRect(p.x - 12, p.y - 12, 24, 24)
   }
-
+// movimento por joystick
+if (roomId && window.joystick) {
+  const me = players[myId]
+  if (me) {
+    const speed = 2.5
+    const x = me.x + window.joystick.dx * speed
+    const y = me.y + window.joystick.dy * speed
+    socket.emit("move", { roomId, x, y })
+  }
+}
   requestAnimationFrame(loop)
 }
 loop()
@@ -119,3 +128,4 @@ loop()
 
 </body>
 </html>
+<script src="js/joystick.js"></script>

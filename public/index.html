@@ -1,40 +1,52 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RPG Floresta</title>
+<title>RPG Floresta V4</title>
 
 <style>
 * { box-sizing: border-box; user-select: none; -webkit-user-select: none; touch-action: none; }
-body { margin: 0; background: #051405; overflow: hidden; font-family: 'Courier New', Courier, monospace; }
+body { margin: 0; background: #051405; overflow: hidden; font-family: 'Courier New', monospace; }
 
 /* UI */
-#ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-.menu { pointer-events: auto; background: rgba(10, 20, 10, 0.95); height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; color: #8fbc8f; }
-.menu h1 { font-size: 30px; text-shadow: 0 0 10px #0f0; }
-input { padding: 15px; font-size: 20px; text-transform: uppercase; text-align: center; pointer-events: auto; background: #000; border: 2px solid #8fbc8f; color: #fff; border-radius: 8px; }
-button { padding: 15px 30px; font-size: 18px; font-weight: bold; border-radius: 8px; border: none; cursor: pointer; pointer-events: auto; background: #2e8b57; color: #fff; box-shadow: 0 4px 0 #1b5e3a; }
-button:active { transform: translateY(4px); box-shadow: none; }
+#ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+.menu { pointer-events: auto; background: rgba(10,20,10,0.95); height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+input { padding: 15px; font-size: 20px; text-transform: uppercase; text-align: center; pointer-events: auto; border-radius: 8px; border: none; }
+button { padding: 15px 30px; font-size: 18px; font-weight: bold; border-radius: 8px; border: none; background: #2e8b57; color: #fff; pointer-events: auto; }
 
 /* HUD */
 #hud { display: none; padding: 15px; }
-.bar-box { width: 220px; height: 18px; background: #111; border: 2px solid #444; margin-bottom: 8px; border-radius: 4px; overflow: hidden; }
+.bar-box { width: 220px; height: 18px; background: #111; border: 2px solid #fff; margin-bottom: 8px; border-radius: 4px; overflow: hidden; }
 .hp-fill { height: 100%; background: #e74c3c; width: 100%; transition: width 0.2s; }
-.buff-text { color: #ffff00; font-weight: bold; font-size: 14px; text-shadow: 1px 1px 0 #000; display: none; }
+.buff-msg { position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%); color: gold; font-size: 24px; font-weight: bold; text-shadow: 0 0 10px #000; animation: fadeUp 1s forwards; display: none; }
+
+@keyframes fadeUp { 0% { opacity: 1; top: 40%; } 100% { opacity: 0; top: 30%; } }
+
+/* MINIMAPA */
+#minimap {
+    position: fixed; top: 20px; right: 20px;
+    width: 150px; height: 150px;
+    background: rgba(0,0,0,0.7);
+    border: 2px solid #555;
+    border-radius: 8px;
+    display: none;
+    z-index: 20;
+}
 
 /* CONTROLES */
 #attackBtn {
-  position: fixed; bottom: 40px; right: 30px;
+  position: fixed; bottom: 50px; right: 30px;
   width: 90px; height: 90px;
   background: radial-gradient(circle, #ff5f5f, #b71c1c);
   border: 4px solid rgba(255,255,255,0.4);
   border-radius: 50%;
   box-shadow: 0 5px 20px rgba(0,0,0,0.7);
   display: none; pointer-events: auto;
-  font-size: 40px; display: flex; align-items: center; justify-content: center;
+  font-size: 40px; display: flex; align-items: center; justify-content: center; z-index: 20;
 }
-#attackBtn:active { transform: scale(0.95); filter: brightness(1.2); }
+#attackBtn:active { transform: scale(0.95); background: #f00; }
 
 canvas { display: block; }
 </style>
@@ -42,49 +54,49 @@ canvas { display: block; }
 <body>
 
 <div id="ui-layer">
-  <div id="menu" class="menu">
-    <h1>🌲 FLORESTA MÁGICA 🌲</h1>
-    <button id="createBtn">CRIAR MUNDO</button>
-    <div style="font-size: 12px; opacity: 0.7;">OU ENTRE EM UM</div>
-    <input id="roomInput" placeholder="CÓDIGO DA SALA">
-    <button id="joinBtn">ENTRAR</button>
-  </div>
-
-  <div id="hud">
-    <div class="bar-box"><div id="hpBar" class="hp-fill"></div></div>
-    <div id="buffDisplay" class="buff-text">POWER UP ATIVO!</div>
-    <div style="color:#aaa; font-size:12px; margin-top:5px;" id="roomDisplay"></div>
-  </div>
+    <div id="menu" class="menu">
+        <h1 style="color:#8fbc8f">RPG FLORESTA V4</h1>
+        <button id="createBtn">CRIAR MUNDO</button>
+        <input id="roomInput" placeholder="CÓDIGO">
+        <button id="joinBtn">ENTRAR</button>
+    </div>
+    
+    <div id="hud">
+        <div class="bar-box"><div id="hpBar" class="hp-fill"></div></div>
+        <div id="roomDisplay" style="color:#aaa; font-size:12px;"></div>
+    </div>
+    <div id="buffMsg" class="buff-msg">POWER UP!</div>
 </div>
 
-<div id="attackBtn" style="display:none">⚔️</div>
-
+<canvas id="minimap"></canvas>
+<div id="attackBtn">⚔️</div>
 <canvas id="game"></canvas>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-/* === SINTETIZADOR DE SOM === */
+/* === SOM === */
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playSound(type) {
   if (audioCtx.state === 'suspended') audioCtx.resume();
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-
+  osc.connect(gain); gain.connect(audioCtx.destination);
   const t = audioCtx.currentTime;
+  
   if (type === 'hit') {
-    osc.frequency.setValueAtTime(200, t);
-    osc.frequency.exponentialRampToValueAtTime(50, t + 0.1);
-    gain.gain.setValueAtTime(0.5, t);
-    gain.gain.linearRampToValueAtTime(0, t + 0.1);
+    osc.frequency.setValueAtTime(150, t); osc.frequency.exponentialRampToValueAtTime(0.01, t + 0.1);
+    gain.gain.setValueAtTime(0.3, t); gain.gain.linearRampToValueAtTime(0, t + 0.1);
     osc.start(); osc.stop(t + 0.1);
-  } else if (type === 'coin') { // Som da Carta
-    osc.frequency.setValueAtTime(600, t);
-    osc.frequency.setValueAtTime(1200, t + 0.1);
-    gain.gain.setValueAtTime(0.3, t);
-    gain.gain.linearRampToValueAtTime(0, t + 0.3);
+  } else if (type === 'coin') {
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(600, t); osc.frequency.setValueAtTime(1200, t + 0.1);
+    gain.gain.setValueAtTime(0.1, t); gain.gain.linearRampToValueAtTime(0, t + 0.3);
     osc.start(); osc.stop(t + 0.3);
+  } else if (type === 'slash') {
+    osc.type = 'triangle'; // Som de Vento
+    osc.frequency.setValueAtTime(300, t); osc.frequency.exponentialRampToValueAtTime(50, t + 0.2);
+    gain.gain.setValueAtTime(0.2, t); gain.gain.linearRampToValueAtTime(0, t + 0.2);
+    osc.start(); osc.stop(t + 0.2);
   }
 }
 
@@ -92,39 +104,27 @@ function playSound(type) {
 const socket = io();
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
+const minicv = document.getElementById("minimap");
+const mctx = minicv.getContext("2d");
 
-let myId = null;
-let roomId = null;
+// Tamanho do MiniMapa
+minicv.width = 150; minicv.height = 150;
+
+let myId = null, roomId = null;
 let camera = { x: 0, y: 0 };
-let shake = 0;
+let localPlayer = { x: 1200, y: 1200, role: 'warrior', hp: 100, maxHp: 100 };
+let otherPlayers = {}; // Armazena dados do server para interpolação
+let enemies = [], cards = [], particles = [], scenery = [];
+let lastUpdate = Date.now();
 
-// Estado
-let players = {};
-let enemies = [];
-let cards = [];
-let particles = [];
-let scenery = []; // Árvores e pedras estáticas
-
-// Gera cenário aleatório (Floresta) uma vez só
-function generateScenery() {
-    scenery = [];
-    for(let i=0; i<300; i++) {
-        scenery.push({
-            x: Math.random() * 2400,
-            y: Math.random() * 2400,
-            r: 20 + Math.random() * 40,
-            type: Math.random() > 0.8 ? 'stone' : 'tree'
-        });
-    }
-}
-generateScenery();
+// Gera Floresta
+for(let i=0; i<300; i++) scenery.push({ x: Math.random()*2400, y: Math.random()*2400, r: 20+Math.random()*40, type: Math.random()>0.8?'stone':'tree' });
 
 function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 resize(); window.addEventListener("resize", resize);
 
 /* === REDE === */
 socket.on('connect', () => myId = socket.id);
-
 document.getElementById('createBtn').onclick = () => socket.emit('createRoom');
 document.getElementById('joinBtn').onclick = () => {
     const code = document.getElementById('roomInput').value.trim().toUpperCase();
@@ -136,6 +136,7 @@ function startGame(id) {
     document.getElementById('menu').style.display = 'none';
     document.getElementById('hud').style.display = 'block';
     document.getElementById('attackBtn').style.display = 'flex';
+    document.getElementById('minimap').style.display = 'block';
     document.getElementById('roomDisplay').innerText = "SALA: " + id;
 }
 
@@ -143,229 +144,262 @@ socket.on('roomCreated', startGame);
 socket.on('joinedRoom', startGame);
 
 socket.on('updateWorld', (data) => {
-    players = data.players;
+    // Aqui está o segredo do "Anti-Travada"
     enemies = data.enemies;
     cards = data.cards;
-    
-    // Atualiza HUD Local
-    if(players[myId]) {
-        const p = players[myId];
-        document.getElementById('hpBar').style.width = (p.hp / p.maxHp * 100) + "%";
-        
-        const buffDiv = document.getElementById('buffDisplay');
-        if (p.dmgMult > 1) { buffDiv.innerText = "⚔️ FORÇA DOBRADA!"; buffDiv.style.display = "block"; }
-        else if (p.speedMult > 1) { buffDiv.innerText = "⚡ VELOCIDADE!"; buffDiv.style.display = "block"; }
-        else { buffDiv.style.display = "none"; }
+
+    // Atualiza outros players (Interpolação)
+    for (const id in data.players) {
+        if (id === myId) {
+            // Sincroniza HP e Buffs, mas NÃO a posição X/Y (para não dar "voltar")
+            const p = data.players[id];
+            localPlayer.hp = p.hp;
+            localPlayer.role = p.role;
+            localPlayer.maxHp = p.maxHp;
+            localPlayer.speedMult = p.speedMult;
+            localPlayer.dmgMult = p.dmgMult;
+        } else {
+            // Se for outro player, salva o destino
+            if (!otherPlayers[id]) otherPlayers[id] = data.players[id];
+            else {
+                otherPlayers[id].targetX = data.players[id].x;
+                otherPlayers[id].targetY = data.players[id].y;
+                otherPlayers[id].role = data.players[id].role;
+                otherPlayers[id].state = data.players[id].state;
+                otherPlayers[id].hp = data.players[id].hp;
+                otherPlayers[id].facing = data.players[id].facing;
+            }
+        }
     }
 });
 
+// Mostra mensagem de Buff
 socket.on('cardCollect', (data) => {
-    if(data.pid === myId) playSound('coin');
+    if(data.pid === myId) {
+        playSound('coin');
+        const el = document.getElementById('buffMsg');
+        el.innerText = data.type === 'HEAL' ? "+VIDA!" : (data.type === 'DMG' ? "FORÇA!" : "SPEED!");
+        el.style.display = 'none'; el.offsetHeight; el.style.display = 'block'; // Reset animation
+    }
 });
 
 socket.on('enemyHit', (data) => {
-    if(Math.hypot(data.x - players[myId].x, data.y - players[myId].y) < 600) playSound('hit');
-    for(let i=0; i<4; i++) {
-        particles.push({
-            x: data.x, y: data.y,
-            vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8,
-            life: 1.0, color: '#fff'
-        });
-    }
+    if(Math.hypot(data.x - localPlayer.x, data.y - localPlayer.y) < 600) playSound('hit');
+    for(let i=0; i<5; i++) particles.push({ x: data.x, y: data.y, vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10, life: 1, color: '#fff' });
 });
 
-/* === CONTROLES === */
-const atkBtn = document.getElementById('attackBtn');
-atkBtn.addEventListener('touchstart', (e) => {
+/* === INPUT (Multitouch real) === */
+let isAttacking = false;
+let joystick = { dx: 0, dy: 0 };
+let attackCooldown = false;
+
+// O botão de ataque não para o joystick
+document.getElementById('attackBtn').addEventListener('touchstart', (e) => {
     e.preventDefault();
+    if(attackCooldown) return;
+    
+    isAttacking = true;
+    attackCooldown = true;
+    playSound('slash');
     socket.emit('attack', { roomId });
-    if(players[myId]) players[myId].state = 'attack';
-    setTimeout(() => { if(players[myId]) players[myId].state = 'idle'; }, 200);
+    
+    // Reseta estado
+    setTimeout(() => { isAttacking = false; }, 200);
+    setTimeout(() => { attackCooldown = false; }, 400); // Cooldown do ataque
 }, { passive: false });
 
-/* === DESENHO (ARTES) === */
+/* === DESENHO === */
+function lerp(start, end, t) { return start * (1-t) + end * t; }
 
-function drawCharacter(ctx, x, y, role, state, isMe) {
-    // Animação de caminhada
-    const time = Date.now() / 150;
-    const bounce = state === 'run' ? Math.sin(time) * 3 : 0;
-    const handSwing = state === 'run' ? Math.cos(time) * 10 : 0;
+function drawSwordSlash(ctx, x, y, facing) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(facing); // Gira para onde o player anda
+    
+    ctx.beginPath();
+    ctx.arc(0, 0, 50, -Math.PI/4, Math.PI/4);
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+    ctx.stroke();
+    
+    ctx.fillStyle = "rgba(200, 200, 255, 0.5)";
+    ctx.lineTo(0,0);
+    ctx.fill();
+    ctx.restore();
+}
+
+function drawMagicBurst(ctx, x, y) {
+    ctx.beginPath();
+    ctx.arc(x, y, 60, 0, Math.PI*2);
+    ctx.strokeStyle = "#e056fd";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillStyle = "rgba(224, 86, 253, 0.2)";
+    ctx.fill();
+}
+
+function drawPlayer(ctx, p, isMe) {
+    const x = p.x || 0; const y = p.y || 0;
+    const bounce = Math.abs(Math.sin(Date.now()/150)*4);
+    
+    // Ataque Visual
+    if(p.state === 'attack') {
+        if(p.role === 'warrior') drawSwordSlash(ctx, x, y, p.facing || 0);
+        else drawMagicBurst(ctx, x, y);
+    }
 
     // Sombra
     ctx.fillStyle = "rgba(0,0,0,0.4)";
-    ctx.beginPath(); ctx.ellipse(x, y + 20, 15, 8, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x, y+15, 12, 6, 0, 0, Math.PI*2); ctx.fill();
 
-    // Corpo
-    ctx.fillStyle = role === 'warrior' ? '#3498db' : '#e056fd'; // Azul ou Rosa
-    if(role === 'warrior') {
-        // Guerreiro (Quadrado arredondado)
-        ctx.fillRect(x - 12, y - 15 + bounce, 24, 30);
-    } else {
-        // Mago (Triângulo/Robe)
-        ctx.beginPath();
-        ctx.moveTo(x, y - 20 + bounce);
-        ctx.lineTo(x + 15, y + 15 + bounce);
-        ctx.lineTo(x - 15, y + 15 + bounce);
-        ctx.fill();
-    }
+    // Personagem
+    ctx.fillStyle = p.role === 'warrior' ? '#3498db' : '#e056fd';
+    if(p.role === 'warrior') ctx.fillRect(x-12, y-15-bounce, 24, 30); // Guerreiro
+    else { ctx.beginPath(); ctx.moveTo(x, y-20-bounce); ctx.lineTo(x+15, y+15-bounce); ctx.lineTo(x-15, y+15-bounce); ctx.fill(); } // Mago
 
-    // Cabeça
-    ctx.fillStyle = "#ffccaa"; // Pele
-    ctx.beginPath(); ctx.arc(x, y - 20 + bounce, 10, 0, Math.PI*2); ctx.fill();
-
-    // Olhos
-    ctx.fillStyle = "#000";
-    ctx.fillRect(x - 4, y - 22 + bounce, 3, 3);
-    ctx.fillRect(x + 2, y - 22 + bounce, 3, 3);
-
-    // Mãos (Bolinhas)
-    ctx.fillStyle = role === 'warrior' ? '#3498db' : '#e056fd';
-    if (state === 'attack') {
-        // Mãos na frente atacando
-        ctx.beginPath(); ctx.arc(x + 20, y + bounce, 6, 0, Math.PI*2); ctx.fill();
-    } else {
-        ctx.beginPath(); ctx.arc(x - 15, y + handSwing + bounce, 5, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc(x + 15, y - handSwing + bounce, 5, 0, Math.PI*2); ctx.fill();
-    }
-
-    // Coroa/Chapéu para identificar (Nome)
-    ctx.fillStyle = "#fff";
-    ctx.font = "bold 12px monospace";
-    ctx.textAlign = "center";
-    ctx.fillText(isMe ? "VOCÊ" : role.toUpperCase(), x, y - 35 + bounce);
-}
-
-function drawCard(ctx, c) {
-    const float = Math.sin(Date.now() / 300) * 5;
+    // Rosto
+    ctx.fillStyle = "#ffccaa"; ctx.beginPath(); ctx.arc(x, y-20-bounce, 10, 0, Math.PI*2); ctx.fill();
     
-    // Aura da carta
-    ctx.shadowBlur = 15; ctx.shadowColor = c.color;
-    
-    // Carta Base
-    ctx.fillStyle = "#222";
-    ctx.strokeStyle = c.color;
-    ctx.lineWidth = 2;
-    ctx.fillRect(c.x - 12, c.y - 18 + float, 24, 36);
-    ctx.strokeRect(c.x - 12, c.y - 18 + float, 24, 36);
-    
-    // Ícone
-    ctx.fillStyle = "#fff";
-    ctx.font = "16px Arial";
-    ctx.textAlign = "center";
-    const icon = c.type === 'HEAL' ? '✚' : (c.type === 'DMG' ? '⚔' : '⚡');
-    ctx.fillText(icon, c.x, c.y + 5 + float);
+    // Nome e HP
+    ctx.fillStyle = "#fff"; ctx.font = "10px monospace"; ctx.textAlign = "center";
+    ctx.fillText(isMe?"VOCÊ":p.role.toUpperCase(), x, y-35-bounce);
 
-    ctx.shadowBlur = 0;
-}
-
-/* === LOOP === */
-function loop() {
-    // 1. Limpa tela
-    ctx.fillStyle = "#1a2f1a"; // Verde escuro (chão)
-    ctx.fillRect(0,0,canvas.width, canvas.height);
-
-    if (!roomId || !players[myId]) {
-        requestAnimationFrame(loop);
-        return;
-    }
-
-    const me = players[myId];
-    
-    // 2. Movimento Local + Câmera
-    if (window.joystick) {
-        const speed = 5 * (me.speedMult || 1); // Aplica buff de velocidade
-        me.x += window.joystick.dx * speed;
-        me.y += window.joystick.dy * speed;
+    // FADINHA (Se for Mago)
+    if(p.role === 'mage') {
+        const time = Date.now() / 300;
+        const fx = x + Math.cos(time) * 40;
+        const fy = y + Math.sin(time) * 40;
+        ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(fx, fy, 4, 0, Math.PI*2); ctx.fill();
         
-        // Limites
-        me.x = Math.max(0, Math.min(2400, me.x));
-        me.y = Math.max(0, Math.min(2400, me.y));
+        // Linha Guia da Fada (Para cartas)
+        if(isMe && cards.length > 0) {
+            let closest = cards[0];
+            let minDist = 99999;
+            cards.forEach(c => {
+                const d = Math.hypot(c.x - x, c.y - y);
+                if(d < minDist) { minDist = d; closest = c; }
+            });
+            if(minDist > 200) { // Só aponta se longe
+                const angle = Math.atan2(closest.y - fy, closest.x - fx);
+                ctx.strokeStyle = "rgba(255,255,0,0.3)";
+                ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(fx + Math.cos(angle)*30, fy + Math.sin(angle)*30); ctx.stroke();
+            }
+        }
+    }
+}
 
-        socket.emit('move', { 
-            roomId, x: me.x, y: me.y, 
-            state: (window.joystick.dx || window.joystick.dy) ? 'run' : 'idle' 
-        });
+function loop() {
+    ctx.fillStyle = "#1a2f1a"; ctx.fillRect(0,0,canvas.width, canvas.height);
+
+    if(!roomId) { requestAnimationFrame(loop); return; }
+
+    // 1. MOVIMENTO LOCAL (Predição)
+    let moveState = 'idle';
+    let facingAngle = localPlayer.facing || 0;
+
+    if (window.joystick && (window.joystick.dx || window.joystick.dy)) {
+        const speed = 6 * (localPlayer.speedMult || 1);
+        localPlayer.x += window.joystick.dx * speed;
+        localPlayer.y += window.joystick.dy * speed;
+        
+        // Clamp
+        localPlayer.x = Math.max(0, Math.min(2400, localPlayer.x));
+        localPlayer.y = Math.max(0, Math.min(2400, localPlayer.y));
+        
+        moveState = 'run';
+        facingAngle = Math.atan2(window.joystick.dy, window.joystick.dx);
+        localPlayer.facing = facingAngle;
     }
 
-    camera.x += (me.x - camera.x - canvas.width/2) * 0.1;
-    camera.y += (me.y - camera.y - canvas.height/2) * 0.1;
+    // Envia para o server (Sincronia)
+    if(roomId) {
+        socket.emit('move', { 
+            roomId, x: localPlayer.x, y: localPlayer.y, 
+            state: isAttacking ? 'attack' : moveState,
+            facing: facingAngle
+        });
+        localPlayer.state = isAttacking ? 'attack' : moveState;
+    }
 
+    // Câmera Suave
+    camera.x += (localPlayer.x - camera.x - canvas.width/2) * 0.1;
+    camera.y += (localPlayer.y - camera.y - canvas.height/2) * 0.1;
+
+    // === DESENHAR MUNDO ===
     ctx.save();
     ctx.translate(-camera.x, -camera.y);
 
-    // 3. Desenhar Cenário (Árvores)
+    // Cenário
     scenery.forEach(obj => {
-        // Só desenha se estiver perto da câmera (Otimização)
-        if (obj.x > camera.x - 100 && obj.x < camera.x + canvas.width + 100 &&
-            obj.y > camera.y - 100 && obj.y < camera.y + canvas.height + 100) {
-            
-            if (obj.type === 'tree') {
-                // Tronco
-                ctx.fillStyle = "#3e2723";
-                ctx.fillRect(obj.x - 5, obj.y, 10, 20);
-                // Copa
-                ctx.fillStyle = "#2e7d32";
-                ctx.beginPath();
-                ctx.moveTo(obj.x - obj.r, obj.y);
-                ctx.lineTo(obj.x, obj.y - obj.r * 1.5);
-                ctx.lineTo(obj.x + obj.r, obj.y);
-                ctx.fill();
-            } else {
-                // Pedra
-                ctx.fillStyle = "#5d6d7e";
-                ctx.beginPath(); ctx.arc(obj.x, obj.y + 10, obj.r/2, 0, Math.PI*2); ctx.fill();
-            }
+        if(obj.x > camera.x - 50 && obj.x < camera.x + canvas.width + 50 && obj.y > camera.y - 50 && obj.y < camera.y + canvas.height + 50) {
+            ctx.fillStyle = obj.type === 'tree' ? "#2e7d32" : "#5d6d7e";
+            if(obj.type === 'tree') ctx.fillRect(obj.x-5, obj.y-20, 10, 20); // Tronco
+            ctx.beginPath(); ctx.arc(obj.x, obj.y-10, obj.r/2, 0, Math.PI*2); ctx.fill();
         }
     });
 
-    // 4. Desenhar Elementos do Jogo
-    cards.forEach(c => drawCard(ctx, c));
-
-    enemies.forEach(e => {
-        if (e.dead) return;
-        ctx.fillStyle = "#c0392b"; // Vermelho escuro
-        // Inimigo "Fantasma"
-        const bob = Math.sin(Date.now()/200) * 5;
-        ctx.beginPath(); 
-        ctx.arc(e.x, e.y + bob, 15, Math.PI, 0); 
-        ctx.lineTo(e.x, e.y + 20 + bob);
-        ctx.fill();
-        
-        // Olhos
-        ctx.fillStyle = "#fff";
-        ctx.beginPath(); ctx.arc(e.x - 5, e.y - 5 + bob, 3, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc(e.x + 5, e.y - 5 + bob, 3, 0, Math.PI*2); ctx.fill();
-
-        // HP Bar
-        ctx.fillStyle = "red"; ctx.fillRect(e.x-15, e.y-25+bob, 30, 4);
-        ctx.fillStyle = "#0f0"; ctx.fillRect(e.x-15, e.y-25+bob, 30*(e.hp/e.maxHp), 4);
+    // Cartas
+    cards.forEach(c => {
+        const float = Math.sin(Date.now()/300)*5;
+        ctx.fillStyle = "#222"; ctx.strokeStyle = c.color; ctx.lineWidth = 2;
+        ctx.fillRect(c.x-10, c.y-15+float, 20, 30); ctx.strokeRect(c.x-10, c.y-15+float, 20, 30);
     });
 
-    particles.forEach((p, i) => {
-        p.x += p.vx; p.y += p.vy; p.life -= 0.05;
+    // Inimigos
+    enemies.forEach(e => {
+        if(e.dead) return;
+        ctx.fillStyle = "#c0392b"; ctx.beginPath(); ctx.arc(e.x, e.y, 15, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = "#0f0"; ctx.fillRect(e.x-15, e.y-25, 30*(e.hp/e.maxHp), 4);
+    });
+
+    // Players (Outros) com LERP
+    for (const id in otherPlayers) {
+        const p = otherPlayers[id];
+        // Aproxima suavemente da posição real
+        if(p.targetX) {
+            p.x = lerp(p.x || p.targetX, p.targetX, 0.2);
+            p.y = lerp(p.y || p.targetY, p.targetY, 0.2);
+        }
+        drawPlayer(ctx, p, false);
+    }
+    
+    // Player Local (Desenho Direto)
+    drawPlayer(ctx, localPlayer, true);
+
+    // Partículas
+    particles.forEach((p,i) => {
+        p.x += p.vx; p.y += p.vy; p.life -= 0.1;
         ctx.fillStyle = p.color; ctx.globalAlpha = p.life;
         ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill();
         ctx.globalAlpha = 1;
-        if(p.life <= 0) particles.splice(i, 1);
-    });
-
-    Object.keys(players).forEach(id => {
-        const p = players[id];
-        drawCharacter(ctx, p.x, p.y, p.role, p.state, id === myId);
-        
-        // FADINHA (Só Mago)
-        if (p.role === 'mage') {
-            const time = Date.now() / 300;
-            const fx = p.x + Math.cos(time) * 45;
-            const fy = p.y + Math.sin(time) * 45;
-            ctx.shadowBlur = 10; ctx.shadowColor = "#fff";
-            ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(fx, fy, 4, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = "rgba(200,255,255,0.5)"; ctx.beginPath(); ctx.arc(fx, fy, 8, 0, Math.PI*2); ctx.fill();
-            ctx.shadowBlur = 0;
-        }
+        if(p.life <= 0) particles.splice(i,1);
     });
 
     ctx.restore();
+
+    // === MINIMAPA ===
+    mctx.clearRect(0,0,150,150);
+    mctx.fillStyle = "rgba(0,0,0,0.5)"; mctx.fillRect(0,0,150,150);
+    
+    // Função auxiliar para converter posição do mundo pro minimapa
+    const toMini = (val) => (val / 2400) * 150;
+    
+    // Cartas no Minimapa (AMARELO)
+    mctx.fillStyle = "yellow";
+    cards.forEach(c => mctx.fillRect(toMini(c.x)-1, toMini(c.y)-1, 3, 3));
+    
+    // Inimigos (VERMELHO)
+    mctx.fillStyle = "red";
+    enemies.forEach(e => { if(!e.dead) mctx.fillRect(toMini(e.x)-1, toMini(e.y)-1, 2, 2); });
+    
+    // Players (AZUL/ROSA)
+    mctx.fillStyle = "#fff";
+    mctx.fillRect(toMini(localPlayer.x)-2, toMini(localPlayer.y)-2, 4, 4);
+
+    // Barra de Vida
+    document.getElementById('hpBar').style.width = (localPlayer.hp/localPlayer.maxHp*100) + "%";
+
     requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
@@ -373,4 +407,3 @@ requestAnimationFrame(loop);
 <script src="js/joystick.js"></script>
 </body>
 </html>
-

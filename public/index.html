@@ -233,6 +233,84 @@ loop()
 <script src="js/joystick.js"></script>
 
 </body>
+</html>    a.x += nx * push
+    a.y += ny * push
+    b.x -= nx * push
+    b.y -= ny * push
+  }
+}
+
+/* ===== LOOP ===== */
+function loop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+  /* MOVIMENTO LOCAL */
+  if (roomId && window.joystick) {
+    const speed = 5
+    localPlayer.x += window.joystick.dx * speed
+    localPlayer.y += window.joystick.dy * speed
+
+    // limites do mundo
+    localPlayer.x = Math.max(0, Math.min(WORLD.width, localPlayer.x))
+    localPlayer.y = Math.max(0, Math.min(WORLD.height, localPlayer.y))
+
+    if (Math.random() < 0.25) {
+      socket.emit("move", {
+        roomId,
+        x: localPlayer.x,
+        y: localPlayer.y
+      })
+    }
+  }
+
+  /* CÂMERA SUAVE */
+  camera.x += (localPlayer.x - camera.x - canvas.width / 2) * 0.1
+  camera.y += (localPlayer.y - camera.y - canvas.height / 2) * 0.1
+
+  ctx.save()
+  ctx.translate(-camera.x, -camera.y)
+
+  /* COLISÃO */
+  const ids = Object.keys(players)
+  if (ids.length === 2) {
+    const a = ids[0] === myId ? localPlayer : players[ids[0]]
+    const b = ids[1] === myId ? localPlayer : players[ids[1]]
+    resolvePlayerCollision(a, b)
+  }
+
+  /* DESENHO DOS PLAYERS */
+  for (const id in players) {
+    const p = id === myId ? localPlayer : players[id]
+    ctx.fillStyle = id === myId ? "#4da6ff" : "#ffa94d"
+    ctx.beginPath()
+    ctx.arc(p.x, p.y, 12, 0, Math.PI * 2)
+    ctx.fill()
+  }
+
+  ctx.restore()
+
+  /* ===== MINIMAPA ===== */
+  mctx.clearRect(0, 0, minimap.width, minimap.height)
+  mctx.fillStyle = "#222"
+  mctx.fillRect(0, 0, minimap.width, minimap.height)
+
+  for (const id in players) {
+    const p = id === myId ? localPlayer : players[id]
+    const mx = (p.x / WORLD.width) * minimap.width
+    const my = (p.y / WORLD.height) * minimap.height
+    mctx.fillStyle = id === myId ? "#4da6ff" : "#ffa94d"
+    mctx.fillRect(mx - 2, my - 2, 4, 4)
+  }
+
+  requestAnimationFrame(loop)
+}
+
+loop()
+</script>
+
+<script src="js/joystick.js"></script>
+
+</body>
 </html>        if (Math.random() < 0.3) {
           socket.emit("move", {
             roomId,

@@ -3,73 +3,84 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RPG Legends: Reborn</title>
+<title>RPG Legends V5</title>
 <style>
-* { box-sizing: border-box; touch-action: none; user-select: none; font-family: sans-serif; }
-body { margin: 0; background: #1a1a1a; overflow: hidden; color: white; }
+/* ESTILO GERAL */
+* { box-sizing: border-box; touch-action: none; user-select: none; font-family: 'Segoe UI', sans-serif; }
+body { margin: 0; background: #0f1810; overflow: hidden; color: white; }
 
-.screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; z-index: 100; }
-.hidden { display: none !important; }
+/* TELAS */
+.screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(10,20,10,0.95); z-index: 100; transition: 0.3s; }
+.hidden { opacity: 0; pointer-events: none; }
 
-h1 { color: #ffd700; text-shadow: 0 0 10px #f00; font-size: 2rem; text-align: center; }
-input { background: #333; border: 1px solid #555; color: #fff; padding: 10px; font-size: 16px; border-radius: 5px; text-align: center; margin: 10px; }
-button { background: #2e8b57; color: white; border: none; padding: 12px 25px; font-size: 16px; font-weight: bold; border-radius: 5px; margin-top: 5px; cursor: pointer; }
+h1 { color: #f1c40f; text-shadow: 0 4px 0 #d35400; font-size: 3rem; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
+input { background: #222; border: 2px solid #555; color: #fff; padding: 15px; font-size: 18px; border-radius: 10px; text-align: center; margin: 5px; width: 250px; }
+button { background: #27ae60; color: white; border: none; padding: 15px 40px; font-size: 18px; font-weight: bold; border-radius: 10px; margin-top: 10px; cursor: pointer; box-shadow: 0 5px 0 #1e8449; transition: transform 0.1s; }
+button:active { transform: translateY(4px); box-shadow: none; }
 
-#hud { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: none; }
-.top-bar { position: absolute; top: 10px; left: 10px; }
-.bar-con { width: 150px; height: 15px; background: #222; border: 1px solid #555; margin-bottom: 2px; position: relative; }
-.fill { height: 100%; } .hp { background: #f44; } .xp { background: #48f; }
+/* HUD */
+#hud { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: none; }
+.room-code { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-family: monospace; font-size: 16px; border: 1px solid #fff; }
 
-.inv { position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; }
-.slot { background: rgba(0,0,0,0.5); padding: 5px; border: 1px solid #555; font-size: 12px; }
+.stats-box { position: absolute; top: 10px; left: 10px; display: flex; flex-direction: column; gap: 5px; }
+.bar { width: 180px; height: 18px; background: #222; border: 2px solid #444; border-radius: 6px; overflow: hidden; position: relative; }
+.fill { height: 100%; transition: width 0.3s; }
+.hp-color { background: #e74c3c; } .xp-color { background: #3498db; }
+.bar-txt { position: absolute; width: 100%; text-align: center; font-size: 10px; line-height: 18px; font-weight: bold; text-shadow: 1px 1px 0 #000; }
 
-#buildBtn { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); background: #d35400; padding: 10px; pointer-events: auto; display: none; }
+.tools { position: absolute; top: 10px; right: 10px; display: flex; gap: 8px; }
+.tool-slot { background: rgba(0,0,0,0.7); padding: 8px; border-radius: 8px; border: 1px solid #666; display: flex; align-items: center; gap: 5px; }
 
-#levelScreen { background: rgba(0,0,0,0.9); z-index: 200; }
-.cards { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-.card { background: #333; border: 2px solid #fd0; padding: 10px; width: 100px; text-align: center; pointer-events: auto; }
+#buildBtn { position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%); background: #e67e22; pointer-events: auto; display: none; }
+#minimap { position: absolute; top: 60px; right: 10px; background: rgba(0,0,0,0.5); border: 2px solid #fff; border-radius: 50%; width: 110px; height: 110px; }
+#fps { position: absolute; bottom: 5px; left: 5px; color: #0f0; font-size: 10px; }
 
-#deathScreen { background: rgba(50,0,0,0.9); z-index: 150; }
+/* POPUPS */
+#levelUp { background: rgba(0,0,0,0.9); z-index: 200; }
+.cards { display: flex; gap: 15px; }
+.card { background: #2c3e50; border: 2px solid #f1c40f; padding: 20px; border-radius: 10px; width: 120px; text-align: center; cursor: pointer; pointer-events: auto; }
+#death { background: rgba(50,0,0,0.95); z-index: 200; }
 
-#minimap { position: absolute; top: 50px; right: 10px; background: #000; border: 1px solid #fff; opacity: 0.7; }
 canvas { display: block; }
 </style>
 </head>
 <body>
 
-<div id="menuScreen" class="screen">
+<div id="menu" class="screen">
     <h1>RPG LEGENDS</h1>
-    <input id="playerName" placeholder="Nome do Heroi">
-    <button id="createBtn">CRIAR MUNDO</button>
-    <div style="margin:5px; color:#888">- ou -</div>
-    <input id="roomInput" placeholder="CODIGO">
-    <button id="joinBtn">ENTRAR</button>
+    <input id="name" placeholder="Seu Nome">
+    <button id="btnCreate">CRIAR MUNDO</button>
+    <div style="margin:10px; color:#aaa">ou</div>
+    <input id="code" placeholder="CÓDIGO DA SALA">
+    <button id="btnJoin" style="background:#2980b9">ENTRAR</button>
 </div>
 
 <div id="hud">
-    <div class="top-bar">
-        <div class="bar-con"><div id="hpBar" class="fill hp" style="width:100%"></div></div>
-        <div class="bar-con"><div id="xpBar" class="fill xp" style="width:0%"></div></div>
+    <div class="room-code" id="roomDisplay">???</div>
+    <div class="stats-box">
+        <div class="bar"><div id="hpBar" class="fill hp-color" style="width:100%"></div><div class="bar-txt" id="hpTxt">100/100</div></div>
+        <div class="bar"><div id="xpBar" class="fill xp-color" style="width:0%"></div><div class="bar-txt" id="xpTxt">LVL 1</div></div>
     </div>
-    <div class="inv">
-        <div class="slot">🪵 <span id="wd">0</span></div>
-        <div class="slot">🪨 <span id="st">0</span></div>
+    <div class="tools">
+        <div class="tool-slot"><span style="font-size:20px">🪓</span> <span id="wood">0</span></div>
+        <div class="tool-slot"><span style="font-size:20px">⛏️</span> <span id="stone">0</span></div>
     </div>
-    <button id="buildBtn" onclick="buildWall()">🔨 PAREDE (10)</button>
-    <canvas id="minimap" width="100" height="100"></canvas>
+    <button id="buildBtn" onclick="build()">🔨 Construir (20 Mad)</button>
+    <canvas id="minimap"></canvas>
+    <div id="fps">60 FPS</div>
 </div>
 
-<div id="levelScreen" class="screen hidden">
-    <h2 style="color:#fd0">LEVEL UP!</h2>
+<div id="levelUp" class="screen hidden">
+    <h2 style="color:#f1c40f">LEVEL UP! ESCOLHA:</h2>
     <div class="cards">
-        <div class="card" onclick="up('dmg')">⚔️<br>Dano</div>
-        <div class="card" onclick="up('hp')">❤️<br>Vida</div>
-        <div class="card" onclick="up('spd')">⚡<br>Speed</div>
+        <div class="card" onclick="up('dmg')">⚔️<br>+DANO</div>
+        <div class="card" onclick="up('hp')">❤️<br>+VIDA</div>
+        <div class="card" onclick="up('spd')">⚡<br>+SPEED</div>
     </div>
 </div>
 
-<div id="deathScreen" class="screen hidden">
-    <h1 style="color:red">MORREU</h1>
+<div id="death" class="screen hidden">
+    <h1 style="color:red">VOCÊ MORREU</h1>
     <button onclick="respawn()">RENASCER</button>
 </div>
 
@@ -77,67 +88,61 @@ canvas { display: block; }
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-const mCtx = document.getElementById("minimap").getContext("2d");
+const cvs = document.getElementById('game');
+const ctx = cvs.getContext('2d');
+const mCvs = document.getElementById('minimap');
+const mCtx = mCvs.getContext('2d');
+mCvs.width=110; mCvs.height=110;
+
 let socket = io();
 let myId = null, roomId = null;
-let camera = { x: 0, y: 0 };
-// INICIA O PLAYER COM VALORES SEGUROS PRA NÃO SUMIR
-let localPlayer = { x: 1200, y: 1200, hp: 100, maxHp: 100, role: 'warrior' };
-let state = { players: {}, enemies: [], resources: [], buildings: [], xpOrbs: [] };
-let joyL = { on: false, id: null, dx: 0, dy: 0, ox: 0, oy: 0 };
-let joyR = { on: false, id: null, dx: 0, dy: 0, ox: 0, oy: 0, ang: 0 };
-let damage = [];
+let cam = { x:0, y:0 };
+let me = { x:1200, y:1200, hp:100, maxHp:100, xp:0, level:1, wood:0, stone:0 };
+let state = { players:{}, enemies:[], resources:[], buildings:[], orbs:[] };
+let shots = []; // Tiros do Pet
+let dmgPopups = [];
 
-function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-resize(); window.addEventListener("resize", resize);
+// Ajuste tela
+function resize() { cvs.width = window.innerWidth; cvs.height = window.innerHeight; }
+resize(); window.addEventListener('resize', resize);
 
-document.getElementById('createBtn').onclick = () => {
-    socket.emit('createRoom', document.getElementById('playerName').value || "Heroi");
-}
-document.getElementById('joinBtn').onclick = () => {
-    const code = document.getElementById('roomInput').value.trim().toUpperCase();
-    if(code) socket.emit('joinRoom', { code: code, name: document.getElementById('playerName').value || "Visitante" });
-}
+/* === REDE === */
+document.getElementById('btnCreate').onclick = () => socket.emit('createRoom', document.getElementById('name').value);
+document.getElementById('btnJoin').onclick = () => socket.emit('joinRoom', { code:document.getElementById('code').value.toUpperCase(), name:document.getElementById('name').value });
 
-const start = (code) => {
-    roomId = code;
-    document.getElementById('menuScreen').classList.add('hidden');
+const start = (id) => {
+    roomId = id;
+    document.getElementById('menu').classList.add('hidden');
     document.getElementById('hud').style.display = 'block';
-}
+    document.getElementById('roomDisplay').innerText = "SALA: " + id;
+};
 
 socket.on('roomCreated', start);
 socket.on('joinedRoom', start);
 socket.on('connect', () => myId = socket.id);
 
-socket.on('updateWorld', (data) => {
+socket.on('update', (data) => {
     state = data;
     if(state.players[myId]) {
-        // Atualiza localPlayer mas mantém X/Y suaves se quiser (aqui atualiza direto)
         const s = state.players[myId];
-        localPlayer.hp = s.hp; localPlayer.maxHp = s.maxHp; 
-        localPlayer.xp = s.xp; localPlayer.level = s.level;
-        localPlayer.inv = s.inv; localPlayer.dead = s.dead;
-        localPlayer.nextLevel = s.nextLevel;
-        
-        // HUD
-        document.getElementById('hpBar').style.width = (s.hp/s.maxHp*100)+'%';
-        document.getElementById('xpBar').style.width = (s.xp/s.nextLevel*100)+'%';
-        document.getElementById('wd').innerText = s.inv.wood;
-        document.getElementById('st').innerText = s.inv.stone;
-        document.getElementById('buildBtn').style.display = s.inv.wood >= 10 ? 'block' : 'none';
-        
-        if(s.dead) document.getElementById('deathScreen').classList.remove('hidden');
-        else document.getElementById('deathScreen').classList.add('hidden');
+        // Sincroniza dados vitais
+        me.hp = s.hp; me.maxHp = s.maxHp; me.xp = s.xp; me.level = s.level;
+        me.wood = s.wood; me.stone = s.stone; me.dead = s.dead; me.nextLevel = s.nextLevel;
+        // Posição para o HUD, mas movimento visual usa predição
+        updateHUD();
     }
 });
 
-socket.on('levelUp', () => document.getElementById('levelScreen').classList.remove('hidden'));
-socket.on('damageEffect', (d) => damage.push({ x: d.x, y: d.y, val: d.dmg, t: 1 }));
+socket.on('petShot', (d) => shots.push({x:d.x, y:d.y, tx:d.tx, ty:d.ty, t:1}));
+socket.on('damage', (d) => dmgPopups.push({x:d.x, y:d.y, val:d.val, t:1}));
+socket.on('shake', (id) => { /* Efeito visual opcional */ });
+socket.on('levelUp', () => document.getElementById('levelUp').classList.remove('hidden'));
 
-// INPUT
-canvas.addEventListener('touchstart', e => {
+/* === CONTROLES === */
+let joyL = { on:false, id:null, dx:0, dy:0, ox:0, oy:0 };
+let joyR = { on:false, id:null, dx:0, dy:0, ox:0, oy:0, ang:0 };
+
+cvs.addEventListener('touchstart', e => {
     e.preventDefault();
     for(let i=0; i<e.changedTouches.length; i++) {
         const t = e.changedTouches[i];
@@ -149,7 +154,7 @@ canvas.addEventListener('touchstart', e => {
     }
 }, {passive:false});
 
-canvas.addEventListener('touchmove', e => {
+cvs.addEventListener('touchmove', e => {
     e.preventDefault();
     for(let i=0; i<e.changedTouches.length; i++) {
         const t = e.changedTouches[i];
@@ -165,7 +170,7 @@ canvas.addEventListener('touchmove', e => {
     }
 }, {passive:false});
 
-canvas.addEventListener('touchend', e => {
+cvs.addEventListener('touchend', e => {
     e.preventDefault();
     for(let i=0; i<e.changedTouches.length; i++) {
         const t = e.changedTouches[i];
@@ -174,132 +179,228 @@ canvas.addEventListener('touchend', e => {
     }
 }, {passive:false});
 
+/* === LOOP VISUAL === */
 let lastShot = 0;
 
 function loop() {
     requestAnimationFrame(loop);
     if(!roomId) return;
 
-    let moveState = 'idle';
-    let facing = 0;
-    
-    // MOVIMENTO LOCAL (CLIENT-SIDE PREDICTION)
-    if(joyL.on) {
-        localPlayer.x += joyL.dx * 5;
-        localPlayer.y += joyL.dy * 5;
-        // Clamp
-        localPlayer.x = Math.max(0, Math.min(2400, localPlayer.x));
-        localPlayer.y = Math.max(0, Math.min(2400, localPlayer.y));
-        moveState = 'run';
-        facing = joyL.dx > 0 ? 1 : -1;
+    // 1. MOVIMENTO & CÂMERA SUAVE
+    if(joyL.on && !me.dead) {
+        me.x += joyL.dx * 6; me.y += joyL.dy * 6;
+        // Limites
+        me.x = Math.max(0, Math.min(2400, me.x));
+        me.y = Math.max(0, Math.min(2400, me.y));
     }
 
-    let aim = localPlayer.aimAngle || 0;
-    let shoot = false;
+    // Micro delay na camera (LERP)
+    cam.x += (me.x - cam.x - cvs.width/2) * 0.08;
+    cam.y += (me.y - cam.y - cvs.height/2) * 0.08;
 
-    if(joyR.on) {
-        aim = joyR.ang; shoot = true;
-    } else {
+    // Lógica de Tiro
+    let aim = joyR.on ? joyR.ang : null;
+    if(!aim) {
         // Auto Aim
-        let min = 400; let t = null;
+        let min=500, t=null;
         state.enemies.forEach(e => {
-            const d = Math.hypot(e.x - localPlayer.x, e.y - localPlayer.y);
-            if(d < min) { min = d; t = e; }
+            const d = Math.hypot(e.x - me.x, e.y - me.y);
+            if(d < min) { min=d; t=e; }
         });
-        if(t) { aim = Math.atan2(t.y - localPlayer.y, t.x - localPlayer.x); shoot = true; }
+        if(t) aim = Math.atan2(t.y-me.y, t.x-me.x);
     }
 
-    socket.emit('move', { roomId, x: localPlayer.x, y: localPlayer.y, state: moveState, facing, angle: aim });
+    // Envio pro Server
+    socket.emit('move', { roomId, x:me.x, y:me.y, state: joyL.on?'run':'idle', facing: joyL.dx>0?1:-1, angle:aim });
     
-    if(shoot && Date.now() - lastShot > 250) {
+    if((joyR.on || aim!==null) && Date.now() - lastShot > 300) {
         lastShot = Date.now();
         socket.emit('attack', { roomId, angle: aim });
     }
 
-    // Camera
-    camera.x += (localPlayer.x - camera.x - canvas.width/2) * 0.1;
-    camera.y += (localPlayer.y - camera.y - canvas.height/2) * 0.1;
+    // 2. DESENHAR (ARTE PROCEDURAL)
+    // Fundo Grama
+    ctx.fillStyle = "#1e2f23"; ctx.fillRect(0,0,cvs.width, cvs.height);
+    
+    ctx.save();
+    ctx.translate(-cam.x, -cam.y);
+    
+    drawGround(); // Tiles de grama
 
-    // RENDER
-    ctx.fillStyle = "#111"; ctx.fillRect(0,0,canvas.width, canvas.height);
-    ctx.save(); ctx.translate(-camera.x, -camera.y);
-
-    // Grid
-    ctx.strokeStyle = "#222"; ctx.lineWidth = 2;
-    for(let i=0; i<2400; i+=100) { ctx.strokeRect(i,0,1,2400); ctx.strokeRect(0,i,2400,1); }
-
-    // World
-    state.resources.forEach(r => {
-        ctx.fillStyle = r.type==='tree' ? '#27ae60' : '#7f8c8d';
-        ctx.beginPath(); ctx.arc(r.x, r.y, 15, 0, Math.PI*2); ctx.fill();
-        if(r.type==='tree') ctx.fillRect(r.x-5, r.y, 10, 15);
+    // Elementos
+    state.buildings.forEach(b => {
+        ctx.fillStyle="#e67e22"; ctx.fillRect(b.x-20, b.y-20, 40, 40);
+        ctx.fillStyle="#d35400"; ctx.fillRect(b.x-15, b.y-15, 30, 30); // Detalhe tijolo
     });
 
-    state.buildings.forEach(b => { ctx.fillStyle="#d35400"; ctx.fillRect(b.x-20, b.y-20, 40, 40); });
-    state.xpOrbs.forEach(o => { ctx.fillStyle="#0af"; ctx.beginPath(); ctx.arc(o.x, o.y, 4, 0, Math.PI*2); ctx.fill(); });
+    state.resources.forEach(r => drawRes(r));
+    state.orbs.forEach(o => { 
+        ctx.shadowBlur=10; ctx.shadowColor="#0af"; 
+        ctx.fillStyle="#0af"; ctx.beginPath(); ctx.arc(o.x, o.y, 5, 0, 7); ctx.fill(); 
+        ctx.shadowBlur=0;
+    });
 
+    // Inimigos
     state.enemies.forEach(e => {
         if(e.dead) return;
-        ctx.fillStyle = "#c0392b"; ctx.beginPath(); ctx.arc(e.x, e.y, 15, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = "#0f0"; ctx.fillRect(e.x-15, e.y-25, 30*(e.hp/e.maxHp), 4);
+        const bob = Math.sin(Date.now()/100)*3;
+        ctx.fillStyle="#c0392b"; ctx.beginPath(); ctx.arc(e.x, e.y-bob, 18, 0, 7); ctx.fill();
+        ctx.fillStyle="#fff"; ctx.beginPath(); ctx.arc(e.x-6, e.y-5-bob, 5, 0, 7); ctx.fill(); ctx.arc(e.x+6, e.y-5-bob, 5, 0, 7); ctx.fill();
+        ctx.fillStyle="red"; ctx.fillRect(e.x-15, e.y-30-bob, 30, 4);
+        ctx.fillStyle="#2ecc71"; ctx.fillRect(e.x-15, e.y-30-bob, 30*(e.hp/e.maxHp), 4);
     });
 
     // Players
-    Object.keys(state.players).forEach(id => {
+    for(const id in state.players) {
         const p = state.players[id];
-        if(p.dead) return;
-        // Posição: Se for eu, usa localPlayer, senão usa do server
-        const x = id===myId ? localPlayer.x : p.x;
-        const y = id===myId ? localPlayer.y : p.y;
+        if(p.dead) continue;
+        const x = id===myId ? me.x : p.x;
+        const y = id===myId ? me.y : p.y;
         
-        ctx.fillStyle = p.role === 'warrior' ? '#3498db' : '#9b59b6';
-        ctx.beginPath(); ctx.arc(x, y, 15, 0, Math.PI*2); ctx.fill();
-        // Olhos
-        ctx.fillStyle="#fff"; ctx.fillRect(x-5, y-5, 4, 4); ctx.fillRect(x+2, y-5, 4, 4);
-        // Arma
-        ctx.save(); ctx.translate(x, y); ctx.rotate(p.aimAngle||0);
-        ctx.fillStyle="#ccc"; ctx.fillRect(10, -3, 20, 6);
-        ctx.restore();
-        
-        ctx.fillStyle="#fff"; ctx.font="10px Arial"; ctx.fillText(p.name, x-10, y-20);
-    });
+        drawPlayer(p, x, y);
+
+        // Flecha de Amigo
+        if(id !== myId) {
+            const dx = x - me.x; const dy = y - me.y;
+            if(Math.hypot(dx,dy) > cvs.width/2) {
+                const ang = Math.atan2(dy, dx);
+                const ax = cam.x + cvs.width/2 + Math.cos(ang)*(cvs.width/2 - 40);
+                const ay = cam.y + cvs.height/2 + Math.sin(ang)*(cvs.height/2 - 40);
+                ctx.save(); ctx.translate(ax, ay); ctx.rotate(ang);
+                ctx.fillStyle="#3498db"; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-10,-5); ctx.lineTo(-10,5); ctx.fill();
+                ctx.restore();
+            }
+        }
+    }
 
     // VFX
-    damage.forEach((d,i) => {
+    shots.forEach((s,i) => {
+        s.t-=0.1;
+        ctx.strokeStyle="#0ff"; ctx.lineWidth=2; 
+        ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(s.tx, s.ty); ctx.stroke();
+        if(s.t<=0) shots.splice(i,1);
+    });
+    
+    dmgPopups.forEach((d,i) => {
         d.y-=1; d.t-=0.05; ctx.globalAlpha=d.t;
-        ctx.fillStyle="#fff"; ctx.font="16px Arial"; ctx.fillText(d.val, d.x, d.y);
-        ctx.globalAlpha=1; if(d.t<=0) damage.splice(i,1);
+        ctx.fillStyle="#fff"; ctx.font="bold 20px Arial"; ctx.fillText(d.val, d.x, d.y);
+        ctx.globalAlpha=1; if(d.t<=0) dmgPopups.splice(i,1);
     });
 
     ctx.restore();
 
-    // UI Draw
-    if(joyL.on) {
-        ctx.strokeStyle="rgba(255,255,255,0.3)"; ctx.lineWidth=2;
-        ctx.beginPath(); ctx.arc(joyL.ox, joyL.oy, 40, 0, 7); ctx.stroke();
-        ctx.beginPath(); ctx.arc(joyL.ox+joyL.dx*40, joyL.oy+joyL.dy*40, 20, 0, 7); ctx.stroke();
-    }
-    if(joyR.on) {
-        ctx.strokeStyle="rgba(255,50,50,0.3)"; ctx.lineWidth=2;
-        ctx.beginPath(); ctx.arc(joyR.ox, joyR.oy, 40, 0, 7); ctx.stroke();
-        ctx.beginPath(); ctx.arc(joyR.ox+Math.cos(joyR.ang)*40, joyR.oy+Math.sin(joyR.ang)*40, 20, 0, 7); ctx.stroke();
-    }
-
-    // Minimap
-    mCtx.fillStyle="#000"; mCtx.fillRect(0,0,100,100);
-    const s = 100/2400;
-    state.enemies.forEach(e => { if(!e.dead){ mCtx.fillStyle="red"; mCtx.fillRect(e.x*s, e.y*s, 2, 2); }});
-    Object.keys(state.players).forEach(id => { 
-        mCtx.fillStyle = id===myId ? "#fff" : "#00f";
-        const px = id===myId ? localPlayer.x : state.players[id].x;
-        const py = id===myId ? localPlayer.y : state.players[id].y;
-        mCtx.fillRect(px*s, py*s, 3, 3);
-    });
+    // UI Joysticks
+    if(joyL.on) drawJoy(joyL, "#fff");
+    if(joyR.on) drawJoy(joyR, "#f00");
+    
+    drawMinimap();
 }
 loop();
 
-function up(t) { socket.emit('levelUpChoice', {roomId, choice:t}); document.getElementById('levelScreen').classList.add('hidden'); }
-function buildWall() { socket.emit('build', {roomId}); }
+/* === FUNÇÕES DE DESENHO BONITAS === */
+function drawGround() {
+    // Desenha grid de grama (Otimizado: desenha só o que a camera vê)
+    const TILE = 100;
+    const sx = Math.floor(cam.x/TILE)*TILE;
+    const sy = Math.floor(cam.y/TILE)*TILE;
+    for(let i=sx; i<cam.x+cvs.width; i+=TILE) {
+        for(let j=sy; j<cam.y+cvs.height; j+=TILE) {
+            // Pseudo-aleatório baseado na posição pra não piscar
+            const rand = Math.sin(i*j); 
+            ctx.fillStyle = rand > 0 ? "#27ae60" : "#2ecc71";
+            ctx.fillRect(i, j, TILE, TILE);
+        }
+    }
+}
+
+function drawRes(r) {
+    if(r.type === 'tree') {
+        ctx.fillStyle="#795548"; ctx.fillRect(r.x-6, r.y, 12, 20); // Tronco
+        ctx.fillStyle="#2196f3"; // Sombra copa
+        ctx.beginPath(); ctx.arc(r.x+2, r.y-18, 20, 0, 7); ctx.fillStyle="rgba(0,0,0,0.2)"; ctx.fill();
+        ctx.fillStyle="#27ae60"; ctx.beginPath(); ctx.arc(r.x, r.y-20, 20, 0, 7); ctx.fill(); // Copa
+        ctx.fillStyle="#2ecc71"; ctx.beginPath(); ctx.arc(r.x-5, r.y-25, 10, 0, 7); ctx.fill(); // Brilho
+    } else {
+        ctx.fillStyle="#7f8c8d"; ctx.beginPath(); ctx.arc(r.x, r.y, 15, 0, 7); ctx.fill();
+        ctx.fillStyle="#95a5a6"; ctx.beginPath(); ctx.arc(r.x-3, r.y-3, 10, 0, 7); ctx.fill();
+    }
+}
+
+function drawPlayer(p, x, y) {
+    const breath = Math.sin(Date.now()/200)*2;
+    
+    // Sombra
+    ctx.fillStyle="rgba(0,0,0,0.3)"; ctx.beginPath(); ctx.ellipse(x, y+10, 15, 8, 0, 0, 7); ctx.fill();
+
+    // PET
+    const petX = x + Math.cos(Date.now()/500)*40;
+    const petY = y + Math.sin(Date.now()/500)*40;
+    ctx.fillStyle="#0ff"; ctx.beginPath(); ctx.arc(petX, petY, 6, 0, 7); ctx.fill();
+
+    // Personagem
+    ctx.save(); ctx.translate(x, y+breath);
+    if(p.role === 'warrior') {
+        ctx.fillStyle="#3498db"; ctx.beginPath(); ctx.arc(0,0,18,0,7); ctx.fill(); // Corpo
+        ctx.fillStyle="#2980b9"; ctx.beginPath(); ctx.arc(0,0,18,0,3.14); ctx.fill(); // Detalhe
+        // Capacete
+        ctx.fillStyle="#95a5a6"; ctx.fillRect(-10,-18,20,6); 
+    } else {
+        ctx.fillStyle="#9b59b6"; ctx.beginPath(); ctx.moveTo(0,-20); ctx.lineTo(15,10); ctx.lineTo(-15,10); ctx.fill();
+        ctx.fillStyle="#f1c40f"; ctx.beginPath(); ctx.arc(0,-20,5,0,7); ctx.fill(); // Topo
+    }
+    
+    // Olhos
+    ctx.fillStyle="#fff"; ctx.beginPath(); ctx.arc(-6,-4,4,0,7); ctx.arc(6,-4,4,0,7); ctx.fill();
+    ctx.fillStyle="#000"; ctx.beginPath(); ctx.arc(-6 + (p.facing||0),-4,2,0,7); ctx.arc(6 + (p.facing||0),-4,2,0,7); ctx.fill();
+
+    // Arma
+    ctx.rotate(p.angle||0);
+    if(p.role==='warrior') {
+        ctx.fillStyle="#bdc3c7"; ctx.fillRect(15,-3,25,6); // Lamina
+        ctx.fillStyle="#e67e22"; ctx.fillRect(15,-6,5,12); // Guarda
+    } else {
+        ctx.fillStyle="#8e44ad"; ctx.fillRect(15,-2,25,4);
+        ctx.fillStyle="#e74c3c"; ctx.beginPath(); ctx.arc(40,0,5,0,7); ctx.fill();
+    }
+    ctx.restore();
+
+    // Nome
+    ctx.fillStyle="#fff"; ctx.font="10px Arial"; ctx.textAlign="center"; ctx.fillText(p.name, x, y-30+breath);
+}
+
+function drawJoy(j, color) {
+    ctx.strokeStyle=color; ctx.lineWidth=3; ctx.globalAlpha=0.5;
+    ctx.beginPath(); ctx.arc(j.ox, j.oy, 40, 0, 7); ctx.stroke();
+    ctx.fillStyle=color; ctx.beginPath(); ctx.arc(j.ox+(j.dx*40||Math.cos(j.ang)*40), j.oy+(j.dy*40||Math.sin(j.ang)*40), 20, 0, 7); ctx.fill();
+    ctx.globalAlpha=1;
+}
+
+function drawMinimap() {
+    mCtx.fillStyle="#000"; mCtx.fillRect(0,0,110,110);
+    const s = 110/2400;
+    state.resources.forEach(r => { mCtx.fillStyle=r.type==='tree'?"#0f0":"#777"; mCtx.fillRect(r.x*s, r.y*s, 2, 2); });
+    state.buildings.forEach(b => { mCtx.fillStyle="#e67e22"; mCtx.fillRect(b.x*s, b.y*s, 3, 3); });
+    Object.keys(state.players).forEach(id => {
+        mCtx.fillStyle = id===myId ? "#fff" : "#00f";
+        const p = id===myId ? me : state.players[id];
+        mCtx.beginPath(); mCtx.arc(p.x*s, p.y*s, 3, 0, 7); mCtx.fill();
+    });
+}
+
+function updateHUD() {
+    document.getElementById('hpBar').style.width = (me.hp/me.maxHp*100)+'%';
+    document.getElementById('hpTxt').innerText = Math.ceil(me.hp)+"/"+me.maxHp;
+    document.getElementById('xpBar').style.width = (me.xp/me.nextLevel*100)+'%';
+    document.getElementById('xpTxt').innerText = "LVL "+me.level;
+    document.getElementById('wood').innerText = me.wood;
+    document.getElementById('stone').innerText = me.stone;
+    document.getElementById('buildBtn').style.display = me.wood>=20 ? 'block' : 'none';
+    if(me.dead) document.getElementById('death').classList.remove('hidden');
+    else document.getElementById('death').classList.add('hidden');
+}
+
+function up(c) { socket.emit('levelup',{roomId,choice:c}); document.getElementById('levelUp').classList.add('hidden'); }
+function build() { socket.emit('build',{roomId}); }
 function respawn() { socket.emit('respawn', roomId); }
 </script>
 </body>

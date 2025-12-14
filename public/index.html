@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>edu & kamy</title>
+<title>edu & kamy arena</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
 <style>
@@ -15,6 +15,7 @@ body {
   font-family: system-ui, Arial;
 }
 
+/* topo */
 #menu {
   position: fixed;
   top: 10px;
@@ -39,6 +40,7 @@ button, input {
   color: #9fb4ff;
 }
 
+/* ataque */
 #attackBtn {
   position: fixed;
   right: 24px;
@@ -53,6 +55,7 @@ button, input {
   z-index: 10;
 }
 
+/* minimapa */
 #minimap {
   position: fixed;
   top: 12px;
@@ -99,42 +102,21 @@ function resize() {
 resize()
 addEventListener("resize", resize)
 
-/* ================= ESTADO ================= */
+/* ================= MUNDO ================= */
 const WORLD = { w: 2400, h: 2400 }
 let camera = { x: 0, y: 0 }
 
+/* ================= ESTADO ================= */
 let roomId = null
 let myId = null
 
 let serverPlayers = {}
-let smoothPlayers = {}
+const smoothPlayers = {}
 
 let localPlayer = { x: 1200, y: 1200, r: 14 }
 let localInit = false
 
-/* ================= CLASSES ================= */
-function getClassBySlot(id) {
-  const ids = Object.keys(serverPlayers)
-  if (ids.length < 2) return "warrior"
-  return ids[0] === id ? "warrior" : "mage"
-}
-
-/* ================= INIMIGOS ================= */
-let enemies = []
-
-function spawnEnemy() {
-  enemies.push({
-    x: Math.random() * WORLD.w,
-    y: Math.random() * WORLD.h,
-    r: 14,
-    hp: 5,
-    speed: 1.2
-  })
-}
-
-for (let i = 0; i < 8; i++) spawnEnemy()
-
-/* ================= UI / SOCKET ================= */
+/* ================= UI / SALA ================= */
 const createBtn = document.getElementById("createBtn")
 const joinBtn = document.getElementById("joinBtn")
 const roomInput = document.getElementById("roomInput")
@@ -175,17 +157,42 @@ socket.on("updatePlayers", data => {
   }
 })
 
+/* ================= IDENTIDADE / CLASSE ================= */
+function getName(id) {
+  const ids = Object.keys(serverPlayers)
+  return ids[0] === id ? "edu" : "kamy"
+}
+
+function getClass(id) {
+  const ids = Object.keys(serverPlayers)
+  return ids[0] === id ? "warrior" : "mage"
+}
+
+/* ================= INIMIGOS ================= */
+let enemies = []
+
+function initEnemies() {
+  enemies = []
+  for (let i = 0; i < 8; i++) {
+    enemies.push({
+      x: 600 + i * 200,
+      y: 600,
+      r: 14,
+      hp: 5,
+      speed: 1.1
+    })
+  }
+}
+initEnemies()
+
 /* ================= ATAQUE ================= */
 let atkCooldown = false
-const attackBtn = document.getElementById("attackBtn")
-
-attackBtn.onclick = () => {
+document.getElementById("attackBtn").onclick = () => {
   if (atkCooldown) return
   atkCooldown = true
-
   setTimeout(() => atkCooldown = false, 400)
 
-  const myClass = getClassBySlot(myId)
+  const myClass = getClass(myId)
 
   enemies.forEach(e => {
     const dx = e.x - localPlayer.x
@@ -207,23 +214,6 @@ attackBtn.onclick = () => {
 }
 
 /* ================= FUNÇÕES ================= */
-function resolveCollision(a, b) {
-  const dx = a.x - b.x
-  const dy = a.y - b.y
-  const dist = Math.hypot(dx, dy)
-  const min = a.r + b.r
-
-  if (dist > 0 && dist < min) {
-    const push = (min - dist) / 2
-    const nx = dx / dist
-    const ny = dy / dist
-    a.x += nx * push
-    a.y += ny * push
-    b.x -= nx * push
-    b.y -= ny * push
-  }
-}
-
 function drawBackground() {
   const grid = 120
   ctx.strokeStyle = "#171a26"
@@ -256,6 +246,7 @@ function loop(ts) {
 
   ctx.clearRect(0, 0, canvas.width, canvas.height)
 
+  /* movimento local */
   if (roomId && window.joystick) {
     const speed = 5
     localPlayer.x += window.joystick.dx * speed
@@ -286,7 +277,7 @@ function loop(ts) {
 
   drawBackground()
 
-  /* inimigos seguem player */
+  /* inimigos */
   enemies.forEach(e => {
     const dx = localPlayer.x - e.x
     const dy = localPlayer.y - e.y
@@ -315,7 +306,7 @@ function loop(ts) {
     ctx.fillStyle = "#fff"
     ctx.font = "12px Arial"
     ctx.textAlign = "center"
-    ctx.fillText(id === myId ? "edu" : "kamy", p.x, p.y - 22)
+    ctx.fillText(getName(id), p.x, p.y - 22)
   }
 
   ctx.restore()

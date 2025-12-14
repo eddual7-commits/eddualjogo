@@ -2,8 +2,8 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
-<title>coop game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<title>coop base</title>
 
 <style>
 html, body {
@@ -12,7 +12,7 @@ html, body {
   overflow: hidden;
   background: #0b0d14;
   touch-action: none;
-  font-family: sans-serif;
+  font-family: Arial, sans-serif;
 }
 
 #ui {
@@ -20,40 +20,40 @@ html, body {
   top: 10px;
   left: 10px;
   z-index: 10;
-  color: #cfd3ff;
+  display: flex;
+  gap: 6px;
 }
 
-#atk {
-  position: fixed;
-  right: 20px;
-  bottom: 40px;
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  background: #e44;
-  color: white;
-  font-size: 20px;
+#ui input, #ui button {
+  padding: 6px 10px;
+  border-radius: 6px;
   border: none;
+  background: #1f2233;
+  color: #fff;
 }
 
-#joy {
+#joystick {
   position: fixed;
   left: 20px;
-  bottom: 40px;
+  bottom: 30px;
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.08);
 }
 
-#joyInner {
+#stick {
   position: absolute;
   left: 40px;
   top: 40px;
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.4);
+}
+
+canvas {
+  display: block;
 }
 </style>
 </head>
@@ -61,23 +61,21 @@ html, body {
 <body>
 
 <div id="ui">
-  Sala:
-  <input id="roomInput" placeholder="id" />
   <button onclick="createRoom()">Criar</button>
+  <input id="roomInput" placeholder="sala" />
   <button onclick="joinRoom()">Entrar</button>
 </div>
 
 <canvas id="game"></canvas>
 
-<button id="atk">ATK</button>
-
-<div id="joy">
-  <div id="joyInner"></div>
+<div id="joystick">
+  <div id="stick"></div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
+
 <script>
-/* ===== SETUP ===== */
+/* ===== CANVAS FULLSCREEN ===== */
 const canvas = document.getElementById("game")
 const ctx = canvas.getContext("2d")
 
@@ -87,151 +85,121 @@ function resize() {
   canvas.style.height = innerHeight + "px"
   canvas.width = innerWidth * dpr
   canvas.height = innerHeight * dpr
-  ctx.setTransform(dpr,0,0,dpr,0,0)
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
 }
 addEventListener("resize", resize)
 resize()
 
-const socket = io()
-let roomId = null
-let myId = null
-
-/* ===== WORLD ===== */
-const WORLD = { w: 3000, h: 3000 }
-let players = {}
-let enemies = []
-
-/* ===== CLASSES ===== */
-const CLASSES = {
-  guerreiro: { hp: 100, dmg: 20, range: 40 },
-  mago: { hp: 70, dmg: 30, range: 90 }
-}
-
 /* ===== SOCKET ===== */
+const socket = io()
+let myId = null
+let roomId = null
+let players = {}
+
 socket.on("connect", () => {
   myId = socket.id
+})
+
+socket.on("roomCreated", id => {
+  roomId = id
+  document.getElementById("roomInput").value = id
 })
 
 socket.on("updatePlayers", data => {
   players = data
 })
 
-socket.on("updateEnemies", data => {
-  enemies = data
-})
-
-/* ===== ROOM ===== */
 function createRoom() {
   socket.emit("createRoom")
 }
+
 function joinRoom() {
-  const id = roomInput.value.trim()
-  if (id) socket.emit("joinRoom", id)
+  const id = document.getElementById("roomInput").value.trim()
+  if (id) {
+    roomId = id
+    socket.emit("joinRoom", id)
+  }
 }
 
-socket.on("roomCreated", id => {
-  roomId = id
-  roomInput.value = id
-})
-
-/* ===== CAMERA ===== */
-const camera = { x:0, y:0 }
-
 /* ===== JOYSTICK ===== */
-let joy = { dx:0, dy:0, active:false }
-const joyEl = document.getElementById("joy")
-const joyIn = document.getElementById("joyInner")
+const joy = { dx: 0, dy: 0 }
+const joyEl = document.getElementById("joystick")
+const stick = document.getElementById("stick")
 
-joyEl.addEventListener("pointerdown", e=>{
-  joy.active = true
+let active = false
+
+joyEl.addEventListener("pointerdown", e => {
+  active = true
 })
-addEventListener("pointerup", ()=>{
-  joy.active = false
+
+addEventListener("pointerup", () => {
+  active = false
   joy.dx = joy.dy = 0
-  joyIn.style.left = "40px"
-  joyIn.style.top = "40px"
+  stick.style.left = "40px"
+  stick.style.top = "40px"
 })
-addEventListener("pointermove", e=>{
-  if(!joy.active) return
+
+addEventListener("pointermove", e => {
+  if (!active) return
+
   const r = joyEl.getBoundingClientRect()
   const cx = r.left + 60
   const cy = r.top + 60
+
   let dx = e.clientX - cx
   let dy = e.clientY - cy
-  const dist = Math.hypot(dx,dy)
-  if(dist>40){ dx*=40/dist; dy*=40/dist }
-  joy.dx = dx/40
-  joy.dy = dy/40
-  joyIn.style.left = 40+dx+"px"
-  joyIn.style.top = 40+dy+"px"
+
+  const dist = Math.hypot(dx, dy)
+  if (dist > 40) {
+    dx *= 40 / dist
+    dy *= 40 / dist
+  }
+
+  joy.dx = dx / 40
+  joy.dy = dy / 40
+
+  stick.style.left = 40 + dx + "px"
+  stick.style.top = 40 + dy + "px"
 })
 
-/* ===== ATAQUE ===== */
-document.getElementById("atk").onclick = ()=>{
-  if(!roomId) return
-  socket.emit("attack", roomId)
-}
+/* ===== GAME LOOP ===== */
+const WORLD = { w: 2000, h: 2000 }
+const camera = { x: 0, y: 0 }
 
-/* ===== LOOP ===== */
-function loop(){
-  ctx.clearRect(0,0,canvas.width,canvas.height)
+function loop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
 
   const me = players[myId]
-  if(me){
-    camera.x = me.x - canvas.width/2
-    camera.y = me.y - canvas.height/2
+  if (me) {
+    camera.x = me.x - canvas.width / 2
+    camera.y = me.y - canvas.height / 2
+
+    if (roomId) {
+      socket.emit("move", {
+        roomId,
+        x: me.x + joy.dx * 5,
+        y: me.y + joy.dy * 5
+      })
+    }
   }
 
-  drawBackground()
+  /* fundo simples */
+  ctx.fillStyle = "#0b0d14"
+  ctx.fillRect(-camera.x, -camera.y, WORLD.w, WORLD.h)
 
-  for(const id in players){
+  /* players */
+  for (const id in players) {
     const p = players[id]
-    ctx.fillStyle = id===myId ? "#4da6ff" : "#6f6"
+    ctx.fillStyle = id === myId ? "#4da6ff" : "#6f6"
     ctx.beginPath()
-    ctx.arc(p.x-camera.x, p.y-camera.y, 16,0,Math.PI*2)
+    ctx.arc(p.x - camera.x, p.y - camera.y, 16, 0, Math.PI * 2)
     ctx.fill()
-    ctx.fillStyle="#fff"
-    ctx.fillText(p.name, p.x-camera.x-10, p.y-camera.y-20)
-  }
-
-  enemies.forEach(e=>{
-    ctx.fillStyle="#e44"
-    ctx.beginPath()
-    ctx.arc(e.x-camera.x, e.y-camera.y,14,0,Math.PI*2)
-    ctx.fill()
-  })
-
-  if(me && roomId){
-    const speed = 5
-    socket.emit("move", {
-      roomId,
-      x: me.x + joy.dx*speed,
-      y: me.y + joy.dy*speed
-    })
   }
 
   requestAnimationFrame(loop)
 }
-loop()
 
-/* ===== FUNDO ===== */
-function drawBackground(){
-  ctx.fillStyle="#0b0d14"
-  ctx.fillRect(-camera.x,-camera.y,WORLD.w,WORLD.h)
-  ctx.strokeStyle="#1f2233"
-  for(let x=0;x<WORLD.w;x+=100){
-    ctx.beginPath()
-    ctx.moveTo(x-camera.x,0-camera.y)
-    ctx.lineTo(x-camera.x,WORLD.h-camera.y)
-    ctx.stroke()
-  }
-  for(let y=0;y<WORLD.h;y+=100){
-    ctx.beginPath()
-    ctx.moveTo(0-camera.x,y-camera.y)
-    ctx.lineTo(WORLD.w-camera.x,y-camera.y)
-    ctx.stroke()
-  }
-}
+loop()
 </script>
 </body>
 </html>

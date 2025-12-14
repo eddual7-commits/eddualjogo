@@ -2,461 +2,375 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Edu & Kally - Arena</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>RPG Floresta</title>
 
 <style>
-/* ================= ESTILO GERAL ================= */
-* { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+* { box-sizing: border-box; user-select: none; -webkit-user-select: none; touch-action: none; }
+body { margin: 0; background: #051405; overflow: hidden; font-family: 'Courier New', Courier, monospace; }
 
-body {
-  margin: 0;
-  background: #0b0d14; /* Cor de fundo escura para evitar o branco */
-  overflow: hidden;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: white;
-}
+/* UI */
+#ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+.menu { pointer-events: auto; background: rgba(10, 20, 10, 0.95); height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; color: #8fbc8f; }
+.menu h1 { font-size: 30px; text-shadow: 0 0 10px #0f0; }
+input { padding: 15px; font-size: 20px; text-transform: uppercase; text-align: center; pointer-events: auto; background: #000; border: 2px solid #8fbc8f; color: #fff; border-radius: 8px; }
+button { padding: 15px 30px; font-size: 18px; font-weight: bold; border-radius: 8px; border: none; cursor: pointer; pointer-events: auto; background: #2e8b57; color: #fff; box-shadow: 0 4px 0 #1b5e3a; }
+button:active { transform: translateY(4px); box-shadow: none; }
 
-/* ================= MENU DE ENTRADA ================= */
-#menuOverlay {
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(5, 5, 5, 0.95);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  transition: opacity 0.5s;
-}
+/* HUD */
+#hud { display: none; padding: 15px; }
+.bar-box { width: 220px; height: 18px; background: #111; border: 2px solid #444; margin-bottom: 8px; border-radius: 4px; overflow: hidden; }
+.hp-fill { height: 100%; background: #e74c3c; width: 100%; transition: width 0.2s; }
+.buff-text { color: #ffff00; font-weight: bold; font-size: 14px; text-shadow: 1px 1px 0 #000; display: none; }
 
-.hidden { opacity: 0; pointer-events: none; }
-
-h1 { margin: 0 0 20px 0; font-size: 2rem; color: #9fb4ff; text-transform: uppercase; letter-spacing: 2px; }
-.menu-box {
-  background: #151720;
-  padding: 30px;
-  border-radius: 12px;
-  border: 1px solid #333;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  width: 300px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-
-input {
-  padding: 12px;
-  background: #0a0c12;
-  border: 1px solid #444;
-  color: white;
-  border-radius: 6px;
-  font-size: 16px;
-  text-align: center;
-  text-transform: uppercase;
-}
-
-button {
-  padding: 12px;
-  font-size: 16px;
-  font-weight: bold;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: transform 0.1s;
-}
-
-button:active { transform: scale(0.96); }
-
-#createBtn { background: #5aa9ff; color: #000; }
-#joinBtn { background: #333; color: #fff; border: 1px solid #555; }
-
-/* ================= HUD (DURANTE O JOGO) ================= */
-#hud {
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  pointer-events: none;
-  z-index: 10;
-  display: none;
-}
-
-.room-badge {
-  background: rgba(0,0,0,0.6);
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-size: 12px;
-  border-left: 3px solid #5aa9ff;
-}
-
-/* ================= BOTÃO DE ATAQUE ================= */
+/* CONTROLES */
 #attackBtn {
-  position: fixed;
-  right: 20px;
-  bottom: 30px;
-  width: 80px;
-  height: 80px;
+  position: fixed; bottom: 40px; right: 30px;
+  width: 90px; height: 90px;
+  background: radial-gradient(circle, #ff5f5f, #b71c1c);
+  border: 4px solid rgba(255,255,255,0.4);
   border-radius: 50%;
-  background: linear-gradient(135deg, #ff5f5f, #c82828);
-  border: 4px solid rgba(255,255,255,0.1);
-  box-shadow: 0 4px 15px rgba(255, 95, 95, 0.4);
-  color: white;
-  font-weight: 900;
-  font-size: 24px;
-  z-index: 20;
-  display: none;
-  cursor: pointer;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.7);
+  display: none; pointer-events: auto;
+  font-size: 40px; display: flex; align-items: center; justify-content: center;
 }
-#attackBtn:active { transform: scale(0.9); background: #a02020; }
-
-/* ================= MINIMAPA ================= */
-#minimap {
-  position: fixed;
-  top: 15px;
-  right: 15px;
-  width: 120px;
-  height: 120px;
-  background: rgba(10, 12, 18, 0.8);
-  border: 1px solid #444;
-  border-radius: 8px;
-  display: none;
-  z-index: 20;
-}
+#attackBtn:active { transform: scale(0.95); filter: brightness(1.2); }
 
 canvas { display: block; }
 </style>
 </head>
-
 <body>
 
-<div id="menuOverlay">
-  <h1>Edu & Kally Arena</h1>
-  <div class="menu-box">
-    <button id="createBtn">CRIAR SALA</button>
-    <div style="display:flex; align-items:center; gap:10px; margin: 10px 0;">
-        <hr style="flex:1; border-color:#333"> <span style="font-size:12px; color:#666">OU</span> <hr style="flex:1; border-color:#333">
-    </div>
+<div id="ui-layer">
+  <div id="menu" class="menu">
+    <h1>🌲 FLORESTA MÁGICA 🌲</h1>
+    <button id="createBtn">CRIAR MUNDO</button>
+    <div style="font-size: 12px; opacity: 0.7;">OU ENTRE EM UM</div>
     <input id="roomInput" placeholder="CÓDIGO DA SALA">
-    <button id="joinBtn">ENTRAR NA SALA</button>
+    <button id="joinBtn">ENTRAR</button>
+  </div>
+
+  <div id="hud">
+    <div class="bar-box"><div id="hpBar" class="hp-fill"></div></div>
+    <div id="buffDisplay" class="buff-text">POWER UP ATIVO!</div>
+    <div style="color:#aaa; font-size:12px; margin-top:5px;" id="roomDisplay"></div>
   </div>
 </div>
 
-<div id="hud">
-  <div class="room-badge" id="roomDisplay">Aguardando...</div>
-</div>
-
-<button id="attackBtn">⚔️</button>
+<div id="attackBtn" style="display:none">⚔️</div>
 
 <canvas id="game"></canvas>
-<canvas id="minimap"></canvas>
 
 <script src="/socket.io/socket.io.js"></script>
-
 <script>
-/* ================= CONFIGURAÇÃO ================= */
-const socket = io()
-const canvas = document.getElementById("game")
-const ctx = canvas.getContext("2d")
-const minimap = document.getElementById("minimap")
-const mctx = minimap.getContext("2d")
+/* === SINTETIZADOR DE SOM === */
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playSound(type) {
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
 
-// Elementos UI
-const menuOverlay = document.getElementById("menuOverlay")
-const hud = document.getElementById("hud")
-const attackBtn = document.getElementById("attackBtn")
-const roomDisplay = document.getElementById("roomDisplay")
-const createBtn = document.getElementById("createBtn")
-const joinBtn = document.getElementById("joinBtn")
-const roomInput = document.getElementById("roomInput")
-
-function resize() {
-  canvas.width = innerWidth
-  canvas.height = innerHeight
-}
-resize()
-addEventListener("resize", resize)
-
-/* ================= MUNDO & CÂMERA ================= */
-const WORLD = { w: 2400, h: 2400 }
-let camera = { x: 0, y: 0 }
-
-/* ================= ESTADO DO JOGO ================= */
-let roomId = null
-let myId = null
-let isGameRunning = false
-
-// Jogadores
-let serverPlayers = {}
-const smoothPlayers = {} 
-
-// Jogador Local
-let localPlayer = { 
-  x: 1200, y: 1200, r: 16, 
-  hp: 100, maxHp: 100, 
-  state: 'idle',
-  class: 'warrior' 
-}
-let localInit = false
-
-// A FADA 
-let fairy = { x: 1200, y: 1200, angle: 0 }
-
-/* ================= CONEXÃO ================= */
-socket.on("connect", () => myId = socket.id)
-
-// Função que esconde o menu e mostra o jogo
-function startGameUI(code) {
-  roomId = code
-  roomDisplay.innerText = "Sala: " + code
-  menuOverlay.classList.add("hidden") // Esconde menu
-  hud.style.display = "block"         // Mostra HUD
-  attackBtn.style.display = "block"   // Mostra Botão
-  minimap.style.display = "block"     // Mostra Mapa
-  isGameRunning = true
+  const t = audioCtx.currentTime;
+  if (type === 'hit') {
+    osc.frequency.setValueAtTime(200, t);
+    osc.frequency.exponentialRampToValueAtTime(50, t + 0.1);
+    gain.gain.setValueAtTime(0.5, t);
+    gain.gain.linearRampToValueAtTime(0, t + 0.1);
+    osc.start(); osc.stop(t + 0.1);
+  } else if (type === 'coin') { // Som da Carta
+    osc.frequency.setValueAtTime(600, t);
+    osc.frequency.setValueAtTime(1200, t + 0.1);
+    gain.gain.setValueAtTime(0.3, t);
+    gain.gain.linearRampToValueAtTime(0, t + 0.3);
+    osc.start(); osc.stop(t + 0.3);
+  }
 }
 
-// CRIAR SALA
-createBtn.onclick = () => socket.emit("createRoom")
+/* === SETUP === */
+const socket = io();
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
-socket.on("roomCreated", id => startGameUI(id))
+let myId = null;
+let roomId = null;
+let camera = { x: 0, y: 0 };
+let shake = 0;
 
-// ENTRAR NA SALA (Correção aplicada aqui)
-joinBtn.onclick = () => {
-  const code = roomInput.value.trim().toUpperCase()
-  if (!code) return alert("Digite um código!")
-  
-  socket.emit("joinRoom", code)
-  startGameUI(code) // Força a entrada visual
-}
+// Estado
+let players = {};
+let enemies = [];
+let cards = [];
+let particles = [];
+let scenery = []; // Árvores e pedras estáticas
 
-socket.on("updatePlayers", data => {
-  serverPlayers = data
-
-  // Atualiza players remotos
-  for (const id in serverPlayers) {
-    if (id === myId) continue
-    if (!smoothPlayers[id]) {
-      smoothPlayers[id] = { x: data[id].x, y: data[id].y, r: 16, hp: 100 }
+// Gera cenário aleatório (Floresta) uma vez só
+function generateScenery() {
+    scenery = [];
+    for(let i=0; i<300; i++) {
+        scenery.push({
+            x: Math.random() * 2400,
+            y: Math.random() * 2400,
+            r: 20 + Math.random() * 40,
+            type: Math.random() > 0.8 ? 'stone' : 'tree'
+        });
     }
-  }
-
-  // Sincroniza posição inicial APENAS na primeira vez
-  if (!localInit && serverPlayers[myId]) {
-    localPlayer.x = serverPlayers[myId].x
-    localPlayer.y = serverPlayers[myId].y
-    localInit = true
-  }
-})
-
-/* ================= LÓGICA DE JOGO (CLIENT SIDE) ================= */
-let enemies = []
-function initEnemies() {
-  for (let i = 0; i < 10; i++) {
-    enemies.push({
-      x: 1000 + Math.random() * 400,
-      y: 1000 + Math.random() * 400,
-      r: 16, hp: 30, maxHp: 30,
-      speed: 1.5 + Math.random() * 0.5
-    })
-  }
 }
-initEnemies()
+generateScenery();
 
-let isAttacking = false
-attackBtn.onclick = () => {
-  if (isAttacking) return
-  
-  isAttacking = true
-  localPlayer.state = 'attack'
-  
-  // Shake leve na câmera
-  const shake = 5
-  camera.x += (Math.random() - 0.5) * shake
-  camera.y += (Math.random() - 0.5) * shake
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resize(); window.addEventListener("resize", resize);
 
-  // Dano Local (Visual)
-  const range = localPlayer.class === 'warrior' ? 80 : 250
-  const dmg = localPlayer.class === 'warrior' ? 10 : 5
-  
-  enemies.forEach(e => {
-    const dist = Math.hypot(e.x - localPlayer.x, e.y - localPlayer.y)
-    if (dist < range) {
-      e.hp -= dmg
-      // Knockback
-      const angle = Math.atan2(e.y - localPlayer.y, e.x - localPlayer.x)
-      e.x += Math.cos(angle) * 20
-      e.y += Math.sin(angle) * 20
-    }
-  })
-  
-  enemies = enemies.filter(e => e.hp > 0)
+/* === REDE === */
+socket.on('connect', () => myId = socket.id);
 
-  setTimeout(() => {
-    isAttacking = false
-    localPlayer.state = 'idle'
-  }, 300)
+document.getElementById('createBtn').onclick = () => socket.emit('createRoom');
+document.getElementById('joinBtn').onclick = () => {
+    const code = document.getElementById('roomInput').value.trim().toUpperCase();
+    if(code) socket.emit('joinRoom', code);
+};
+
+function startGame(id) {
+    roomId = id;
+    document.getElementById('menu').style.display = 'none';
+    document.getElementById('hud').style.display = 'block';
+    document.getElementById('attackBtn').style.display = 'flex';
+    document.getElementById('roomDisplay').innerText = "SALA: " + id;
 }
 
-/* ================= DRAW ================= */
-function drawGrid() {
-  const gridSize = 100
-  ctx.strokeStyle = "#1a1d26"
-  ctx.lineWidth = 2
+socket.on('roomCreated', startGame);
+socket.on('joinedRoom', startGame);
 
-  const startX = Math.floor(camera.x / gridSize) * gridSize
-  const startY = Math.floor(camera.y / gridSize) * gridSize
-
-  for (let x = startX; x < camera.x + canvas.width; x += gridSize) {
-    ctx.beginPath(); ctx.moveTo(x, camera.y); ctx.lineTo(x, camera.y + canvas.height); ctx.stroke();
-  }
-  for (let y = startY; y < camera.y + canvas.height; y += gridSize) {
-    ctx.beginPath(); ctx.moveTo(camera.x, y); ctx.lineTo(camera.x + canvas.width, y); ctx.stroke();
-  }
-}
-
-function drawHealthBar(x, y, hp, max, color = "#ff4444") {
-  const w = 40, h = 6
-  ctx.fillStyle = "#333"
-  ctx.fillRect(x - w/2, y - 30, w, h)
-  ctx.fillStyle = color
-  ctx.fillRect(x - w/2, y - 30, w * (hp/max), h)
-}
-
-function drawFairy() {
-  fairy.angle += 0.05
-  const orbitDist = 50
-  const targetX = localPlayer.x + Math.cos(fairy.angle) * orbitDist
-  const targetY = localPlayer.y + Math.sin(fairy.angle) * orbitDist
-  
-  fairy.x += (targetX - fairy.x) * 0.1
-  fairy.y += (targetY - fairy.y) * 0.1
-
-  ctx.shadowBlur = 15; ctx.shadowColor = "#00ffff"; ctx.fillStyle = "#fff"
-  ctx.beginPath(); ctx.arc(fairy.x, fairy.y, 6, 0, Math.PI*2); ctx.fill()
-  
-  ctx.shadowBlur = 0; ctx.fillStyle = "rgba(200, 255, 255, 0.5)"
-  ctx.beginPath(); ctx.ellipse(fairy.x - 5, fairy.y, 8, 4, Math.PI/4, 0, Math.PI*2); ctx.fill()
-  ctx.beginPath(); ctx.ellipse(fairy.x + 5, fairy.y, 8, 4, -Math.PI/4, 0, Math.PI*2); ctx.fill()
-}
-
-/* ================= LOOP ================= */
-let lastTime = 0
-let serverTimer = 0
-
-function gameLoop(timestamp) {
-  const dt = timestamp - lastTime
-  lastTime = timestamp
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height)
-  
-  // Se não estiver no jogo, desenha um fundo escuro e sai
-  if (!isGameRunning) {
-    ctx.fillStyle = "#0b0d14";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    requestAnimationFrame(gameLoop)
-    return
-  }
-
-  // 1. Input Joystick
-  let moving = false
-  if (window.joystick) {
-    if (window.joystick.dx !== 0 || window.joystick.dy !== 0) moving = true
-    const speed = 6
-    localPlayer.x += window.joystick.dx * speed
-    localPlayer.y += window.joystick.dy * speed
-  }
-  
-  localPlayer.x = Math.max(0, Math.min(WORLD.w, localPlayer.x))
-  localPlayer.y = Math.max(0, Math.min(WORLD.h, localPlayer.y))
-
-  if (!isAttacking) localPlayer.state = moving ? 'run' : 'idle'
-
-  // 2. Server Sync
-  serverTimer += dt
-  if (serverTimer > 50 && roomId) { 
-    serverTimer = 0
-    socket.emit("move", { roomId, x: localPlayer.x, y: localPlayer.y })
-  }
-
-  // 3. Interpolation
-  for (const id in smoothPlayers) {
-    const target = serverPlayers[id]
-    if (target) {
-      smoothPlayers[id].x += (target.x - smoothPlayers[id].x) * 0.2
-      smoothPlayers[id].y += (target.y - smoothPlayers[id].y) * 0.2
-    }
-  }
-
-  // 4. Camera
-  camera.x += (localPlayer.x - camera.x - canvas.width/2) * 0.1
-  camera.y += (localPlayer.y - camera.y - canvas.height/2) * 0.1
-
-  ctx.save()
-  ctx.translate(-camera.x, -camera.y)
-  
-  drawGrid()
-
-  // Inimigos
-  enemies.forEach(e => {
-    const dist = Math.hypot(localPlayer.x - e.x, localPlayer.y - e.y)
-    if (dist < 400 && dist > 30) {
-       e.x += ((localPlayer.x - e.x) / dist) * e.speed
-       e.y += ((localPlayer.y - e.y) / dist) * e.speed
-    }
-    ctx.fillStyle = "#ff5555"
-    ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI*2); ctx.fill()
-    drawHealthBar(e.x, e.y, e.hp, e.maxHp)
-  })
-
-  // Players
-  const allPlayers = [{id: myId, ...localPlayer}, ...Object.keys(smoothPlayers).map(id => ({id, ...smoothPlayers[id]}))]
-  
-  allPlayers.forEach(p => {
-    const isMe = p.id === myId
-    const color = isMe ? "#5aa9ff" : "#ffb86b"
+socket.on('updateWorld', (data) => {
+    players = data.players;
+    enemies = data.enemies;
+    cards = data.cards;
     
-    if (p.state === 'attack') {
-        ctx.fillStyle = "#fff"
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.r + 5, 0, Math.PI*2); ctx.fill()
+    // Atualiza HUD Local
+    if(players[myId]) {
+        const p = players[myId];
+        document.getElementById('hpBar').style.width = (p.hp / p.maxHp * 100) + "%";
+        
+        const buffDiv = document.getElementById('buffDisplay');
+        if (p.dmgMult > 1) { buffDiv.innerText = "⚔️ FORÇA DOBRADA!"; buffDiv.style.display = "block"; }
+        else if (p.speedMult > 1) { buffDiv.innerText = "⚡ VELOCIDADE!"; buffDiv.style.display = "block"; }
+        else { buffDiv.style.display = "none"; }
+    }
+});
+
+socket.on('cardCollect', (data) => {
+    if(data.pid === myId) playSound('coin');
+});
+
+socket.on('enemyHit', (data) => {
+    if(Math.hypot(data.x - players[myId].x, data.y - players[myId].y) < 600) playSound('hit');
+    for(let i=0; i<4; i++) {
+        particles.push({
+            x: data.x, y: data.y,
+            vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8,
+            life: 1.0, color: '#fff'
+        });
+    }
+});
+
+/* === CONTROLES === */
+const atkBtn = document.getElementById('attackBtn');
+atkBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    socket.emit('attack', { roomId });
+    if(players[myId]) players[myId].state = 'attack';
+    setTimeout(() => { if(players[myId]) players[myId].state = 'idle'; }, 200);
+}, { passive: false });
+
+/* === DESENHO (ARTES) === */
+
+function drawCharacter(ctx, x, y, role, state, isMe) {
+    // Animação de caminhada
+    const time = Date.now() / 150;
+    const bounce = state === 'run' ? Math.sin(time) * 3 : 0;
+    const handSwing = state === 'run' ? Math.cos(time) * 10 : 0;
+
+    // Sombra
+    ctx.fillStyle = "rgba(0,0,0,0.4)";
+    ctx.beginPath(); ctx.ellipse(x, y + 20, 15, 8, 0, 0, Math.PI*2); ctx.fill();
+
+    // Corpo
+    ctx.fillStyle = role === 'warrior' ? '#3498db' : '#e056fd'; // Azul ou Rosa
+    if(role === 'warrior') {
+        // Guerreiro (Quadrado arredondado)
+        ctx.fillRect(x - 12, y - 15 + bounce, 24, 30);
+    } else {
+        // Mago (Triângulo/Robe)
+        ctx.beginPath();
+        ctx.moveTo(x, y - 20 + bounce);
+        ctx.lineTo(x + 15, y + 15 + bounce);
+        ctx.lineTo(x - 15, y + 15 + bounce);
+        ctx.fill();
     }
 
-    ctx.fillStyle = color
-    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill()
-    
-    ctx.fillStyle = "#fff"
-    ctx.font = "bold 14px Arial"
-    ctx.textAlign = "center"
-    const name = (Object.keys(serverPlayers)[0] === p.id) ? "Edu" : "Kally"
-    ctx.fillText(name, p.x, p.y - 25)
+    // Cabeça
+    ctx.fillStyle = "#ffccaa"; // Pele
+    ctx.beginPath(); ctx.arc(x, y - 20 + bounce, 10, 0, Math.PI*2); ctx.fill();
 
-    drawHealthBar(p.x, p.y - 5, 100, 100, "#5aa9ff")
-  })
-  
-  drawFairy()
+    // Olhos
+    ctx.fillStyle = "#000";
+    ctx.fillRect(x - 4, y - 22 + bounce, 3, 3);
+    ctx.fillRect(x + 2, y - 22 + bounce, 3, 3);
 
-  ctx.restore()
+    // Mãos (Bolinhas)
+    ctx.fillStyle = role === 'warrior' ? '#3498db' : '#e056fd';
+    if (state === 'attack') {
+        // Mãos na frente atacando
+        ctx.beginPath(); ctx.arc(x + 20, y + bounce, 6, 0, Math.PI*2); ctx.fill();
+    } else {
+        ctx.beginPath(); ctx.arc(x - 15, y + handSwing + bounce, 5, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(x + 15, y - handSwing + bounce, 5, 0, Math.PI*2); ctx.fill();
+    }
 
-  // Minimap
-  mctx.clearRect(0,0, minimap.width, minimap.height)
-  allPlayers.forEach(p => {
-    const mx = (p.x / WORLD.w) * minimap.width
-    const my = (p.y / WORLD.h) * minimap.height
-    mctx.fillStyle = p.id === myId ? "#5aa9ff" : "#ffb86b"
-    mctx.fillRect(mx-2, my-2, 4, 4)
-  })
-  enemies.forEach(e => {
-    const mx = (e.x / WORLD.w) * minimap.width
-    const my = (e.y / WORLD.h) * minimap.height
-    mctx.fillStyle = "#ff5555"
-    mctx.fillRect(mx-1, my-1, 3, 3)
-  })
-
-  requestAnimationFrame(gameLoop)
+    // Coroa/Chapéu para identificar (Nome)
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 12px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(isMe ? "VOCÊ" : role.toUpperCase(), x, y - 35 + bounce);
 }
 
-requestAnimationFrame(gameLoop)
+function drawCard(ctx, c) {
+    const float = Math.sin(Date.now() / 300) * 5;
+    
+    // Aura da carta
+    ctx.shadowBlur = 15; ctx.shadowColor = c.color;
+    
+    // Carta Base
+    ctx.fillStyle = "#222";
+    ctx.strokeStyle = c.color;
+    ctx.lineWidth = 2;
+    ctx.fillRect(c.x - 12, c.y - 18 + float, 24, 36);
+    ctx.strokeRect(c.x - 12, c.y - 18 + float, 24, 36);
+    
+    // Ícone
+    ctx.fillStyle = "#fff";
+    ctx.font = "16px Arial";
+    ctx.textAlign = "center";
+    const icon = c.type === 'HEAL' ? '✚' : (c.type === 'DMG' ? '⚔' : '⚡');
+    ctx.fillText(icon, c.x, c.y + 5 + float);
+
+    ctx.shadowBlur = 0;
+}
+
+/* === LOOP === */
+function loop() {
+    // 1. Limpa tela
+    ctx.fillStyle = "#1a2f1a"; // Verde escuro (chão)
+    ctx.fillRect(0,0,canvas.width, canvas.height);
+
+    if (!roomId || !players[myId]) {
+        requestAnimationFrame(loop);
+        return;
+    }
+
+    const me = players[myId];
+    
+    // 2. Movimento Local + Câmera
+    if (window.joystick) {
+        const speed = 5 * (me.speedMult || 1); // Aplica buff de velocidade
+        me.x += window.joystick.dx * speed;
+        me.y += window.joystick.dy * speed;
+        
+        // Limites
+        me.x = Math.max(0, Math.min(2400, me.x));
+        me.y = Math.max(0, Math.min(2400, me.y));
+
+        socket.emit('move', { 
+            roomId, x: me.x, y: me.y, 
+            state: (window.joystick.dx || window.joystick.dy) ? 'run' : 'idle' 
+        });
+    }
+
+    camera.x += (me.x - camera.x - canvas.width/2) * 0.1;
+    camera.y += (me.y - camera.y - canvas.height/2) * 0.1;
+
+    ctx.save();
+    ctx.translate(-camera.x, -camera.y);
+
+    // 3. Desenhar Cenário (Árvores)
+    scenery.forEach(obj => {
+        // Só desenha se estiver perto da câmera (Otimização)
+        if (obj.x > camera.x - 100 && obj.x < camera.x + canvas.width + 100 &&
+            obj.y > camera.y - 100 && obj.y < camera.y + canvas.height + 100) {
+            
+            if (obj.type === 'tree') {
+                // Tronco
+                ctx.fillStyle = "#3e2723";
+                ctx.fillRect(obj.x - 5, obj.y, 10, 20);
+                // Copa
+                ctx.fillStyle = "#2e7d32";
+                ctx.beginPath();
+                ctx.moveTo(obj.x - obj.r, obj.y);
+                ctx.lineTo(obj.x, obj.y - obj.r * 1.5);
+                ctx.lineTo(obj.x + obj.r, obj.y);
+                ctx.fill();
+            } else {
+                // Pedra
+                ctx.fillStyle = "#5d6d7e";
+                ctx.beginPath(); ctx.arc(obj.x, obj.y + 10, obj.r/2, 0, Math.PI*2); ctx.fill();
+            }
+        }
+    });
+
+    // 4. Desenhar Elementos do Jogo
+    cards.forEach(c => drawCard(ctx, c));
+
+    enemies.forEach(e => {
+        if (e.dead) return;
+        ctx.fillStyle = "#c0392b"; // Vermelho escuro
+        // Inimigo "Fantasma"
+        const bob = Math.sin(Date.now()/200) * 5;
+        ctx.beginPath(); 
+        ctx.arc(e.x, e.y + bob, 15, Math.PI, 0); 
+        ctx.lineTo(e.x, e.y + 20 + bob);
+        ctx.fill();
+        
+        // Olhos
+        ctx.fillStyle = "#fff";
+        ctx.beginPath(); ctx.arc(e.x - 5, e.y - 5 + bob, 3, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(e.x + 5, e.y - 5 + bob, 3, 0, Math.PI*2); ctx.fill();
+
+        // HP Bar
+        ctx.fillStyle = "red"; ctx.fillRect(e.x-15, e.y-25+bob, 30, 4);
+        ctx.fillStyle = "#0f0"; ctx.fillRect(e.x-15, e.y-25+bob, 30*(e.hp/e.maxHp), 4);
+    });
+
+    particles.forEach((p, i) => {
+        p.x += p.vx; p.y += p.vy; p.life -= 0.05;
+        ctx.fillStyle = p.color; ctx.globalAlpha = p.life;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill();
+        ctx.globalAlpha = 1;
+        if(p.life <= 0) particles.splice(i, 1);
+    });
+
+    Object.keys(players).forEach(id => {
+        const p = players[id];
+        drawCharacter(ctx, p.x, p.y, p.role, p.state, id === myId);
+        
+        // FADINHA (Só Mago)
+        if (p.role === 'mage') {
+            const time = Date.now() / 300;
+            const fx = p.x + Math.cos(time) * 45;
+            const fy = p.y + Math.sin(time) * 45;
+            ctx.shadowBlur = 10; ctx.shadowColor = "#fff";
+            ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(fx, fy, 4, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = "rgba(200,255,255,0.5)"; ctx.beginPath(); ctx.arc(fx, fy, 8, 0, Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+    });
+
+    ctx.restore();
+    requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
 </script>
-
 <script src="js/joystick.js"></script>
 </body>
 </html>
+

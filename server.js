@@ -19,12 +19,12 @@ app.get('/', (req, res) => {
 const rooms = {};
 
 io.on('connection', (socket) => {
-  console.log('Player conectado: ' + socket.id);
+  console.log('Conectado: ' + socket.id);
 
   socket.on('createRoom', (playerName) => {
     try {
         const roomId = Math.random().toString(36).substring(2, 6).toUpperCase();
-        console.log('Criando sala ' + roomId);
+        console.log('Criando sala: ' + roomId);
 
         rooms[roomId] = { 
             players: {}, enemies: [], resources: generateResources(), 
@@ -37,7 +37,7 @@ io.on('connection', (socket) => {
         socket.join(roomId);
         socket.emit('roomCreated', roomId);
     } catch (e) {
-        console.error('Erro createRoom: ' + e);
+        console.error('Erro Criar: ' + e);
     }
   });
 
@@ -51,7 +51,7 @@ io.on('connection', (socket) => {
             socket.emit('joinedRoom', data.code);
         }
     } catch (e) {
-        console.error('Erro joinRoom: ' + e);
+        console.error('Erro Entrar: ' + e);
     }
   });
 
@@ -60,8 +60,14 @@ io.on('connection', (socket) => {
     if (room && room.players[socket.id]) {
         const p = room.players[socket.id];
         if (!p.dead) {
-            p.x = data.x; p.y = data.y;
-            p.state = data.state; p.facing = data.facing; p.aimAngle = data.angle;
+            // BLINDAGEM CONTRA BUG DE POSIÇÃO
+            if (data.x && data.y && !isNaN(data.x) && !isNaN(data.y)) {
+                p.x = data.x; 
+                p.y = data.y;
+            }
+            p.state = data.state; 
+            p.facing = data.facing; 
+            p.aimAngle = data.angle;
         }
     }
   });
@@ -75,14 +81,15 @@ io.on('connection', (socket) => {
     const range = p.role === 'warrior' ? 150 : 450;
     const dmg = p.dmg;
 
-    // Ataque Inimigos
+    // Inimigos
     room.enemies.forEach(e => {
         if (e.dead) return;
         const dist = Math.hypot(e.x - p.x, e.y - p.y);
         if (dist < range) { 
             e.hp -= dmg;
             const angle = Math.atan2(e.y - p.y, e.x - p.x);
-            e.x += Math.cos(angle) * 25; e.y += Math.sin(angle) * 25;
+            e.x += Math.cos(angle) * 30; 
+            e.y += Math.sin(angle) * 30;
             
             io.to(data.roomId).emit('damageEffect', { x: e.x, y: e.y, dmg: Math.floor(dmg) });
             
@@ -93,9 +100,9 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Coleta Recursos
+    // Recursos (Arvores/Pedras)
     room.resources.forEach((res, idx) => {
-        if (Math.hypot(res.x - p.x, res.y - p.y) < 100) {
+        if (Math.hypot(res.x - p.x, res.y - p.y) < 80) {
             res.hp -= dmg;
             if (res.hp <= 0) {
                 if(res.type === 'tree') p.inv.wood += 5;
@@ -124,8 +131,6 @@ io.on('connection', (socket) => {
           if(data.choice === 'dmg') p.dmg *= 1.25;
           if(data.choice === 'hp') { p.maxHp += 50; p.hp = p.maxHp; }
           if(data.choice === 'spd') p.speedMult *= 1.1;
-          
-          // Dificuldade progressiva
           room.difficulty += 0.1;
       }
   });
@@ -178,14 +183,14 @@ function spawnEnemies(roomId) {
     }
 }
 
-// GAME LOOP
+// LOOP PRINCIPAL
 setInterval(() => {
   try {
       for (const rId in rooms) {
         const room = rooms[rId];
         if (!room || Object.keys(room.players).length === 0) continue;
 
-        // Inimigos
+        // IA Inimigos
         room.enemies.forEach(e => {
             if (e.dead) {
                 e.respawnTimer--;
@@ -210,7 +215,6 @@ setInterval(() => {
                 const angle = Math.atan2(target.y - e.y, target.x - e.x);
                 let blocked = false;
                 
-                // Colisão Parede
                 for(const b of room.buildings) {
                     if(Math.hypot(b.x - e.x, b.y - e.y) < 35) {
                          blocked = true; b.hp -= 0.5; if(b.hp<=0) b.dead = true;
@@ -225,7 +229,7 @@ setInterval(() => {
             }
         });
 
-        // XP Orbs
+        // XP
         for(const pid in room.players) {
             const p = room.players[pid];
             if(p.dead) continue;
@@ -253,4 +257,4 @@ setInterval(() => {
 }, 33);
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => { console.log('Server rodando na porta ' + PORT); });
+server.listen(PORT, () => { console.log('Server OK na porta ' + PORT); });

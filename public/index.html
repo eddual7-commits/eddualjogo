@@ -1,3 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Edu & Kally - Arena</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+<style>
+/* ================= ESTILO GERAL ================= */
+* { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+
+body {
+  margin: 0;
+  background: #0b0d14; /* Cor de fundo escura para evitar o branco */
+  overflow: hidden;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: white;
+}
+
+/* ================= MENU DE ENTRADA ================= */
+#menuOverlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(5, 5, 5, 0.95);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  transition: opacity 0.5s;
+}
+
+.hidden { opacity: 0; pointer-events: none; }
+
+h1 { margin: 0 0 20px 0; font-size: 2rem; color: #9fb4ff; text-transform: uppercase; letter-spacing: 2px; }
+.menu-box {
+  background: #151720;
+  padding: 30px;
+  border-radius: 12px;
+  border: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 300px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+input {
+  padding: 12px;
+  background: #0a0c12;
+  border: 1px solid #444;
+  color: white;
+  border-radius: 6px;
+  font-size: 16px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+button {
+  padding: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+button:active { transform: scale(0.96); }
+
+#createBtn { background: #5aa9ff; color: #000; }
+#joinBtn { background: #333; color: #fff; border: 1px solid #555; }
+
+/* ================= HUD (DURANTE O JOGO) ================= */
+#hud {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  pointer-events: none;
+  z-index: 10;
+  display: none;
+}
+
+.room-badge {
+  background: rgba(0,0,0,0.6);
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  border-left: 3px solid #5aa9ff;
+}
+
+/* ================= BOTÃO DE ATAQUE ================= */
+#attackBtn {
+  position: fixed;
+  right: 20px;
+  bottom: 30px;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff5f5f, #c82828);
+  border: 4px solid rgba(255,255,255,0.1);
+  box-shadow: 0 4px 15px rgba(255, 95, 95, 0.4);
+  color: white;
+  font-weight: 900;
+  font-size: 24px;
+  z-index: 20;
+  display: none;
+  cursor: pointer;
+}
+#attackBtn:active { transform: scale(0.9); background: #a02020; }
+
+/* ================= MINIMAPA ================= */
+#minimap {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  width: 120px;
+  height: 120px;
+  background: rgba(10, 12, 18, 0.8);
+  border: 1px solid #444;
+  border-radius: 8px;
+  display: none;
+  z-index: 20;
+}
+
+canvas { display: block; }
+</style>
+</head>
+
+<body>
+
+<div id="menuOverlay">
+  <h1>Edu & Kally Arena</h1>
+  <div class="menu-box">
+    <button id="createBtn">CRIAR SALA</button>
+    <div style="display:flex; align-items:center; gap:10px; margin: 10px 0;">
+        <hr style="flex:1; border-color:#333"> <span style="font-size:12px; color:#666">OU</span> <hr style="flex:1; border-color:#333">
+    </div>
+    <input id="roomInput" placeholder="CÓDIGO DA SALA">
+    <button id="joinBtn">ENTRAR NA SALA</button>
+  </div>
+</div>
+
+<div id="hud">
+  <div class="room-badge" id="roomDisplay">Aguardando...</div>
+</div>
+
+<button id="attackBtn">⚔️</button>
+
+<canvas id="game"></canvas>
+<canvas id="minimap"></canvas>
+
+<script src="/socket.io/socket.io.js"></script>
+
 <script>
 /* ================= CONFIGURAÇÃO ================= */
 const socket = io()
@@ -61,21 +215,18 @@ function startGameUI(code) {
   isGameRunning = true
 }
 
-// CRIAR SALA (Quem cria recebe o ID do server)
+// CRIAR SALA
 createBtn.onclick = () => socket.emit("createRoom")
 
 socket.on("roomCreated", id => startGameUI(id))
 
-// ENTRAR NA SALA (Correção aqui: força a entrada visualmente)
+// ENTRAR NA SALA (Correção aplicada aqui)
 joinBtn.onclick = () => {
   const code = roomInput.value.trim().toUpperCase()
   if (!code) return alert("Digite um código!")
   
-  // 1. Avisa o server
   socket.emit("joinRoom", code)
-  
-  // 2. Inicia o jogo visualmente (Assumindo sucesso, igual ao código antigo)
-  startGameUI(code)
+  startGameUI(code) // Força a entrada visual
 }
 
 socket.on("updatePlayers", data => {
@@ -197,10 +348,11 @@ function gameLoop(timestamp) {
   lastTime = timestamp
 
   ctx.clearRect(0, 0, canvas.width, canvas.height)
-  ctx.fillStyle = "#0b0d14"
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
-
+  
+  // Se não estiver no jogo, desenha um fundo escuro e sai
   if (!isGameRunning) {
+    ctx.fillStyle = "#0b0d14";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     requestAnimationFrame(gameLoop)
     return
   }
@@ -305,3 +457,6 @@ function gameLoop(timestamp) {
 requestAnimationFrame(gameLoop)
 </script>
 
+<script src="js/joystick.js"></script>
+</body>
+</html>

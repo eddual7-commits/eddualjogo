@@ -1,168 +1,121 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <title>eddual jogo</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>eddual jogo</title>
 
-  <style>
-    body {
-      margin: 0;
-      background: #1e1e1e;
-      color: white;
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+<style>
+body {
+  margin: 0;
+  background: #111;
+  color: white;
+  font-family: Arial;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-    #menu {
-      margin: 10px;
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
+#menu {
+  margin: 10px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
 
-    button, input {
-      padding: 6px;
-      font-size: 14px;
-    }
+button, input {
+  padding: 6px;
+  font-size: 14px;
+}
 
-    #roomCode {
-      width: 100%;
-      text-align: center;
-      font-weight: bold;
-      margin-bottom: 6px;
-    }
+#roomCode {
+  width: 100%;
+  text-align: center;
+  font-weight: bold;
+}
 
-    canvas {
-      background: #2b2b2b;
-      border: 2px solid #555;
-      touch-action: none;
-    }
-  </style>
+canvas {
+  background: #222;
+  border: 2px solid #444;
+}
+</style>
 </head>
 
 <body>
 
-  <div id="menu">
-    <div id="roomCode"></div>
-    <button id="createBtn">Criar sala</button>
-    <input id="roomInput" placeholder="Código da sala" />
-    <button id="joinBtn">Entrar</button>
-  </div>
+<div id="menu">
+  <div id="roomCode"></div>
+  <button id="createBtn">Criar sala</button>
+  <input id="roomInput" placeholder="Código">
+  <button id="joinBtn">Entrar</button>
+</div>
 
-  <canvas id="game"></canvas>
+<canvas id="game"></canvas>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const socket = io()
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io()
 
-    const canvas = document.getElementById("game")
-    const ctx = canvas.getContext("2d")
+const canvas = document.getElementById("game")
+const ctx = canvas.getContext("2d")
 
-    canvas.width = Math.min(window.innerWidth - 20, 500)
-    canvas.height = Math.min(window.innerHeight - 120, 500)
+canvas.width = Math.min(innerWidth - 20, 420)
+canvas.height = Math.min(innerHeight - 120, 420)
 
-    let roomId = null
-    let players = {}
-    let myId = null
+let roomId = null
+let players = {}
+let myId = null
 
-    // ====== UI ======
-    document.getElementById("createBtn").onclick = () => {
-      socket.emit("createRoom")
-    }
+socket.on("connect", () => {
+  myId = socket.id
+})
 
-    document.getElementById("joinBtn").onclick = () => {
-      const code = document.getElementById("roomInput").value.trim()
-      if (code) socket.emit("joinRoom", code)
-    }
+// UI
+createBtn.onclick = () => socket.emit("createRoom")
 
-    socket.on("roomCreated", id => {
-      roomId = id
-      document.getElementById("roomCode").innerText = "Sala: " + id
-      document.getElementById("roomInput").value = id
-    })
-
-    socket.on("updatePlayers", serverPlayers => {
-      players = serverPlayers
-    })
-
-    socket.on("connect", () => {
-      myId = socket.id
-    })
-
-    // ====== INPUT (touch) ======
-    canvas.addEventListener("touchmove", e => {
-      e.preventDefault()
-      if (!roomId) return
-
-      const touch = e.touches[0]
-      const rect = canvas.getBoundingClientRect()
-
-      const x = touch.clientX - rect.left
-      const y = touch.clientY - rect.top
-
-      socket.emit("move", { roomId, x, y })
-    }, { passive: false })
-
-    // ====== LOOP ======
-    function loop() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-      for (const id in players) {
-        const p = players[id]
-
-        ctx.fillStyle = id === myId ? "#4da6ff" : "#ffa94d"
-        ctx.fillRect(p.x - 12, p.y - 12, 24, 24)
-      }
-
-      requestAnimationFrame(loop)
-    }
-
-    loop()
-  </script>
-
-</body>
-</html>    ctx.strokeStyle = "rgba(255,255,255,0.25)"
-    ctx.lineWidth = 2
-    ctx.beginPath()
-    ctx.arc(joystick.startX, joystick.startY, 40, 0, Math.PI*2)
-    ctx.stroke()
-
-    ctx.fillStyle = "rgba(255,255,255,0.35)"
-    ctx.beginPath()
-    ctx.arc(joystick.x, joystick.y, 20, 0, Math.PI*2)
-    ctx.fill()
+joinBtn.onclick = () => {
+  const code = roomInput.value.trim()
+  if (code) {
+    roomId = code
+    socket.emit("joinRoom", code)
+    roomCode.innerText = "Sala: " + code
   }
 }
 
-// =====================
+socket.on("roomCreated", id => {
+  roomId = id
+  roomCode.innerText = "Sala: " + id
+  roomInput.value = id
+})
+
+socket.on("updatePlayers", data => {
+  players = data
+})
+
+// INPUT — TAP PARA MOVER (FUNCIONA EM TODO CELULAR)
+canvas.addEventListener("pointerdown", e => {
+  if (!roomId) return
+  const rect = canvas.getBoundingClientRect()
+  const x = e.clientX - rect.left
+  const y = e.clientY - rect.top
+  socket.emit("move", { roomId, x, y })
+})
+
+// LOOP
 function loop() {
-  update()
-  draw()
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+  for (const id in players) {
+    const p = players[id]
+    ctx.fillStyle = id === myId ? "#4da6ff" : "#ffa94d"
+    ctx.fillRect(p.x - 12, p.y - 12, 24, 24)
+  }
+
   requestAnimationFrame(loop)
 }
 loop()
 </script>
 
 </body>
-</html>}
-loop()
-</script>
-
-</body>
 </html>
-<div id="menu" style="
-  position: fixed;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-  text-align: center;
-">
-  <button onclick="createRoom()">Criar sala</button>
-  <input id="roomInput" placeholder="Sala" />
-  <button onclick="joinRoom()">Entrar</button>
-</div>

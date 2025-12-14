@@ -2,159 +2,547 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>edu & kamy arena</title>
+<title>Edu & Kamy Arena - RPG</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-
 <style>
-* { box-sizing: border-box; }
+  /* ================= ESTILO GERAL ================= */
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-body {
-  margin: 0;
-  background: #0b0d14;
-  overflow: hidden;
-  font-family: system-ui, Arial;
-}
+  * { box-sizing: border-box; user-select: none; }
+  body {
+    margin: 0;
+    background: #050505;
+    overflow: hidden;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: white;
+  }
 
-/* topo */
-#menu {
-  position: fixed;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 6px;
-  z-index: 10;
-}
+  /* CANVAS */
+  canvas { display: block; }
+  #game { position: absolute; top: 0; left: 0; z-index: 1; }
+  
+  /* UI EM JOGO */
+  #ui-layer {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 10;
+    pointer-events: none; /* Deixa clicar no canvas/botoes */
+  }
 
-button, input {
-  padding: 6px 8px;
-  font-size: 14px;
-  background: #1a1d2a;
-  color: white;
-  border: 1px solid #333;
-  border-radius: 6px;
-}
+  /* BARRA DE VIDA DO JOGADOR */
+  #hud-player {
+    position: absolute;
+    top: 20px; left: 20px;
+    width: 250px;
+  }
+  .bar-container {
+    width: 100%; height: 20px;
+    background: #333;
+    border: 2px solid #000;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  #hp-fill {
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, #ff4d4d, #ff0000);
+    transition: width 0.2s;
+  }
+  #hp-text {
+    margin-top: 5px; font-weight: bold; text-shadow: 1px 1px 0 #000;
+  }
 
-#roomCode {
-  font-weight: bold;
-  color: #9fb4ff;
-}
+  /* BOTÕES DE AÇÃO */
+  .action-btn {
+    pointer-events: auto;
+    position: absolute;
+    border-radius: 50%;
+    border: 4px solid rgba(255,255,255,0.2);
+    color: white;
+    font-weight: bold;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    cursor: pointer;
+  }
+  .action-btn:active { transform: scale(0.95); }
 
-/* ataque */
-#attackBtn {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  background: radial-gradient(#ff5f5f, #c82828);
-  border: none;
-  color: white;
-  font-size: 16px;
-  z-index: 10;
-}
+  #btn-attack {
+    bottom: 40px; right: 40px;
+    width: 80px; height: 80px;
+    background: radial-gradient(circle, #ff5f5f, #c82828);
+    font-size: 14px;
+  }
 
-/* minimapa */
-#minimap {
-  position: fixed;
-  top: 12px;
-  right: 12px;
-  width: 130px;
-  height: 130px;
-  background: #0a0c12;
-  border: 2px solid #2a2e44;
-  border-radius: 6px;
-}
+  /* MENU INICIAL */
+  #main-menu {
+    position: fixed; top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(11, 13, 20, 0.95);
+    z-index: 50;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    pointer-events: auto;
+  }
+  
+  h1 {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 2rem;
+    color: #9fb4ff;
+    text-shadow: 0 0 10px #5aa9ff;
+    margin-bottom: 40px;
+    text-align: center;
+    line-height: 1.5;
+  }
 
-canvas { display: block; }
+  .menu-box {
+    background: #1a1d2a;
+    padding: 30px;
+    border-radius: 12px;
+    border: 1px solid #333;
+    display: flex; flex-direction: column; gap: 15px;
+    width: 300px;
+  }
+
+  input {
+    padding: 12px;
+    background: #0b0d14; border: 1px solid #444;
+    color: white; border-radius: 6px; font-size: 16px;
+    text-align: center;
+  }
+
+  button.menu-btn {
+    padding: 12px;
+    background: #5aa9ff; border: none;
+    color: #000; font-weight: bold;
+    border-radius: 6px; cursor: pointer;
+    font-size: 16px; transition: 0.2s;
+  }
+  button.menu-btn:hover { background: #8bc4ff; }
+
+  /* MENSAGEM FLUTUANTE DE DANO */
+  .floater {
+    position: absolute;
+    font-weight: bold; font-size: 20px;
+    animation: floatUp 0.8s forwards;
+    pointer-events: none;
+    text-shadow: 1px 1px 0 #000;
+  }
+  @keyframes floatUp {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-40px) scale(1.2); opacity: 0; }
+  }
+
+  /* MINIMAPA */
+  #minimap-container {
+    position: absolute; top: 20px; right: 20px;
+    border: 2px solid #555; background: #000;
+    pointer-events: auto;
+  }
 </style>
 </head>
-
 <body>
 
-<div id="menu">
-  <span id="roomCode"></span>
-  <button id="createBtn">Criar sala</button>
-  <input id="roomInput" placeholder="Código">
-  <button id="joinBtn">Entrar</button>
+<div id="main-menu">
+  <h1>EDU & KAMY<br>ARENA</h1>
+  <div class="menu-box">
+    <input id="roomInput" placeholder="Código da Sala (Ex: 123)">
+    <button class="menu-btn" id="btn-create">Criar Nova Sala</button>
+    <button class="menu-btn" id="btn-join" style="background: #ffb86b;">Entrar</button>
+  </div>
+  <p style="margin-top:20px; font-size:12px; color:#666;">v 2.0 - Sábio-Eco Edition</p>
 </div>
 
-<button id="attackBtn">ATK</button>
+<div id="ui-layer" style="display:none;">
+  <div id="hud-player">
+    <div style="display:flex; justify-content:space-between;">
+      <span>HP</span>
+      <span id="hp-text">100/100</span>
+    </div>
+    <div class="bar-container">
+      <div id="hp-fill"></div>
+    </div>
+  </div>
+
+  <div id="btn-attack" class="action-btn">ATK</div>
+  
+  <canvas id="minimap" width="120" height="120" id="minimap-container" style="position:absolute; top:20px; right:20px; border:2px solid #444; border-radius:4px; background:#111;"></canvas>
+</div>
 
 <canvas id="game"></canvas>
-<canvas id="minimap"></canvas>
 
 <script src="/socket.io/socket.io.js"></script>
+<script src="js/joystick.js" onerror="console.log('Joystick não encontrado, use WASD')"></script>
 
 <script>
-/* ================= SETUP ================= */
-const socket = io()
-const canvas = document.getElementById("game")
-const ctx = canvas.getContext("2d")
-const minimap = document.getElementById("minimap")
-const mctx = minimap.getContext("2d")
+/* ================= CONFIGURAÇÕES GERAIS ================= */
+const socket = io();
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const minimap = document.getElementById("minimap");
+const mctx = minimap.getContext("2d");
 
-function resize() {
-  canvas.width = innerWidth
-  canvas.height = innerHeight
-}
-resize()
-addEventListener("resize", resize)
+// Elementos DOM
+const menuDiv = document.getElementById("main-menu");
+const uiLayer = document.getElementById("ui-layer");
+const roomInput = document.getElementById("roomInput");
+const hpFill = document.getElementById("hp-fill");
+const hpText = document.getElementById("hp-text");
 
-/* ================= MUNDO ================= */
-const WORLD = { w: 2400, h: 2400 }
-let camera = { x: 0, y: 0 }
+// Estado do Jogo
+const GAME_STATE = {
+  MENU: 0,
+  PLAYING: 1,
+  GAMEOVER: 2
+};
+let currentState = GAME_STATE.MENU;
 
-/* ================= ESTADO ================= */
-let roomId = null
-let myId = null
+// Mundo
+const WORLD = { w: 2400, h: 2400 };
+let camera = { x: 0, y: 0 };
 
-let serverPlayers = {}
-const smoothPlayers = {}
+/* ================= JOGADOR & MULTIPLAYER ================= */
+let myId = null;
+let roomId = null;
 
-let localPlayer = { x: 1200, y: 1200, r: 14 }
-let localInit = false
+// Jogador Local
+let player = {
+  x: 1200, y: 1200,
+  r: 16,
+  speed: 6,
+  maxHp: 100,
+  hp: 100,
+  class: 'warrior', // warrior ou mage
+  color: '#5aa9ff',
+  angle: 0, // direção do olhar
+  attacking: false
+};
 
-/* ================= UI / SALA ================= */
-const createBtn = document.getElementById("createBtn")
-const joinBtn = document.getElementById("joinBtn")
-const roomInput = document.getElementById("roomInput")
-const roomCode = document.getElementById("roomCode")
+let serverPlayers = {}; // Dados crus do servidor
+let smoothPlayers = {}; // Interpolação para suavidade
 
-socket.on("connect", () => myId = socket.id)
+// Controles Teclado (Fallback para PC)
+const keys = { w:false, a:false, s:false, d:false };
+window.addEventListener('keydown', e => { if(keys[e.key] !== undefined) keys[e.key] = true; });
+window.addEventListener('keyup', e => { if(keys[e.key] !== undefined) keys[e.key] = false; });
 
-createBtn.onclick = () => socket.emit("createRoom")
+/* ================= SISTEMA DE INIMIGOS (IA) ================= */
+class Enemy {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.r = 18;
+    this.hp = 30;
+    this.maxHp = 30;
+    this.speed = 2 + Math.random(); // Velocidade variada
+    this.state = 'IDLE'; // IDLE, CHASE, ATTACK, COOLDOWN
+    this.target = null;
+    this.attackTimer = 0;
+    this.color = '#ff4d4d';
+    this.wanderAngle = Math.random() * Math.PI * 2;
+  }
 
-joinBtn.onclick = () => {
-  const code = roomInput.value.trim()
-  if (!code) return
-  roomId = code
-  socket.emit("joinRoom", code)
-  roomCode.innerText = "Sala: " + code
-}
+  update(dt) {
+    if (this.hp <= 0) return;
 
-socket.on("roomCreated", id => {
-  roomId = id
-  roomCode.innerText = "Sala: " + id
-  roomInput.value = id
-})
+    // 1. Detectar Jogador (Simples: foca sempre no localPlayer por enquanto)
+    const dx = player.x - this.x;
+    const dy = player.y - this.y;
+    const dist = Math.hypot(dx, dy);
 
-socket.on("updatePlayers", data => {
-  serverPlayers = data
+    // Máquina de Estados Simples
+    if (this.state === 'COOLDOWN') {
+      this.attackTimer -= dt;
+      if (this.attackTimer <= 0) this.state = 'CHASE';
+    
+    } else if (dist < 40) {
+      this.state = 'ATTACK';
+    } else if (dist < 500) {
+      this.state = 'CHASE';
+    } else {
+      this.state = 'IDLE';
+    }
 
-  for (const id in serverPlayers) {
-    if (id === myId) continue
-    if (!smoothPlayers[id]) {
-      smoothPlayers[id] = { x: data[id].x, y: data[id].y, r: 14 }
+    // Comportamento
+    if (this.state === 'CHASE') {
+      this.x += (dx / dist) * this.speed;
+      this.y += (dy / dist) * this.speed;
+    } 
+    else if (this.state === 'ATTACK') {
+      // Causa dano e entra em cooldown
+      takeDamage(5); // Dano no player
+      this.state = 'COOLDOWN';
+      this.attackTimer = 60; // frames
+    }
+    else if (this.state === 'IDLE') {
+      // Vagar aleatoriamente
+      this.x += Math.cos(this.wanderAngle) * 0.5;
+      this.y += Math.sin(this.wanderAngle) * 0.5;
+      if (Math.random() < 0.02) this.wanderAngle = Math.random() * Math.PI * 2;
     }
   }
 
-  if (!localInit && serverPlayers[myId]) {
-    localPlayer.x = serverPlayers[myId].x
-    localPlayer.y = serverPlayers[myId].y
-    localInit = true
+  draw(ctx) {
+    if (this.hp <= 0) return;
+    
+    ctx.fillStyle = this.state === 'ATTACK' ? '#fff' : this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
+    ctx.fill();
+
+    // Barra de vida do inimigo
+    const hpPct = this.hp / this.maxHp;
+    ctx.fillStyle = 'red';
+    ctx.fillRect(this.x - 15, this.y - 30, 30, 4);
+    ctx.fillStyle = '#0f0';
+    ctx.fillRect(this.x - 15, this.y - 30, 30 * hpPct, 4);
   }
+}
+
+let enemies = [];
+function spawnEnemies(qtd) {
+  enemies = [];
+  for(let i=0; i<qtd; i++) {
+    // Spawna longe do centro (zona segura)
+    let ex = 1200 + (Math.random() - 0.5) * 1000;
+    let ey = 1200 + (Math.random() - 0.5) * 1000;
+    enemies.push(new Enemy(ex, ey));
+  }
+}
+
+/* ================= COMBATE ================= */
+function takeDamage(amount) {
+  player.hp -= amount;
+  createFloater(player.x, player.y, `-${amount}`, '#ff0000');
+  
+  // Atualiza HUD
+  const pct = Math.max(0, (player.hp / player.maxHp) * 100);
+  hpFill.style.width = pct + '%';
+  hpText.innerText = `${Math.ceil(player.hp)}/${player.maxHp}`;
+
+  if (player.hp <= 0) {
+    alert("VOCÊ MORREU! Recarregando...");
+    location.reload();
+  }
+}
+
+// Texto flutuante de dano
+let floaters = [];
+function createFloater(x, y, text, color) {
+  const el = document.createElement('div');
+  el.className = 'floater';
+  el.innerText = text;
+  el.style.color = color;
+  
+  // Posicionamento relativo à tela precisa ser calculado no loop ou usar DOM fixo
+  // Simplificação: Usar um array e desenhar no canvas é mais performático que DOM
+  floaters.push({ x, y, text, color, life: 30, dy: 0 });
+}
+
+function playerAttack() {
+  if (player.attacking) return;
+  player.attacking = true;
+  
+  // Visual do ataque
+  setTimeout(() => player.attacking = false, 300);
+
+  // Lógica de hitbox
+  const range = player.class === 'warrior' ? 80 : 250;
+  const dmg = player.class === 'warrior' ? 10 : 5;
+
+  enemies.forEach(e => {
+    const dist = Math.hypot(e.x - player.x, e.y - player.y);
+    if (dist < range && e.hp > 0) {
+      e.hp -= dmg;
+      createFloater(e.x, e.y, dmg, '#fff');
+      
+      // Empurrão (Knockback)
+      const dx = e.x - player.x;
+      const dy = e.y - player.y;
+      e.x += (dx/dist) * 20;
+      e.y += (dy/dist) * 20;
+    }
+  });
+}
+
+document.getElementById("btn-attack").addEventListener('touchstart', (e)=>{ e.preventDefault(); playerAttack(); });
+document.getElementById("btn-attack").addEventListener('mousedown', (e)=>{ e.preventDefault(); playerAttack(); });
+window.addEventListener('keydown', e => { if (e.code === 'Space') playerAttack(); });
+
+/* ================= SOCKET & MENU LOGIC ================= */
+socket.on("connect", () => myId = socket.id);
+
+document.getElementById("btn-create").onclick = () => {
+  socket.emit("createRoom");
+};
+
+document.getElementById("btn-join").onclick = () => {
+  const code = roomInput.value.trim();
+  if(!code) return alert("Digite um código!");
+  socket.emit("joinRoom", code);
+  startGame(code);
+};
+
+socket.on("roomCreated", id => {
+  startGame(id);
+});
+
+socket.on("updatePlayers", data => {
+  serverPlayers = data;
+  // Sincroniza outros players
+  for (const id in serverPlayers) {
+    if (id !== myId) {
+      if (!smoothPlayers[id]) smoothPlayers[id] = { x: data[id].x, y: data[id].y };
+    }
+  }
+});
+
+function startGame(roomCode) {
+  roomId = roomCode;
+  currentState = GAME_STATE.PLAYING;
+  menuDiv.style.display = 'none';
+  uiLayer.style.display = 'block';
+  spawnEnemies(15);
+  resize();
+}
+
+/* ================= LOOP PRINCIPAL ================= */
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resize);
+
+function drawGrid() {
+  const size = 100;
+  ctx.strokeStyle = '#161925';
+  ctx.lineWidth = 1;
+  
+  const startX = Math.floor(camera.x / size) * size;
+  const startY = Math.floor(camera.y / size) * size;
+
+  for (let x = startX; x < camera.x + canvas.width; x += size) {
+    ctx.beginPath(); ctx.moveTo(x, camera.y); ctx.lineTo(x, camera.y + canvas.height); ctx.stroke();
+  }
+  for (let y = startY; y < camera.y + canvas.height; y += size) {
+    ctx.beginPath(); ctx.moveTo(camera.x, y); ctx.lineTo(camera.x + canvas.width, y); ctx.stroke();
+  }
+}
+
+function loop() {
+  if (currentState !== GAME_STATE.PLAYING) {
+    requestAnimationFrame(loop);
+    return;
+  }
+
+  // 1. Movimento Player
+  let dx = 0, dy = 0;
+  
+  // Joystick
+  if (window.joystick && window.joystick.active) {
+    dx = window.joystick.dx * player.speed;
+    dy = window.joystick.dy * player.speed;
+  }
+  // Teclado (WASD)
+  if (keys.w) dy = -player.speed;
+  if (keys.s) dy = player.speed;
+  if (keys.a) dx = -player.speed;
+  if (keys.d) dx = player.speed;
+
+  player.x += dx;
+  player.y += dy;
+  
+  // Limites do Mundo
+  player.x = Math.max(0, Math.min(WORLD.w, player.x));
+  player.y = Math.max(0, Math.min(WORLD.h, player.y));
+
+  // Enviar para servidor (otimizado: a cada 3 frames ou similar seria melhor, aqui vai direto)
+  if (roomId) socket.emit("move", { roomId, x: player.x, y: player.y });
+
+  // 2. Câmera
+  camera.x += (player.x - camera.x - canvas.width/2) * 0.1;
+  camera.y += (player.y - camera.y - canvas.height/2) * 0.1;
+
+  // 3. Atualizar Inimigos e Outros Players
+  enemies.forEach(e => e.update(1));
+  for (const id in smoothPlayers) {
+    if(serverPlayers[id]) {
+      smoothPlayers[id].x += (serverPlayers[id].x - smoothPlayers[id].x) * 0.2;
+      smoothPlayers[id].y += (serverPlayers[id].y - smoothPlayers[id].y) * 0.2;
+    }
+  }
+
+  // ================= RENDERIZAÇÃO =================
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  ctx.save();
+  ctx.translate(-camera.x, -camera.y);
+
+  drawGrid();
+
+  // Desenhar Inimigos
+  enemies.forEach(e => e.draw(ctx));
+
+  // Desenhar Outros Players
+  for (const id in smoothPlayers) {
+    const p = smoothPlayers[id];
+    ctx.fillStyle = '#ffb86b'; // Cor da Kamy
+    ctx.beginPath(); ctx.arc(p.x, p.y, 14, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = "12px Arial"; ctx.fillText("Kamy", p.x - 15, p.y - 20);
+  }
+
+  // Desenhar Player Local (Edu)
+  ctx.fillStyle = player.color;
+  ctx.beginPath(); ctx.arc(player.x, player.y, player.r, 0, Math.PI*2); ctx.fill();
+  
+  // Efeito de Ataque (Visual simples)
+  if (player.attacking) {
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, player.r + 20, 0, Math.PI*2);
+    ctx.stroke();
+  }
+
+  // Nome Player
+  ctx.fillStyle = '#fff'; ctx.font = "bold 14px Arial"; 
+  ctx.fillText("Você", player.x - 15, player.y - 25);
+
+  // Textos Flutuantes (Dano)
+  ctx.font = "bold 20px Arial";
+  floaters = floaters.filter(f => f.life > 0);
+  floaters.forEach(f => {
+    f.y -= 1; 
+    f.life--;
+    ctx.fillStyle = f.color;
+    ctx.fillText(f.text, f.x, f.y);
+  });
+
+  ctx.restore();
+
+  // ================= MINIMAPA =================
+  mctx.clearRect(0,0,120,120);
+  mctx.fillStyle = '#000'; mctx.fillRect(0,0,120,120);
+  
+  // Desenha pontos no minimapa
+  function drawMini(x, y, color) {
+    const mx = (x / WORLD.w) * 120;
+    const my = (y / WORLD.h) * 120;
+    mctx.fillStyle = color;
+    mctx.fillRect(mx-2, my-2, 4, 4);
+  }
+
+  enemies.forEach(e => { if(e.hp>0) drawMini(e.x, e.y, 'red'); });
+  drawMini(player.x, player.y, '#5aa9ff');
+
+  requestAnimationFrame(loop);
+}
+
+// Inicia loop
+resize();
+requestAnimationFrame(loop);
+
+</script>
+</body>
+</html>
 })
 
 /* ================= IDENTIDADE / CLASSE ================= */

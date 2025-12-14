@@ -7,16 +7,38 @@
 html, body {
   margin: 0;
   padding: 0;
-  overflow: hidden;
   background: #0b0b0b;
-  touch-action: none;
+  overflow: hidden;
+  font-family: sans-serif;
 }
+
+#menu {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  background: rgba(0,0,0,0.6);
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+#menu button, #menu input {
+  margin: 4px;
+}
+
 canvas {
   display: block;
 }
 </style>
 </head>
 <body>
+
+<div id="menu">
+  <button onclick="createRoom()">Criar sala</button>
+  <input id="roomInput" placeholder="Sala" />
+  <button onclick="joinRoom()">Entrar</button>
+</div>
 
 <canvas id="game"></canvas>
 
@@ -38,9 +60,9 @@ let players = {}
 
 const me = { x: 200, y: 200, vx: 0, vy: 0 }
 
-// ───────────────
-// BRAWL-STYLE JOYSTICK
-// ───────────────
+// =====================
+// JOYSTICK BRAWL STYLE
+// =====================
 let joystick = {
   active: false,
   id: null,
@@ -72,29 +94,29 @@ canvas.addEventListener("touchend", e => {
   me.vx = me.vy = 0
 })
 
-// ───────────────
-// ROOM CONTROLS
-// ───────────────
-socket.on("roomCreated", id => roomId = id)
+// =====================
+// SALAS
+// =====================
+function createRoom() {
+  socket.emit("createRoom")
+}
+
+function joinRoom() {
+  roomId = document.getElementById("roomInput").value
+  socket.emit("joinRoom", roomId)
+  document.getElementById("menu").style.display = "none"
+}
+
+socket.on("roomCreated", id => {
+  roomId = id
+  document.getElementById("roomInput").value = id
+})
+
 socket.on("updatePlayers", p => players = p)
 
-// auto cria sala se entrar sozinho
-<div id="menu" style="
-  position: fixed;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-  text-align: center;
-">
-  <button onclick="createRoom()">Criar sala</button>
-  <input id="roomInput" placeholder="Sala" />
-  <button onclick="joinRoom()">Entrar</button>
-</div>
-
-// ───────────────
+// =====================
 // UPDATE
-// ───────────────
+// =====================
 function update() {
   if (!roomId) return
 
@@ -102,10 +124,10 @@ function update() {
     const dx = joystick.x - joystick.startX
     const dy = joystick.y - joystick.startY
     const dist = Math.min(Math.hypot(dx, dy), 60)
-
     const angle = Math.atan2(dy, dx)
-    me.vx = Math.cos(angle) * (dist / 10)
-    me.vy = Math.sin(angle) * (dist / 10)
+
+    me.vx = Math.cos(angle) * (dist / 8)
+    me.vy = Math.sin(angle) * (dist / 8)
   }
 
   me.x += me.vx
@@ -118,13 +140,12 @@ function update() {
   })
 }
 
-// ───────────────
+// =====================
 // DRAW
-// ───────────────
+// =====================
 function draw() {
   ctx.clearRect(0,0,canvas.width,canvas.height)
 
-  // players
   for (const id in players) {
     const p = players[id]
     ctx.fillStyle = id === socket.id ? "#4af" : "#fa4"
@@ -133,29 +154,31 @@ function draw() {
     ctx.fill()
   }
 
-  // joystick
   if (joystick.active) {
-    ctx.strokeStyle = "rgba(255,255,255,0.3)"
+    ctx.strokeStyle = "rgba(255,255,255,0.25)"
     ctx.lineWidth = 2
     ctx.beginPath()
     ctx.arc(joystick.startX, joystick.startY, 40, 0, Math.PI*2)
     ctx.stroke()
 
-    ctx.fillStyle = "rgba(255,255,255,0.4)"
+    ctx.fillStyle = "rgba(255,255,255,0.35)"
     ctx.beginPath()
     ctx.arc(joystick.x, joystick.y, 20, 0, Math.PI*2)
     ctx.fill()
   }
 }
 
-// ───────────────
-// LOOP
-// ───────────────
+// =====================
 function loop() {
   update()
   draw()
   requestAnimationFrame(loop)
 }
+loop()
+</script>
+
+</body>
+</html>}
 loop()
 </script>
 

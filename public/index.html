@@ -79,7 +79,18 @@ socket.on("roomCreated", id => roomId = id)
 socket.on("updatePlayers", p => players = p)
 
 // auto cria sala se entrar sozinho
-socket.emit("createRoom")
+<div id="menu" style="
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  text-align: center;
+">
+  <button onclick="createRoom()">Criar sala</button>
+  <input id="roomInput" placeholder="Sala" />
+  <button onclick="joinRoom()">Entrar</button>
+</div>
 
 // ───────────────
 // UPDATE
@@ -150,3 +161,15 @@ loop()
 
 </body>
 </html>
+<div id="menu" style="
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  text-align: center;
+">
+  <button onclick="createRoom()">Criar sala</button>
+  <input id="roomInput" placeholder="Sala" />
+  <button onclick="joinRoom()">Entrar</button>
+</div>

@@ -93,19 +93,37 @@ socket.on("updatePlayers", data => {
   players = data
 })
 
-// INPUT — TAP PARA MOVER (FUNCIONA EM TODO CELULAR)
-canvas.addEventListener("pointerdown", e => {
+// INPUT — TAP PARA MOVER (FUNCIONA EM TODOs)
   if (!roomId) return
   const rect = canvas.getBoundingClientRect()
   const x = e.clientX - rect.left
   const y = e.clientY - rect.top
   socket.emit("move", { roomId, x, y })
 })
+function resolvePlayerCollision(a, b) {
+  const dx = a.x - b.x
+  const dy = a.y - b.y
+  const dist = Math.hypot(dx, dy)
+  const minDist = 24
 
+  if (dist > 0 && dist < minDist) {
+    const overlap = (minDist - dist) / 2
+    const nx = dx / dist
+    const ny = dy / dist
+
+    a.x += nx * overlap
+    a.y += ny * overlap
+    b.x -= nx * overlap
+    b.y -= ny * overlap
+  }
+}
 // LOOP
 function loop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height)
-
+const ids = Object.keys(players)
+if (ids.length === 2) {
+  resolvePlayerCollision(players[ids[0]], players[ids[1]])
+}
   for (const id in players) {
     const p = players[id]
     ctx.fillStyle = id === myId ? "#4da6ff" : "#ffa94d"
@@ -115,7 +133,7 @@ function loop() {
 if (roomId && window.joystick) {
   const me = players[myId]
   if (me) {
-    const speed = 2.5
+    const speed = 5.5
     const x = me.x + window.joystick.dx * speed
     const y = me.y + window.joystick.dy * speed
     socket.emit("move", { roomId, x, y })
@@ -125,7 +143,6 @@ if (roomId && window.joystick) {
 }
 loop()
 </script>
-
 </body>
 </html>
 <script src="js/joystick.js"></script>

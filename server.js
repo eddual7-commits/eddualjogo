@@ -6,8 +6,7 @@ const path = require('path');
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server, {
-    cors: { origin: "*" },
-    transports: ['websocket', 'polling']
+    cors: { origin: "*" }
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -19,941 +18,1041 @@ const CONFIG = {
     MAP_SIZE: 3200,
     TILE_SIZE: 100,
     PLAYER_SPEED: 4,
-    ENEMY_BASE_SPAWN: 5000,
-    RESOURCE_RESPAWN: 45000,
-    WAVE_DURATION: 90000,
+    ATTACK_COOLDOWN: 400,
+    ENEMY_SPAWN_RATE: 4000,
     MAX_ENEMIES: 40,
-    BIOME_SIZE: 800
+    WAVE_DURATION: 90000
 };
 
 // ============ BIOMAS ============
 const BIOMES = {
     forest: {
         name: 'Floresta',
-        color: '#1a4d1a',
+        color: '#1a472a',
         enemies: ['slime', 'goblin', 'wolf'],
         resources: ['tree', 'bush', 'mushroom'],
-        drops: { wood: 3, herb: 1 }
+        dropBonus: { wood: 2, food: 1 }
     },
     desert: {
         name: 'Deserto',
-        color: '#c2a645',
+        color: '#c2a060',
         enemies: ['scorpion', 'mummy', 'sandworm'],
-        resources: ['cactus', 'bone', 'fossil'],
-        drops: { stone: 2, bone: 1 }
+        resources: ['cactus', 'fossil', 'oasis'],
+        dropBonus: { stone: 2, crystal: 1 }
     },
     snow: {
         name: 'Neve',
         color: '#a8c8d8',
-        enemies: ['yeti', 'ice_wolf', 'frost_spirit'],
-        resources: ['ice_rock', 'frozen_tree', 'crystal'],
-        drops: { crystal: 2, ice: 1 }
+        enemies: ['iceslime', 'yeti', 'frostbat'],
+        resources: ['pinetree', 'icepatch', 'snowpile'],
+        dropBonus: { crystal: 2, food: 1 }
     },
-    volcano: {
-        name: 'Vulcão',
-        color: '#4a1a1a',
-        enemies: ['fire_demon', 'lava_slime', 'dragon'],
-        resources: ['obsidian', 'fire_crystal', 'magma_rock'],
-        drops: { obsidian: 2, fire_crystal: 1 }
+    volcanic: {
+        name: 'Vulcânico',
+        color: '#4a1c1c',
+        enemies: ['lavaslime', 'demon', 'fireelemental'],
+        resources: ['obsidian', 'magmarock', 'ashpile'],
+        dropBonus: { stone: 3, crystal: 2 }
     },
     swamp: {
         name: 'Pântano',
-        color: '#2d4a2d',
-        enemies: ['toad', 'poison_slime', 'witch'],
-        resources: ['vine', 'poison_mushroom', 'swamp_tree'],
-        drops: { vine: 2, poison: 1 }
+        color: '#2d3d2d',
+        enemies: ['toad', 'ghost', 'witch'],
+        resources: ['deadtree', 'lilypad', 'mudpile'],
+        dropBonus: { wood: 1, food: 2 }
     }
 };
 
 // ============ STATS DOS INIMIGOS ============
 const ENEMY_STATS = {
-    // Floresta
-    slime: { hp: 25, damage: 3, speed: 1.2, xp: 8, attackRate: 1500, color: '#2ECC71' },
-    goblin: { hp: 40, damage: 5, speed: 1.8, xp: 15, attackRate: 1200, color: '#27AE60' },
-    wolf: { hp: 50, damage: 8, speed: 2.5, xp: 20, attackRate: 1000, color: '#7F8C8D' },
-    
-    // Deserto
-    scorpion: { hp: 35, damage: 6, speed: 2, xp: 18, attackRate: 1300, color: '#D35400' },
-    mummy: { hp: 60, damage: 7, speed: 1, xp: 25, attackRate: 1800, color: '#BDC3C7' },
-    sandworm: { hp: 80, damage: 12, speed: 1.5, xp: 35, attackRate: 2000, color: '#E67E22' },
-    
-    // Neve
-    yeti: { hp: 100, damage: 15, speed: 1.3, xp: 40, attackRate: 2000, color: '#ECF0F1' },
-    ice_wolf: { hp: 45, damage: 8, speed: 2.8, xp: 22, attackRate: 900, color: '#3498DB' },
-    frost_spirit: { hp: 30, damage: 10, speed: 2, xp: 28, attackRate: 1400, color: '#00D4FF' },
-    
-    // Vulcão
-    fire_demon: { hp: 120, damage: 20, speed: 1.5, xp: 60, attackRate: 1500, color: '#E74C3C' },
-    lava_slime: { hp: 50, damage: 8, speed: 1, xp: 25, attackRate: 1200, color: '#FF6B35' },
-    dragon: { hp: 200, damage: 30, speed: 1.2, xp: 100, attackRate: 2500, color: '#C0392B' },
-    
-    // Pântano
-    toad: { hp: 30, damage: 4, speed: 1.5, xp: 12, attackRate: 1400, color: '#1ABC9C' },
-    poison_slime: { hp: 35, damage: 5, speed: 1.3, xp: 15, attackRate: 1300, color: '#9B59B6' },
-    witch: { hp: 45, damage: 12, speed: 1.8, xp: 30, attackRate: 2000, color: '#8E44AD' }
+    slime: { hp: 25, damage: 5, speed: 1.2, xp: 10, attackType: 'melee', color: '#2ECC71' },
+    goblin: { hp: 40, damage: 8, speed: 2, xp: 20, attackType: 'melee', color: '#27AE60' },
+    wolf: { hp: 35, damage: 10, speed: 2.5, xp: 25, attackType: 'dash', color: '#5D6D7E' },
+    scorpion: { hp: 30, damage: 12, speed: 1.8, xp: 15, attackType: 'poison', color: '#D35400' },
+    mummy: { hp: 60, damage: 10, speed: 1, xp: 30, attackType: 'curse', color: '#BDC3C7' },
+    sandworm: { hp: 80, damage: 15, speed: 0.8, xp: 50, attackType: 'burrow', color: '#E67E22' },
+    iceslime: { hp: 30, damage: 6, speed: 1, xp: 12, attackType: 'freeze', color: '#85C1E9' },
+    yeti: { hp: 100, damage: 18, speed: 1.2, xp: 60, attackType: 'slam', color: '#ECF0F1' },
+    frostbat: { hp: 20, damage: 8, speed: 3, xp: 18, attackType: 'swoop', color: '#AED6F1' },
+    lavaslime: { hp: 35, damage: 10, speed: 1.5, xp: 20, attackType: 'burn', color: '#E74C3C' },
+    demon: { hp: 90, damage: 20, speed: 1.5, xp: 70, attackType: 'fireball', color: '#C0392B' },
+    fireelemental: { hp: 70, damage: 15, speed: 1.8, xp: 55, attackType: 'explosion', color: '#F39C12' },
+    toad: { hp: 25, damage: 7, speed: 1.5, xp: 12, attackType: 'tongue', color: '#1E8449' },
+    ghost: { hp: 40, damage: 12, speed: 2, xp: 30, attackType: 'phase', color: '#9B59B6' },
+    witch: { hp: 50, damage: 15, speed: 1.2, xp: 45, attackType: 'magic', color: '#8E44AD' }
 };
 
 // ============ FRASES DOS INIMIGOS ============
 const ENEMY_QUOTES = {
-    slime: ["Blurp!", "Splash~", "*plop*"],
-    goblin: ["Hehe!", "Meu ouro!", "Grrr!"],
-    wolf: ["Auuuu!", "*rosnado*", "Grrrr!"],
-    scorpion: ["*click click*", "Veneno!", "*sting*"],
-    mummy: ["Descanso...", "Eternidade...", "Areia..."],
-    sandworm: ["*TREMOR*", "TERRA!", "*emerge*"],
-    yeti: ["FRIO!", "RAWR!", "*urro*"],
-    ice_wolf: ["Gelaado~", "*uivo*", "Gelo!"],
-    frost_spirit: ["Venha...", "Congele...", "Eterno..."],
-    fire_demon: ["QUEIME!", "FOGO!", "HAHAHA!"],
-    lava_slime: ["*borbulha*", "Quente!", "*splash*"],
-    dragon: ["MORTAIS!", "CHAMAS!", "*ROAR*"],
-    toad: ["Croac!", "Ribbit!", "*pulo*"],
-    poison_slime: ["Tóxico~", "*borbulha*", "Veneno!"],
-    witch: ["Hehehe!", "Magia!", "Maldição!"]
+    slime: ["Blurp!", "Gosmento~", "*ploft*", "Gelatina!"],
+    goblin: ["Hehe! Tesouro!", "Pega ele!", "Meu ouro!", "Grrr!"],
+    wolf: ["*Uivo*", "Arrrr!", "*Rosna*", "Caça!"],
+    scorpion: ["*Clique clique*", "Veneno!", "Picada!", "*Tss*"],
+    demon: ["QUEIME!", "Sua alma!", "INFERNO!", "MORRA!"],
+    ghost: ["Buuu~", "Venha...", "Frio...", "Eternidade..."],
+    yeti: ["ROAAAAR!", "*Bate no peito*", "GELO!", "ESMAGAR!"],
+    witch: ["Hehehe~", "Magia negra!", "Caldeirão!", "Maldição!"],
+    mummy: ["...", "Tumba...", "Maldição!", "Eterno..."],
+    sandworm: ["*TREMOR*", "AREIA!", "*emerge*"],
+    iceslime: ["Gelo~", "*cristaliza*", "Frio!"],
+    frostbat: ["*screech*", "Asas!", "*voa*"],
+    lavaslime: ["Queima!", "*borbulha*", "Lava!"],
+    fireelemental: ["FOGO!", "*crackle*", "CHAMAS!"],
+    toad: ["Croac!", "*língua*", "Pântano!"],
+    default: ["...", "!", "?"]
 };
 
 // ============ CUSTOS DE CONSTRUÇÃO ============
 const BUILD_COSTS = {
-    wall: { wood: 8, stone: 0, crystal: 0, hp: 150 },
-    turret: { wood: 15, stone: 10, crystal: 2, hp: 100, damage: 8, range: 180 },
-    campfire: { wood: 12, stone: 5, crystal: 0, hp: 80, healRate: 2 },
-    spikes: { wood: 5, stone: 5, crystal: 0, hp: 60, damage: 10 },
-    tower: { wood: 25, stone: 20, crystal: 5, hp: 200, damage: 15, range: 250 }
+    wall: { wood: 8, stone: 4, crystal: 0, hp: 150 },
+    turret: { wood: 15, stone: 10, crystal: 3, hp: 100 },
+    campfire: { wood: 12, stone: 3, crystal: 0, hp: 80 },
+    spikes: { wood: 5, stone: 8, crystal: 0, hp: 60 },
+    healpad: { wood: 10, stone: 5, crystal: 5, hp: 100 }
 };
 
-// ============ ARMAZENAMENTO ============
-const rooms = new Map();
-let playerColorIndex = 0;
-
-// Cores que escurecem progressivamente
+// ============ CORES DOS PLAYERS ============
 const PLAYER_COLORS = [
-    { hair: '#39C5BB', dress: '#1A1A2E', accent: '#00BFFF' },  // Miku original
-    { hair: '#2E9D94', dress: '#161626', accent: '#0099CC' },  // Mais escuro
-    { hair: '#247A73', dress: '#12121E', accent: '#007799' },  // Ainda mais
-    { hair: '#1A5752', dress: '#0E0E16', accent: '#005566' },  // Bem escuro
-    { hair: '#103431', dress: '#0A0A0E', accent: '#003344' },  // Muito escuro
-    { hair: '#FF6B9D', dress: '#2E1A2E', accent: '#FF4488' },  // Rosa
-    { hair: '#CC5580', dress: '#261626', accent: '#CC3366' },
-    { hair: '#FFD700', dress: '#2E2E1A', accent: '#FFAA00' },  // Dourado
-    { hair: '#CC9900', dress: '#262616', accent: '#CC8800' }
+    { hair: '#39C5BB', accent: '#00D4AA', name: 'Miku' },
+    { hair: '#FFB6C1', accent: '#FF69B4', name: 'Sakura' },
+    { hair: '#FFD700', accent: '#FFA500', name: 'Rin' },
+    { hair: '#9370DB', accent: '#8A2BE2', name: 'Yukari' },
+    { hair: '#87CEEB', accent: '#4169E1', name: 'Kaito' },
+    { hair: '#98FB98', accent: '#32CD32', name: 'Gumi' },
+    { hair: '#FF6347', accent: '#DC143C', name: 'Meiko' },
+    { hair: '#20B2AA', accent: '#008B8B', name: 'Luka' }
 ];
+
+// ============ ARMAZENAMENTO ============
+var rooms = {};
+var playerColorIndex = 0;
 
 // ============ FUNÇÕES AUXILIARES ============
 function generateRoomCode() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let code = '';
-    for(let i = 0; i < 5; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var code = '';
+    for (var i = 0; i < 5; i++) {
+        code += chars[Math.floor(Math.random() * chars.length)];
     }
     return code;
 }
 
 function getBiomeAt(x, y) {
-    const biomeNames = Object.keys(BIOMES);
-    const bx = Math.floor(x / CONFIG.BIOME_SIZE);
-    const by = Math.floor(y / CONFIG.BIOME_SIZE);
-    const index = Math.abs((bx * 7 + by * 13) % biomeNames.length);
-    return biomeNames[index];
+    var biomeSize = CONFIG.MAP_SIZE / 3;
+    var bx = Math.floor(x / biomeSize);
+    var by = Math.floor(y / biomeSize);
+
+    var biomeMap = [
+        ['forest', 'snow', 'forest'],
+        ['swamp', 'forest', 'desert'],
+        ['volcanic', 'desert', 'volcanic']
+    ];
+
+    if (by < 0) by = 0;
+    if (by > 2) by = 2;
+    if (bx < 0) bx = 0;
+    if (bx > 2) bx = 2;
+
+    return biomeMap[by][bx];
 }
 
-function getPlayerColor() {
-    const color = PLAYER_COLORS[playerColorIndex % PLAYER_COLORS.length];
+function getNextPlayerColor() {
+    var color = PLAYER_COLORS[playerColorIndex % PLAYER_COLORS.length];
     playerColorIndex++;
-    return color;
+    return {
+        hair: color.hair,
+        accent: color.accent,
+        name: color.name
+    };
 }
 
-function createPlayer(name, socketId) {
-    const color = getPlayerColor();
+function createPlayer(name) {
+    var colorData = getNextPlayerColor();
+
     return {
-        id: socketId,
-        name: name.substring(0, 12) || 'Miku',
-        x: CONFIG.MAP_SIZE / 2 + (Math.random() - 0.5) * 200,
-        y: CONFIG.MAP_SIZE / 2 + (Math.random() - 0.5) * 200,
+        name: name || colorData.name,
+        x: CONFIG.MAP_SIZE / 2,
+        y: CONFIG.MAP_SIZE / 2,
+        vx: 0,
+        vy: 0,
         hp: 100,
         maxHp: 100,
         level: 1,
         xp: 0,
-        nextXp: 80,
+        nextXp: 100,
         wood: 0,
         stone: 0,
         crystal: 0,
         food: 5,
-        herb: 0,
-        bone: 0,
-        ice: 0,
-        obsidian: 0,
-        poison: 0,
-        vine: 0,
         speed: CONFIG.PLAYER_SPEED,
-        damage: 8,
+        damage: 15,
         defense: 0,
         state: 'idle',
-        animFrame: 0,
-        angle: 0,
         facing: 1,
-        color: color,
-        upgrades: [],
-        lastAttack: 0,
-        attackCooldown: 400,
-        isDead: false,
-        kills: 0
+        animFrame: 0,
+        attackCooldown: 0,
+        invincible: 0,
+        color: colorData,
+        kills: 0,
+        upgrades: []
     };
 }
 
-function generateResources(biome) {
-    const resources = [];
-    const biomeData = BIOMES[biome];
-    
-    // Determinar área do bioma
-    const biomeIndex = Object.keys(BIOMES).indexOf(biome);
-    const startX = (biomeIndex % 4) * CONFIG.BIOME_SIZE;
-    const startY = Math.floor(biomeIndex / 4) * CONFIG.BIOME_SIZE;
-    
-    return resources;
-}
+function generateResources() {
+    var resources = [];
 
-function generateAllResources() {
-    const resources = [];
-    let id = 0;
-    
-    // Gerar recursos por todo o mapa
-    for(let x = 100; x < CONFIG.MAP_SIZE - 100; x += 150) {
-        for(let y = 100; y < CONFIG.MAP_SIZE - 100; y += 150) {
-            if(Math.random() > 0.6) continue;
-            
-            const biome = getBiomeAt(x, y);
-            const biomeData = BIOMES[biome];
-            const resourceTypes = biomeData.resources;
-            const type = resourceTypes[Math.floor(Math.random() * resourceTypes.length)];
-            
-            resources.push({
-                id: 'res_' + id++,
-                type: type,
-                biome: biome,
-                x: x + (Math.random() - 0.5) * 100,
-                y: y + (Math.random() - 0.5) * 100,
-                hp: 30,
-                maxHp: 30,
-                depleted: false,
-                respawnAt: 0
-            });
-        }
-    }
-    
-    // Cristais especiais (menos frequentes)
-    for(let i = 0; i < 30; i++) {
+    for (var i = 0; i < 150; i++) {
+        var x = 100 + Math.random() * (CONFIG.MAP_SIZE - 200);
+        var y = 100 + Math.random() * (CONFIG.MAP_SIZE - 200);
+        var biome = getBiomeAt(x, y);
+        var biomeData = BIOMES[biome];
+
+        var types = biomeData.resources;
+        var type = types[Math.floor(Math.random() * types.length)];
+
         resources.push({
-            id: 'crystal_' + i,
-            type: 'crystal',
-            biome: 'snow',
-            x: 100 + Math.random() * (CONFIG.MAP_SIZE - 200),
-            y: 100 + Math.random() * (CONFIG.MAP_SIZE - 200),
-            hp: 50,
-            maxHp: 50,
+            id: 'res_' + i + '_' + Date.now(),
+            type: type,
+            biome: biome,
+            x: x,
+            y: y,
+            hp: 40,
+            maxHp: 40,
             depleted: false,
-            respawnAt: 0
+            respawnTime: 0
         });
     }
-    
+
     return resources;
 }
 
-function createEnemy(wave, biome = null) {
-    const biomeName = biome || Object.keys(BIOMES)[Math.floor(Math.random() * Object.keys(BIOMES).length)];
-    const biomeData = BIOMES[biomeName];
-    
-    // Limitar tipos de inimigos baseado na wave
-    let availableEnemies = biomeData.enemies.slice(0, Math.min(wave, biomeData.enemies.length));
-    const type = availableEnemies[Math.floor(Math.random() * availableEnemies.length)];
-    
-    const stats = ENEMY_STATS[type] || ENEMY_STATS.slime;
-    const isBoss = wave >= 3 && Math.random() < 0.05 * wave;
-    
-    // Escalar dificuldade mais suavemente
-    const waveMultiplier = 1 + (wave - 1) * 0.08;
-    
-    // Posição baseada no bioma
-    const biomeIndex = Object.keys(BIOMES).indexOf(biomeName);
-    const baseX = (biomeIndex % 4) * CONFIG.BIOME_SIZE + CONFIG.BIOME_SIZE / 2;
-    const baseY = Math.floor(biomeIndex / 4) * CONFIG.BIOME_SIZE + CONFIG.BIOME_SIZE / 2;
-    
+function createEnemy(room) {
+    var x = 100 + Math.random() * (CONFIG.MAP_SIZE - 200);
+    var y = 100 + Math.random() * (CONFIG.MAP_SIZE - 200);
+    var biome = getBiomeAt(x, y);
+    var biomeData = BIOMES[biome];
+
+    var types = biomeData.enemies;
+    var type = types[Math.floor(Math.random() * types.length)];
+    var stats = ENEMY_STATS[type];
+
+    if (!stats) return null;
+
+    var waveMultiplier = 1 + (room.wave - 1) * 0.15;
+    var isBoss = Math.random() < 0.05 + room.wave * 0.02;
+
     return {
-        id: 'enemy_' + Date.now() + '_' + Math.floor(Math.random() * 10000),
+        id: 'enemy_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
         type: type,
-        biome: biomeName,
-        x: Math.max(50, Math.min(CONFIG.MAP_SIZE - 50, baseX + (Math.random() - 0.5) * CONFIG.BIOME_SIZE)),
-        y: Math.max(50, Math.min(CONFIG.MAP_SIZE - 50, baseY + (Math.random() - 0.5) * CONFIG.BIOME_SIZE)),
+        biome: biome,
+        x: x,
+        y: y,
         hp: Math.floor(stats.hp * waveMultiplier * (isBoss ? 4 : 1)),
         maxHp: Math.floor(stats.hp * waveMultiplier * (isBoss ? 4 : 1)),
         damage: Math.floor(stats.damage * waveMultiplier * (isBoss ? 1.5 : 1)),
         speed: stats.speed * (isBoss ? 0.8 : 1),
         xp: Math.floor(stats.xp * waveMultiplier * (isBoss ? 5 : 1)),
-        attackRate: stats.attackRate,
+        attackType: stats.attackType,
         color: stats.color,
         isBoss: isBoss,
         target: null,
-        lastAttack: 0,
+        attackCooldown: 0,
+        specialCooldown: 0,
+        state: 'wander',
+        wanderAngle: Math.random() * Math.PI * 2,
         lastSpeak: 0,
-        state: 'idle',
-        animFrame: 0
+        stunned: 0
     };
 }
 
-function createRoom(code) {
-    return {
-        code: code,
-        players: new Map(),
-        enemies: [],
-        resources: generateAllResources(),
-        buildings: [],
-        projectiles: [],
-        orbs: [],
-        wave: 1,
-        lastEnemySpawn: Date.now(),
-        lastWaveTime: Date.now(),
-        createdAt: Date.now()
-    };
+function getResourceDrop(resource) {
+    var biomeData = BIOMES[resource.biome];
+    var drops = { wood: 0, stone: 0, crystal: 0, food: 0 };
+
+    switch (resource.type) {
+        case 'tree':
+        case 'pinetree':
+        case 'deadtree':
+            drops.wood = 4 + Math.floor(Math.random() * 3);
+            if (Math.random() < 0.2) drops.food = 1;
+            break;
+        case 'bush':
+        case 'cactus':
+            drops.food = 2 + Math.floor(Math.random() * 2);
+            drops.wood = 1;
+            break;
+        case 'fossil':
+        case 'obsidian':
+        case 'magmarock':
+            drops.stone = 3 + Math.floor(Math.random() * 3);
+            if (Math.random() < 0.15) drops.crystal = 1;
+            break;
+        case 'icepatch':
+            drops.crystal = 2 + Math.floor(Math.random() * 2);
+            break;
+        case 'mushroom':
+        case 'lilypad':
+        case 'oasis':
+            drops.food = 3 + Math.floor(Math.random() * 2);
+            break;
+        case 'snowpile':
+        case 'ashpile':
+        case 'mudpile':
+            drops.stone = 1 + Math.floor(Math.random() * 2);
+            break;
+        default:
+            drops.wood = 2;
+            drops.stone = 1;
+    }
+
+    if (biomeData && biomeData.dropBonus) {
+        for (var key in biomeData.dropBonus) {
+            if (drops[key]) {
+                drops[key] = Math.floor(drops[key] * (1 + biomeData.dropBonus[key] * 0.2));
+            }
+        }
+    }
+
+    return drops;
 }
 
 // ============ SOCKET.IO ============
-io.on('connection', (socket) => {
-    console.log('✅ Player conectado:', socket.id);
-    
+io.on('connection', function(socket) {
+    console.log('🎮 Player conectado:', socket.id);
+
     // Criar sala
-    socket.on('createRoom', (playerName) => {
-        try {
-            const roomCode = generateRoomCode();
-            const room = createRoom(roomCode);
-            const player = createPlayer(playerName, socket.id);
-            
-            room.players.set(socket.id, player);
-            rooms.set(roomCode, room);
-            
-            socket.join(roomCode);
-            socket.roomCode = roomCode;
-            socket.playerId = socket.id;
-            
-            console.log('🏠 Sala criada:', roomCode, 'por', playerName);
-            socket.emit('roomJoined', {
-    roomCode: roomCode,
-    playerId: socket.id,
-    mapSize: CONFIG.MAP_SIZE,
-    biomes: BIOMES,
-    buildCosts: BUILD_COSTS
-});
-            });
-            
-            // Spawn inicial de inimigos
-            for(let i = 0; i < 5; i++) {
-                room.enemies.push(createEnemy(1));
-            }
-            
-        } catch(error) {
-            console.error('Erro ao criar sala:', error);
-            socket.emit('error', 'Erro ao criar sala');
-        }
+    socket.on('createRoom', function(playerName) {
+        var roomCode = generateRoomCode();
+
+        console.log('📍 Criando sala:', roomCode);
+
+        rooms[roomCode] = {
+            code: roomCode,
+            players: {},
+            enemies: [],
+            resources: generateResources(),
+            buildings: [],
+            projectiles: [],
+            orbs: [],
+            effects: [],
+            wave: 1,
+            waveTimer: Date.now(),
+            enemySpawnTimer: Date.now(),
+            gameTime: 0
+        };
+
+        rooms[roomCode].players[socket.id] = createPlayer(playerName);
+        socket.join(roomCode);
+        socket.roomCode = roomCode;
+
+        socket.emit('roomJoined', {
+            roomCode: roomCode,
+            playerId: socket.id,
+            mapSize: CONFIG.MAP_SIZE,
+            biomes: BIOMES,
+            buildCosts: BUILD_COSTS
+        });
+
+        console.log('✅ Sala criada com sucesso:', roomCode);
     });
-    
-    // Entrar na sala
-    socket.on('joinRoom', (data) => {
-        try {
-            const roomCode = data.code.toUpperCase().trim();
-            const room = rooms.get(roomCode);
-            
-            if(!room) {
-                socket.emit('error', 'Sala não encontrada!');
-                return;
-            }
-            
-            const player = createPlayer(data.name, socket.id);
-            room.players.set(socket.id, player);
-            
+
+    // Entrar em sala existente
+    socket.on('joinRoom', function(data) {
+        var roomCode = data.code.toUpperCase().trim();
+
+        console.log('🚪 Tentando entrar na sala:', roomCode);
+
+        if (rooms[roomCode]) {
+            rooms[roomCode].players[socket.id] = createPlayer(data.name);
             socket.join(roomCode);
             socket.roomCode = roomCode;
-            socket.playerId = socket.id;
-            
-            console.log('👋 Player entrou:', roomCode, data.name);
-            
+
             socket.emit('roomJoined', {
                 roomCode: roomCode,
                 playerId: socket.id,
-                player: player
+                mapSize: CONFIG.MAP_SIZE,
+                biomes: BIOMES,
+                buildCosts: BUILD_COSTS
             });
-            
-            // Notificar outros
+
             socket.to(roomCode).emit('playerJoined', {
                 id: socket.id,
-                name: player.name
+                name: data.name
             });
-            
-        } catch(error) {
-            console.error('Erro ao entrar na sala:', error);
-            socket.emit('error', 'Erro ao entrar na sala');
+
+            console.log('✅ Player entrou na sala:', roomCode);
+        } else {
+            socket.emit('roomError', 'Sala não encontrada!');
+            console.log('❌ Sala não encontrada:', roomCode);
         }
     });
-    
-    // Movimento do player
-    socket.on('playerMove', (data) => {
-        const room = rooms.get(socket.roomCode);
-        if(!room) return;
-        
-        const player = room.players.get(socket.id);
-        if(!player || player.isDead) return;
-        
-        player.x = Math.max(20, Math.min(CONFIG.MAP_SIZE - 20, data.x));
-        player.y = Math.max(20, Math.min(CONFIG.MAP_SIZE - 20, data.y));
-        player.state = data.state || 'idle';
-        player.animFrame = data.animFrame || 0;
-        player.angle = data.angle || 0;
-        player.facing = data.facing || 1;
-        
-        // Coletar orbs
-        const orbsToRemove = [];
-        room.orbs.forEach((orb, index) => {
-            const dist = Math.hypot(orb.x - player.x, orb.y - player.y);
-            if(dist < 40) {
-                player.xp += orb.value;
-                orbsToRemove.push(index);
-                
-                // Level up
-                while(player.xp >= player.nextXp) {
-                    player.xp -= player.nextXp;
-                    player.level++;
-                    player.nextXp = Math.floor(player.nextXp * 1.4);
-                    player.maxHp += 15;
-                    player.hp = player.maxHp;
-                    player.damage += 2;
-                    
-                    socket.emit('levelUp', {
-                        level: player.level,
-                        stats: {
-                            maxHp: player.maxHp,
-                            damage: player.damage
-                        }
-                    });
-                }
-            }
-        });
-        
-        // Remover orbs coletados (de trás para frente)
-        orbsToRemove.reverse().forEach(i => room.orbs.splice(i, 1));
-        
-        // Cura de fogueira
-        room.buildings.forEach(b => {
-            if(b.type === 'campfire') {
-                const dist = Math.hypot(b.x - player.x, b.y - player.y);
-                if(dist < 80 && player.hp < player.maxHp) {
-                    player.hp = Math.min(player.maxHp, player.hp + 0.1);
-                }
-            }
-        });
+
+    // Atualização do player
+    socket.on('playerUpdate', function(data) {
+        var room = rooms[socket.roomCode];
+        if (!room || !room.players[socket.id]) return;
+
+        var player = room.players[socket.id];
+
+        if (typeof data.x === 'number' && typeof data.y === 'number') {
+            player.x = Math.max(30, Math.min(CONFIG.MAP_SIZE - 30, data.x));
+            player.y = Math.max(30, Math.min(CONFIG.MAP_SIZE - 30, data.y));
+        }
+
+        if (data.state) player.state = data.state;
+        if (typeof data.facing === 'number') player.facing = data.facing;
+        if (typeof data.animFrame === 'number') player.animFrame = data.animFrame;
     });
-    
+
     // Ataque do player
-    socket.on('playerAttack', (data) => {
-        const room = rooms.get(socket.roomCode);
-        if(!room) return;
-        
-        const player = room.players.get(socket.id);
-        if(!player || player.isDead) return;
-        
-        const now = Date.now();
-        if(now - player.lastAttack < player.attackCooldown) return;
-        player.lastAttack = now;
-        
-        const attackAngle = data.angle;
-        const attackRange = 80;
-        const attackArc = 0.8; // Arco de 45 graus de cada lado
-        
+    socket.on('playerAttack', function(data) {
+        var room = rooms[socket.roomCode];
+        if (!room || !room.players[socket.id]) return;
+
+        var player = room.players[socket.id];
+        if (player.attackCooldown > 0 || player.hp <= 0) return;
+
+        player.attackCooldown = CONFIG.ATTACK_COOLDOWN;
+        player.state = 'attack';
+
+        var angle = data.angle || 0;
+        var attackRange = 80;
+        var attackArc = 0.8;
+
         // Atacar inimigos
-        room.enemies.forEach(enemy => {
-            const dist = Math.hypot(enemy.x - player.x, enemy.y - player.y);
-            if(dist > attackRange) return;
-            
-            const angleToEnemy = Math.atan2(enemy.y - player.y, enemy.x - player.x);
-            let angleDiff = Math.abs(attackAngle - angleToEnemy);
-            if(angleDiff > Math.PI) angleDiff = 2 * Math.PI - angleDiff;
-            
-            if(angleDiff < attackArc) {
-                const isCrit = Math.random() < 0.15;
-                const damage = Math.floor(player.damage * (isCrit ? 2 : 1) * (0.9 + Math.random() * 0.2));
-                
+        for (var i = 0; i < room.enemies.length; i++) {
+            var enemy = room.enemies[i];
+            if (enemy.hp <= 0) continue;
+
+            var dx = enemy.x - player.x;
+            var dy = enemy.y - player.y;
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            var angleToEnemy = Math.atan2(dy, dx);
+
+            var angleDiff = Math.abs(angle - angleToEnemy);
+            if (angleDiff > Math.PI) angleDiff = Math.PI * 2 - angleDiff;
+
+            if (dist < attackRange && angleDiff < attackArc) {
+                var isCrit = Math.random() < 0.15;
+                var damage = Math.floor(player.damage * (1 + player.level * 0.08) * (isCrit ? 2 : 1));
+
                 enemy.hp -= damage;
-                
-                io.to(socket.roomCode).emit('hitEffect', {
+                enemy.stunned = 200;
+
+                var knockback = 15;
+                enemy.x += Math.cos(angleToEnemy) * knockback;
+                enemy.y += Math.sin(angleToEnemy) * knockback;
+
+                room.effects.push({
+                    type: 'hit',
                     x: enemy.x,
                     y: enemy.y,
                     damage: damage,
                     crit: isCrit,
-                    type: 'enemy'
+                    life: 30
                 });
-                
-                if(enemy.hp <= 0) {
+
+                if (enemy.hp <= 0) {
                     player.kills++;
-                    
-                    // Drop orbs
-                    for(let i = 0; i < 3 + (enemy.isBoss ? 5 : 0); i++) {
+
+                    var orbCount = enemy.isBoss ? 8 : 4;
+                    for (var j = 0; j < orbCount; j++) {
                         room.orbs.push({
+                            id: 'orb_' + Date.now() + '_' + j,
                             x: enemy.x + (Math.random() - 0.5) * 40,
                             y: enemy.y + (Math.random() - 0.5) * 40,
-                            value: Math.floor(enemy.xp / 3)
+                            value: Math.floor(enemy.xp / orbCount),
+                            life: 600
                         });
                     }
-                    
-                    // Chance de drop de comida
-                    if(Math.random() < 0.25) {
+
+                    if (Math.random() < 0.25) {
                         player.food++;
                     }
-                    
-                    // Drop específico do bioma
-                    const biomeData = BIOMES[enemy.biome];
-                    if(biomeData && biomeData.drops) {
-                        Object.entries(biomeData.drops).forEach(([resource, amount]) => {
-                            if(Math.random() < 0.3 && player[resource] !== undefined) {
-                                player[resource] += Math.ceil(amount * Math.random());
-                            }
-                        });
-                    }
-                    
-                    room.enemies = room.enemies.filter(e => e.id !== enemy.id);
-                    
-                    io.to(socket.roomCode).emit('enemyDied', {
-                        id: enemy.id,
+
+                    room.effects.push({
+                        type: 'death',
                         x: enemy.x,
                         y: enemy.y,
-                        isBoss: enemy.isBoss
+                        color: enemy.color,
+                        life: 40
                     });
                 }
             }
-        });
-        
+        }
+
         // Atacar recursos
-        room.resources.forEach(resource => {
-            if(resource.depleted) return;
-            
-            const dist = Math.hypot(resource.x - player.x, resource.y - player.y);
-            if(dist > 70) return;
-            
-            resource.hp -= 10;
-            
-            io.to(socket.roomCode).emit('resourceHit', {
-                id: resource.id,
-                hp: resource.hp,
-                maxHp: resource.maxHp
-            });
-            
-            if(resource.hp <= 0) {
-                resource.depleted = true;
-                resource.hp = 0;
-                resource.respawnAt = Date.now() + CONFIG.RESOURCE_RESPAWN;
-                
-                // Dar recursos baseado no tipo
-                const biomeData = BIOMES[resource.biome];
-                
-                switch(resource.type) {
-                    case 'tree':
-                    case 'frozen_tree':
-                    case 'swamp_tree':
-                        player.wood += 3 + Math.floor(Math.random() * 3);
-                        break;
-                    case 'stone':
-                    case 'ice_rock':
-                    case 'magma_rock':
-                        player.stone += 2 + Math.floor(Math.random() * 2);
-                        break;
-                    case 'crystal':
-                    case 'fire_crystal':
-                        player.crystal += 1 + Math.floor(Math.random() * 2);
-                        break;
-                    case 'cactus':
-                        player.wood += 1;
-                        player.food += 1;
-                        break;
-                    case 'bone':
-                    case 'fossil':
-                        player.bone += 2;
-                        break;
-                    case 'bush':
-                    case 'mushroom':
-                        player.herb += 2;
-                        player.food += 1;
-                        break;
-                    case 'obsidian':
-                        player.obsidian += 2;
-                        break;
-                    case 'vine':
-                    case 'poison_mushroom':
-                        player.vine += 1;
-                        player.poison += 1;
-                        break;
-                }
-                
-                io.to(socket.roomCode).emit('resourceDepleted', {
-                    id: resource.id
+        for (var i = 0; i < room.resources.length; i++) {
+            var resource = room.resources[i];
+            if (resource.depleted) continue;
+
+            var dist = Math.sqrt(
+                Math.pow(resource.x - player.x, 2) + 
+                Math.pow(resource.y - player.y, 2)
+            );
+
+            if (dist < 70) {
+                resource.hp -= 12;
+
+                room.effects.push({
+                    type: 'resourceHit',
+                    x: resource.x,
+                    y: resource.y,
+                    life: 15
                 });
+
+                if (resource.hp <= 0) {
+                    resource.depleted = true;
+                    resource.respawnTime = Date.now() + 30000;
+
+                    var drops = getResourceDrop(resource);
+                    player.wood += drops.wood;
+                    player.stone += drops.stone;
+                    player.crystal += drops.crystal;
+                    player.food += drops.food;
+
+                    room.effects.push({
+                        type: 'resourceDrop',
+                        x: resource.x,
+                        y: resource.y,
+                        drops: drops,
+                        life: 40
+                    });
+                }
             }
-        });
+        }
     });
-    
+
     // Construir
-    socket.on('build', (data) => {
-        const room = rooms.get(socket.roomCode);
-        if(!room) return;
-        
-        const player = room.players.get(socket.id);
-        if(!player || player.isDead) return;
-        
-        const cost = BUILD_COSTS[data.type];
-        if(!cost) {
-            socket.emit('buildFailed', 'Tipo de construção inválido');
-            return;
+    socket.on('build', function(data) {
+        var room = rooms[socket.roomCode];
+        if (!room || !room.players[socket.id]) return;
+
+        var player = room.players[socket.id];
+        var cost = BUILD_COSTS[data.type];
+
+        if (!cost) return;
+
+        if (player.wood >= cost.wood &&
+            player.stone >= cost.stone &&
+            player.crystal >= cost.crystal) {
+
+            var tooClose = false;
+            for (var i = 0; i < room.buildings.length; i++) {
+                var b = room.buildings[i];
+                var dist = Math.sqrt(Math.pow(b.x - data.x, 2) + Math.pow(b.y - data.y, 2));
+                if (dist < 50) {
+                    tooClose = true;
+                    break;
+                }
+            }
+
+            if (tooClose) {
+                socket.emit('buildError', 'Muito perto de outra construção!');
+                return;
+            }
+
+            player.wood -= cost.wood;
+            player.stone -= cost.stone;
+            player.crystal -= cost.crystal;
+
+            room.buildings.push({
+                id: 'build_' + Date.now(),
+                type: data.type,
+                x: data.x || player.x,
+                y: data.y || player.y,
+                hp: cost.hp,
+                maxHp: cost.hp,
+                owner: socket.id,
+                lastAction: 0
+            });
+
+            socket.emit('buildSuccess', data.type);
+        } else {
+            socket.emit('buildError', 'Recursos insuficientes!');
         }
-        
-        // Verificar recursos
-        if(player.wood < cost.wood || 
-           player.stone < cost.stone || 
-           player.crystal < cost.crystal) {
-            socket.emit('buildFailed', 'Recursos insuficientes');
-            return;
-        }
-        
-        // Verificar se não há construção próxima
-        const tooClose = room.buildings.some(b => {
-            return Math.hypot(b.x - player.x, b.y - player.y) < 50;
-        });
-        
-        if(tooClose) {
-            socket.emit('buildFailed', 'Muito perto de outra construção');
-            return;
-        }
-        
-        // Deduzir recursos
-        player.wood -= cost.wood;
-        player.stone -= cost.stone;
-        player.crystal -= cost.crystal;
-        
-        // Criar construção
-        const building = {
-            id: 'build_' + Date.now(),
-            type: data.type,
-            x: player.x + player.facing * 50,
-            y: player.y,
-            hp: cost.hp,
-            maxHp: cost.hp,
-            owner: socket.id,
-            damage: cost.damage || 0,
-            range: cost.range || 0,
-            lastShot: 0
-        };
-        
-        room.buildings.push(building);
-        
-        io.to(socket.roomCode).emit('buildingCreated', building);
-        socket.emit('buildSuccess', data.type);
     });
-    
+
     // Usar comida
-    socket.on('useFood', () => {
-        const room = rooms.get(socket.roomCode);
-        if(!room) return;
-        
-        const player = room.players.get(socket.id);
-        if(!player || player.isDead) return;
-        
-        if(player.food > 0 && player.hp < player.maxHp) {
+    socket.on('useFood', function() {
+        var room = rooms[socket.roomCode];
+        if (!room || !room.players[socket.id]) return;
+
+        var player = room.players[socket.id];
+
+        if (player.food > 0 && player.hp < player.maxHp) {
             player.food--;
             player.hp = Math.min(player.maxHp, player.hp + 35);
-            socket.emit('healed', player.hp);
+
+            room.effects.push({
+                type: 'heal',
+                x: player.x,
+                y: player.y,
+                life: 30
+            });
         }
     });
-    
+
     // Escolher upgrade
-    socket.on('chooseUpgrade', (upgrade) => {
-        const room = rooms.get(socket.roomCode);
-        if(!room) return;
-        
-        const player = room.players.get(socket.id);
-        if(!player) return;
-        
+    socket.on('chooseUpgrade', function(upgrade) {
+        var room = rooms[socket.roomCode];
+        if (!room || !room.players[socket.id]) return;
+
+        var player = room.players[socket.id];
         player.upgrades.push(upgrade);
-        
-        switch(upgrade) {
+
+        switch (upgrade) {
             case 'damage':
-                player.damage += 5;
+                player.damage += 8;
                 break;
             case 'health':
-                player.maxHp += 30;
+                player.maxHp += 25;
                 player.hp = player.maxHp;
                 break;
             case 'speed':
-                player.speed += 1;
+                player.speed += 0.8;
                 break;
             case 'defense':
                 player.defense += 3;
                 break;
-            case 'attackSpeed':
-                player.attackCooldown = Math.max(200, player.attackCooldown - 50);
-                break;
             case 'lifesteal':
                 player.lifesteal = (player.lifesteal || 0) + 0.1;
                 break;
+            case 'crit':
+                player.critChance = (player.critChance || 0.15) + 0.1;
+                break;
         }
-        
-        socket.emit('upgradeApplied', {
-            upgrade: upgrade,
-            stats: {
-                damage: player.damage,
-                maxHp: player.maxHp,
-                speed: player.speed,
-                defense: player.defense
-            }
-        });
     });
-    
+
     // Respawn
-    socket.on('respawn', () => {
-        const room = rooms.get(socket.roomCode);
-        if(!room) return;
-        
-        const player = room.players.get(socket.id);
-        if(!player) return;
-        
-        player.isDead = false;
+    socket.on('respawn', function() {
+        var room = rooms[socket.roomCode];
+        if (!room || !room.players[socket.id]) return;
+
+        var player = room.players[socket.id];
         player.hp = player.maxHp;
-        player.x = CONFIG.MAP_SIZE / 2 + (Math.random() - 0.5) * 200;
-        player.y = CONFIG.MAP_SIZE / 2 + (Math.random() - 0.5) * 200;
-        
-        // Perder metade dos recursos
-        player.wood = Math.floor(player.wood / 2);
-        player.stone = Math.floor(player.stone / 2);
-        player.crystal = Math.floor(player.crystal / 2);
-        
-        socket.emit('respawned', player);
+        player.x = CONFIG.MAP_SIZE / 2;
+        player.y = CONFIG.MAP_SIZE / 2;
+        player.invincible = 3000;
+
+        player.wood = Math.floor(player.wood * 0.5);
+        player.stone = Math.floor(player.stone * 0.5);
+        player.crystal = Math.floor(player.crystal * 0.3);
     });
-    
-    // Desconectar
-    socket.on('disconnect', () => {
-        console.log('❌ Player desconectado:', socket.id);
-        
-        if(socket.roomCode) {
-            const room = rooms.get(socket.roomCode);
-            if(room) {
-                room.players.delete(socket.id);
-                
-                // Remover construções do player
-                room.buildings = room.buildings.filter(b => b.owner !== socket.id);
-                
-                // Notificar outros
-                io.to(socket.roomCode).emit('playerLeft', socket.id);
-                
-                // Deletar sala se vazia
-                if(room.players.size === 0) {
-                    rooms.delete(socket.roomCode);
-                    console.log('🗑️ Sala deletada:', socket.roomCode);
+
+    // Desconexão
+    socket.on('disconnect', function() {
+        console.log('👋 Player desconectado:', socket.id);
+
+        if (socket.roomCode && rooms[socket.roomCode]) {
+            delete rooms[socket.roomCode].players[socket.id];
+
+            var newBuildings = [];
+            for (var i = 0; i < rooms[socket.roomCode].buildings.length; i++) {
+                if (rooms[socket.roomCode].buildings[i].owner !== socket.id) {
+                    newBuildings.push(rooms[socket.roomCode].buildings[i]);
                 }
+            }
+            rooms[socket.roomCode].buildings = newBuildings;
+
+            if (Object.keys(rooms[socket.roomCode].players).length === 0) {
+                delete rooms[socket.roomCode];
+                console.log('🗑️ Sala deletada:', socket.roomCode);
             }
         }
     });
 });
 
 // ============ GAME LOOP ============
-setInterval(() => {
-    const now = Date.now();
-    
-    rooms.forEach((room, roomCode) => {
-        // Respawn de recursos
-        room.resources.forEach(resource => {
-            if(resource.depleted && now >= resource.respawnAt) {
-                resource.depleted = false;
-                resource.hp = resource.maxHp;
-                io.to(roomCode).emit('resourceRespawned', resource.id);
+setInterval(function() {
+    var now = Date.now();
+
+    for (var roomCode in rooms) {
+        var room = rooms[roomCode];
+
+        room.gameTime += 16;
+
+        // ===== SPAWN DE INIMIGOS =====
+        if (now - room.enemySpawnTimer > CONFIG.ENEMY_SPAWN_RATE) {
+            room.enemySpawnTimer = now;
+
+            if (room.enemies.length < CONFIG.MAX_ENEMIES) {
+                var enemy = createEnemy(room);
+                if (enemy) room.enemies.push(enemy);
             }
-        });
-        
-        // Spawn de inimigos
-        const spawnRate = Math.max(2000, CONFIG.ENEMY_BASE_SPAWN - room.wave * 300);
-        if(now - room.lastEnemySpawn > spawnRate && room.enemies.length < CONFIG.MAX_ENEMIES) {
-            room.lastEnemySpawn = now;
-            
-            // Spawn em bioma aleatório
-            const biomes = Object.keys(BIOMES);
-            const biome = biomes[Math.floor(Math.random() * biomes.length)];
-            room.enemies.push(createEnemy(room.wave, biome));
         }
-        
-        // Sistema de waves
-        if(now - room.lastWaveTime > CONFIG.WAVE_DURATION) {
-            room.lastWaveTime = now;
+
+        // ===== SISTEMA DE WAVES =====
+        if (now - room.waveTimer > CONFIG.WAVE_DURATION) {
+            room.waveTimer = now;
             room.wave++;
-            
-            // Spawn extra de inimigos na nova wave
-            const extraEnemies = Math.min(room.wave * 2, 15);
-            for(let i = 0; i < extraEnemies; i++) {
-                setTimeout(() => {
-                    if(room.enemies.length < CONFIG.MAX_ENEMIES + 10) {
-                        room.enemies.push(createEnemy(room.wave));
-                    }
-                }, i * 400);
+
+            var spawnCount = 3 + room.wave * 2;
+            for (var i = 0; i < spawnCount; i++) {
+                (function(index) {
+                    setTimeout(function() {
+                        if (room.enemies.length < CONFIG.MAX_ENEMIES + 10) {
+                            var enemy = createEnemy(room);
+                            if (enemy) room.enemies.push(enemy);
+                        }
+                    }, index * 300);
+                })(i);
             }
-            
-            io.to(roomCode).emit('newWave', {
-                wave: room.wave,
-                message: `WAVE ${room.wave}!`
-            });
+
+            io.to(roomCode).emit('waveStart', room.wave);
         }
-        
-        // IA dos inimigos
-        room.enemies.forEach(enemy => {
-            // Encontrar player mais próximo
-            let closestPlayer = null;
-            let closestDist = Infinity;
-            
-            room.players.forEach((player, playerId) => {
-                if(player.isDead) return;
-                
-                const dist = Math.hypot(player.x - enemy.x, player.y - enemy.y);
-                if(dist < closestDist) {
-                    closestDist = dist;
-                    closestPlayer = player;
-                    enemy.target = playerId;
+
+        // ===== ATUALIZAR PLAYERS =====
+        for (var playerId in room.players) {
+            var player = room.players[playerId];
+
+            if (player.attackCooldown > 0) player.attackCooldown -= 16;
+            if (player.invincible > 0) player.invincible -= 16;
+
+            // Coletar orbs
+            var newOrbs = [];
+            for (var i = 0; i < room.orbs.length; i++) {
+                var orb = room.orbs[i];
+                orb.life -= 1;
+
+                if (orb.life <= 0) continue;
+
+                var dist = Math.sqrt(
+                    Math.pow(orb.x - player.x, 2) + 
+                    Math.pow(orb.y - player.y, 2)
+                );
+
+                if (dist < 100) {
+                    var angle = Math.atan2(player.y - orb.y, player.x - orb.x);
+                    orb.x += Math.cos(angle) * 4;
+                    orb.y += Math.sin(angle) * 4;
                 }
-            });
-            
-            // Perseguir player se estiver perto
-            if(closestPlayer && closestDist < 400) {
+
+                if (dist < 25) {
+                    player.xp += orb.value;
+
+                    while (player.xp >= player.nextXp) {
+                        player.xp -= player.nextXp;
+                        player.level++;
+                        player.nextXp = Math.floor(player.nextXp * 1.4);
+                        player.maxHp += 15;
+                        player.hp = player.maxHp;
+                        player.damage += 2;
+
+                        io.to(playerId).emit('levelUp', player.level);
+                    }
+                } else {
+                    newOrbs.push(orb);
+                }
+            }
+            room.orbs = newOrbs;
+        }
+
+        // ===== ATUALIZAR INIMIGOS =====
+        var newEnemies = [];
+        for (var i = 0; i < room.enemies.length; i++) {
+            var enemy = room.enemies[i];
+
+            if (enemy.hp <= 0) continue;
+
+            if (enemy.attackCooldown > 0) enemy.attackCooldown -= 16;
+            if (enemy.specialCooldown > 0) enemy.specialCooldown -= 16;
+            if (enemy.stunned > 0) {
+                enemy.stunned -= 16;
+                newEnemies.push(enemy);
+                continue;
+            }
+
+            var closestPlayer = null;
+            var closestDist = Infinity;
+
+            for (var playerId in room.players) {
+                var player = room.players[playerId];
+                if (player.hp <= 0) continue;
+
+                var dist = Math.sqrt(
+                    Math.pow(player.x - enemy.x, 2) + 
+                    Math.pow(player.y - enemy.y, 2)
+                );
+
+                if (dist < closestDist) {
+                    closestDist = dist;
+                    closestPlayer = { id: playerId, x: player.x, y: player.y };
+                }
+            }
+
+            if (closestPlayer && closestDist < 400) {
                 enemy.state = 'chase';
-                
-                const angle = Math.atan2(
+                enemy.target = closestPlayer.id;
+
+                var angle = Math.atan2(
                     closestPlayer.y - enemy.y,
                     closestPlayer.x - enemy.x
                 );
-                
+
                 enemy.x += Math.cos(angle) * enemy.speed;
                 enemy.y += Math.sin(angle) * enemy.speed;
-                
-                // Manter dentro do mapa
-                enemy.x = Math.max(20, Math.min(CONFIG.MAP_SIZE - 20, enemy.x));
-                enemy.y = Math.max(20, Math.min(CONFIG.MAP_SIZE - 20, enemy.y));
-                
-                // Atacar se perto o suficiente
-                if(closestDist < 35 && now - enemy.lastAttack > enemy.attackRate) {
-                    enemy.lastAttack = now;
-                    enemy.state = 'attack';
-                    
-                    const actualDamage = Math.max(1, enemy.damage - closestPlayer.defense);
-                    closestPlayer.hp -= actualDamage;
-                    
-                    io.to(roomCode).emit('hitEffect', {
-                        x: closestPlayer.x,
-                        y: closestPlayer.y,
-                        damage: actualDamage,
-                        crit: false,
-                        type: 'player'
-                    });
-                    
-                    if(closestPlayer.hp <= 0) {
-                        closestPlayer.hp = 0;
-                        closestPlayer.isDead = true;
-                        io.to(roomCode).emit('playerDied', enemy.target);
+
+                enemy.x = Math.max(30, Math.min(CONFIG.MAP_SIZE - 30, enemy.x));
+                enemy.y = Math.max(30, Math.min(CONFIG.MAP_SIZE - 30, enemy.y));
+
+                if (closestDist < 45 && enemy.attackCooldown <= 0) {
+                    var targetPlayer = room.players[closestPlayer.id];
+
+                    if (targetPlayer && targetPlayer.invincible <= 0) {
+                        var finalDamage = Math.max(1, enemy.damage - targetPlayer.defense);
+                        targetPlayer.hp -= finalDamage;
+                        enemy.attackCooldown = 1000;
+
+                        room.effects.push({
+                            type: 'playerHit',
+                            x: targetPlayer.x,
+                            y: targetPlayer.y,
+                            damage: finalDamage,
+                            life: 25
+                        });
+
+                        if (targetPlayer.hp <= 0) {
+                            io.to(closestPlayer.id).emit('playerDied');
+                        }
                     }
                 }
-                
-                // Falar frases ocasionalmente
-                if(now - enemy.lastSpeak > 8000 && Math.random() < 0.02) {
+
+                if (enemy.specialCooldown <= 0 && closestDist < 200) {
+                    if (enemy.attackType === 'fireball' && closestDist > 80) {
+                        room.projectiles.push({
+                            id: 'proj_' + Date.now(),
+                            type: 'fireball',
+                            x: enemy.x,
+                            y: enemy.y,
+                            vx: Math.cos(angle) * 5,
+                            vy: Math.sin(angle) * 5,
+                            damage: enemy.damage * 1.5,
+                            owner: 'enemy',
+                            life: 100
+                        });
+                        enemy.specialCooldown = 3000;
+                    } else if (enemy.attackType === 'dash' && closestDist > 60 && closestDist < 150) {
+                        enemy.x += Math.cos(angle) * 40;
+                        enemy.y += Math.sin(angle) * 40;
+                        enemy.specialCooldown = 2000;
+                    }
+                }
+
+                if (now - enemy.lastSpeak > 6000 && Math.random() < 0.05) {
                     enemy.lastSpeak = now;
-                    const quotes = ENEMY_QUOTES[enemy.type] || ["..."];
-                    const quote = quotes[Math.floor(Math.random() * quotes.length)];
-                    
+                    var quotes = ENEMY_QUOTES[enemy.type] || ENEMY_QUOTES.default;
+                    var quote = quotes[Math.floor(Math.random() * quotes.length)];
+
                     io.to(roomCode).emit('enemySpeak', {
-                        id: enemy.id,
-                        message: quote,
                         x: enemy.x,
-                        y: enemy.y
+                        y: enemy.y - 50,
+                        message: quote
                     });
                 }
             } else {
-                enemy.state = 'idle';
-                
-                // Movimento aleatório quando idle
-                if(Math.random() < 0.01) {
-                    enemy.x += (Math.random() - 0.5) * 30;
-                    enemy.y += (Math.random() - 0.5) * 30;
+                enemy.state = 'wander';
+
+                if (Math.random() < 0.02) {
+                    enemy.wanderAngle = Math.random() * Math.PI * 2;
+                }
+
+                enemy.x += Math.cos(enemy.wanderAngle) * enemy.speed * 0.3;
+                enemy.y += Math.sin(enemy.wanderAngle) * enemy.speed * 0.3;
+
+                enemy.x = Math.max(100, Math.min(CONFIG.MAP_SIZE - 100, enemy.x));
+                enemy.y = Math.max(100, Math.min(CONFIG.MAP_SIZE - 100, enemy.y));
+            }
+
+            newEnemies.push(enemy);
+        }
+        room.enemies = newEnemies;
+
+        // ===== ATUALIZAR PROJÉTEIS =====
+        var newProjectiles = [];
+        for (var i = 0; i < room.projectiles.length; i++) {
+            var proj = room.projectiles[i];
+
+            proj.x += proj.vx;
+            proj.y += proj.vy;
+            proj.life--;
+
+            if (proj.life <= 0) continue;
+            if (proj.x < 0 || proj.x > CONFIG.MAP_SIZE) continue;
+            if (proj.y < 0 || proj.y > CONFIG.MAP_SIZE) continue;
+
+            var hitPlayer = false;
+
+            if (proj.owner === 'enemy') {
+                for (var playerId in room.players) {
+                    var player = room.players[playerId];
+                    if (player.hp <= 0 || player.invincible > 0) continue;
+
+                    var dist = Math.sqrt(
+                        Math.pow(player.x - proj.x, 2) + 
+                        Math.pow(player.y - proj.y, 2)
+                    );
+
+                    if (dist < 30) {
+                        var damage = Math.max(1, proj.damage - player.defense);
+                        player.hp -= damage;
+
+                        room.effects.push({
+                            type: 'playerHit',
+                            x: player.x,
+                            y: player.y,
+                            damage: damage,
+                            life: 25
+                        });
+
+                        if (player.hp <= 0) {
+                            io.to(playerId).emit('playerDied');
+                        }
+
+                        hitPlayer = true;
+                        break;
+                    }
                 }
             }
-        });
-        
-        // Dano de espinhos
-        room.buildings.forEach(building => {
-            if(building.type === 'spikes') {
-                room.enemies.forEach(enemy => {
-                    const dist = Math.hypot(enemy.x - building.x, enemy.y - building.y);
-                    if(dist < 40) {
-                        enemy.hp -= 2;
-                        if(enemy.hp <= 0) {
-                            room.enemies = room.enemies.filter(e => e.id !== enemy.id);
-                        }
-                    }
-                });
+
+            if (!hitPlayer) {
+                newProjectiles.push(proj);
             }
-        });
-        
-        // Torretas automáticas
-        room.buildings.forEach(building => {
-            if((building.type === 'turret' || building.type === 'tower') && now - building.lastShot > 800) {
-                const nearbyEnemy = room.enemies.find(e => {
-                    const dist = Math.hypot(e.x - building.x, e.y - building.y);
-                    return dist < building.range;
-                });
-                
-                if(nearbyEnemy) {
-                    building.lastShot = now;
-                    nearbyEnemy.hp -= building.damage;
-                    
-                    io.to(roomCode).emit('turretShot', {
-                        from: { x: building.x, y: building.y },
-                        to: { x: nearbyEnemy.x, y: nearbyEnemy.y }
+        }
+        room.projectiles = newProjectiles;
+
+        // ===== ATUALIZAR CONSTRUÇÕES =====
+        for (var i = 0; i < room.buildings.length; i++) {
+            var building = room.buildings[i];
+
+            if (building.type === 'turret' && now - building.lastAction > 500) {
+                var target = null;
+                for (var j = 0; j < room.enemies.length; j++) {
+                    var e = room.enemies[j];
+                    var dist = Math.sqrt(
+                        Math.pow(e.x - building.x, 2) + 
+                        Math.pow(e.y - building.y, 2)
+                    );
+                    if (dist < 180) {
+                        target = e;
+                        break;
+                    }
+                }
+
+                if (target) {
+                    building.lastAction = now;
+                    target.hp -= 12;
+
+                    room.effects.push({
+                        type: 'turretShot',
+                        x: building.x,
+                        y: building.y,
+                        x2: target.x,
+                        y2: target.y,
+                        life: 10
                     });
-                    
-                    if(nearbyEnemy.hp <= 0) {
-                        // Drop orbs
-                        for(let i = 0; i < 2; i++) {
-                            room.orbs.push({
-                                x: nearbyEnemy.x + (Math.random() - 0.5) * 30,
-                                y: nearbyEnemy.y + (Math.random() - 0.5) * 30,
-                                value: Math.floor(nearbyEnemy.xp / 4)
-                            });
+
+                    if (target.hp <= 0) {
+                        var owner = room.players[building.owner];
+                        if (owner) {
+                            owner.xp += target.xp;
                         }
-                        room.enemies = room.enemies.filter(e => e.id !== nearbyEnemy.id);
                     }
                 }
             }
-        });
-        
-        // Converter players Map para objeto para enviar
-        const playersObj = {};
-        room.players.forEach((player, id) => {
-            playersObj[id] = player;
-        });
-        
-        // Enviar estado do jogo
-        io.to(roomCode).emit('gameState', {
-            players: playersObj,
+
+            if (building.type === 'healpad' && now - building.lastAction > 2000) {
+                var owner = room.players[building.owner];
+                if (owner) {
+                    var dist = Math.sqrt(
+                        Math.pow(owner.x - building.x, 2) + 
+                        Math.pow(owner.y - building.y, 2)
+                    );
+                    if (dist < 60 && owner.hp < owner.maxHp) {
+                        building.lastAction = now;
+                        owner.hp = Math.min(owner.maxHp, owner.hp + 10);
+                    }
+                }
+            }
+
+            if (building.type === 'spikes') {
+                for (var j = 0; j < room.enemies.length; j++) {
+                    var enemy = room.enemies[j];
+                    var dist = Math.sqrt(
+                        Math.pow(enemy.x - building.x, 2) + 
+                        Math.pow(enemy.y - building.y, 2)
+                    );
+                    if (dist < 40 && now - building.lastAction > 500) {
+                        building.lastAction = now;
+                        enemy.hp -= 8;
+                        enemy.speed *= 0.7;
+
+                        (function(e) {
+                            setTimeout(function() {
+                                if (e) e.speed /= 0.7;
+                            }, 1000);
+                        })(enemy);
+                    }
+                }
+            }
+        }
+
+        // ===== RESPAWN DE RECURSOS =====
+        for (var i = 0; i < room.resources.length; i++) {
+            var resource = room.resources[i];
+            if (resource.depleted && now > resource.respawnTime) {
+                resource.depleted = false;
+                resource.hp = resource.maxHp;
+            }
+        }
+
+        // ===== LIMPAR EFEITOS =====
+        var newEffects = [];
+        for (var i = 0; i < room.effects.length; i++) {
+            room.effects[i].life--;
+            if (room.effects[i].life > 0) {
+                newEffects.push(room.effects[i]);
+            }
+        }
+        room.effects = newEffects;
+
+        // ===== ENVIAR ESTADO DO JOGO =====
+        var gameState = {
+            players: room.players,
             enemies: room.enemies,
-            resources: room.resources.filter(r => !r.depleted),
+            resources: [],
             buildings: room.buildings,
+            projectiles: room.projectiles,
             orbs: room.orbs,
-            wave: room.wave
-        });
-    });
-}, 1000 / 30); // 30 FPS para o servidor
+            effects: room.effects,
+            wave: room.wave,
+            gameTime: room.gameTime
+        };
+
+        for (var i = 0; i < room.resources.length; i++) {
+            var r = room.resources[i];
+            gameState.resources.push({
+                id: r.id,
+                type: r.type,
+                biome: r.biome,
+                x: r.x,
+                y: r.y,
+                hp: r.hp,
+                maxHp: r.maxHp,
+                depleted: r.depleted
+            });
+        }
+
+        io.to(roomCode).emit('gameState', gameState);
+    }
+}, 16);
 
 // ============ INICIAR SERVIDOR ============
-server.listen(PORT, () => {
+server.listen(PORT, function() {
     console.log('');
     console.log('╔════════════════════════════════════════╗');
-    console.log('║  🎮 RPG LEGENDS - MIKU EDITION V9     ║');
-    console.log('║  ✅ Servidor rodando na porta ' + PORT + '     ║');
-    console.log('║  💙 Pronto para jogar!                ║');
+    console.log('║   🎮 RPG LEGENDS - MIKU EDITION V9     ║');
+    console.log('║   ✨ Servidor rodando na porta ' + PORT + '    ║');
     console.log('╚════════════════════════════════════════╝');
     console.log('');
 });

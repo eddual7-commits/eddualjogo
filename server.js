@@ -334,11 +334,13 @@ io.on('connection', (socket) => {
             socket.playerId = socket.id;
             
             console.log('🏠 Sala criada:', roomCode, 'por', playerName);
-            
             socket.emit('roomJoined', {
-                roomCode: roomCode,
-                playerId: socket.id,
-                player: player
+    roomCode: roomCode,
+    playerId: socket.id,
+    mapSize: CONFIG.MAP_SIZE,
+    biomes: BIOMES,
+    buildCosts: BUILD_COSTS
+});
             });
             
             // Spawn inicial de inimigos

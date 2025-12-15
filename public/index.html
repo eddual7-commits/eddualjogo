@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>⚔️ RPG Legends - Miku Edition</title>
+<title>🧟 Zombie Survival - Multiplayer</title>
 <style>
 * {
     margin: 0;
@@ -12,220 +12,899 @@
     touch-action: none;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
 }
 
 :root {
-    --primary: #39C5BB;
-    --primary-dark: #2A9D8F;
-    --secondary: #00BFFF;
-    --danger: #E74C3C;
-    --warning: #F1C40F;
-    --dark: #0a1628;
-    --darker: #060d17;
+    --primary: #4CAF50;
+    --secondary: #8BC34A;
+    --danger: #F44336;
+    --warning: #FFC107;
+    --dark: #1a1a1a;
+    --darker: #0d0d0d;
+    --zombie: #4A5F4A;
 }
 
 body {
-    background: var(--darker);
+    background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 100%);
     color: white;
-    font-family: 'Segoe UI', Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     overflow: hidden;
     width: 100vw;
     height: 100vh;
 }
 
-#menu {
+/* ==================== MENU PRINCIPAL ==================== */
+#mainMenu {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
+    background: linear-gradient(135deg, #0f1419 0%, #1a2332 50%, #0f1419 100%);
+    z-index: 1000;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: radial-gradient(ellipse at center, #1a2a4a 0%, #0a1628 50%, #060d17 100%);
-    z-index: 1000;
-    overflow: hidden;
+    transition: opacity 0.5s ease;
 }
 
-#menuParticles {
+.menu-container {
+    width: 90%;
+    max-width: 1200px;
+    animation: menuAppear 0.5s ease;
+}
+
+@keyframes menuAppear {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.game-logo {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.game-title {
+    font-size: clamp(3rem, 8vw, 5rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 50%, #CDDC39 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 40px rgba(76, 175, 80, 0.5);
+    animation: titlePulse 2s ease-in-out infinite;
+    margin-bottom: 10px;
+}
+
+@keyframes titlePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.game-subtitle {
+    font-size: 1.2rem;
+    color: #8BC34A;
+    opacity: 0.9;
+}
+
+.menu-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+@media (max-width: 768px) {
+    .menu-content {
+        grid-template-columns: 1fr;
+    }
+}
+
+.menu-section {
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(76, 175, 80, 0.3);
+    border-radius: 15px;
+    padding: 25px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.menu-section:hover {
+    border-color: rgba(76, 175, 80, 0.6);
+    box-shadow: 0 0 30px rgba(76, 175, 80, 0.2);
+}
+
+.section-title {
+    font-size: 1.5rem;
+    color: #4CAF50;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #8BC34A;
+    font-size: 0.9rem;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px 15px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid rgba(76, 175, 80, 0.3);
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+}
+
+.color-picker {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.color-option {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.color-option:hover {
+    transform: scale(1.1);
+    border-color: white;
+}
+
+.color-option.selected {
+    border-color: #4CAF50;
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+}
+
+.server-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 15px;
+}
+
+.server-item {
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(76, 175, 80, 0.2);
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.server-item:hover {
+    background: rgba(76, 175, 80, 0.1);
+    border-color: #4CAF50;
+    transform: translateX(5px);
+}
+
+.server-name {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #4CAF50;
+}
+
+.server-info {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    color: #8BC34A;
+    font-size: 0.9rem;
+}
+
+.btn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%);
+    color: white;
+    box-shadow: 0 5px 0 #2E7D32, 0 10px 20px rgba(76, 175, 80, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 0 #2E7D32, 0 15px 30px rgba(76, 175, 80, 0.4);
+}
+
+.btn-primary:active {
+    transform: translateY(2px);
+    box-shadow: 0 3px 0 #2E7D32, 0 5px 10px rgba(76, 175, 80, 0.3);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: #4CAF50;
+    border: 2px solid #4CAF50;
+}
+
+.btn-secondary:hover {
+    background: rgba(76, 175, 80, 0.1);
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+}
+
+/* ==================== SETTINGS MODAL ==================== */
+#settingsModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.modal-content {
+    background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+    border: 2px solid #4CAF50;
+    border-radius: 15px;
+    padding: 30px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    color: #4CAF50;
+}
+
+.close-modal {
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #F44336;
+    transition: transform 0.3s ease;
+}
+
+.close-modal:hover {
+    transform: rotate(90deg);
+}
+
+.setting-item {
+    margin-bottom: 20px;
+}
+
+.setting-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+    color: #8BC34A;
+}
+
+.slider {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    background: rgba(76, 175, 80, 0.2);
+    border-radius: 5px;
+    outline: none;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #4CAF50;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #4CAF50;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.toggle-switch {
+    position: relative;
+    width: 50px;
+    height: 25px;
+    background: rgba(76, 175, 80, 0.2);
+    border-radius: 25px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.toggle-switch.active {
+    background: #4CAF50;
+}
+
+.toggle-slider {
     position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 21px;
+    height: 21px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+}
+
+.toggle-switch.active .toggle-slider {
+    transform: translateX(25px);
+}
+
+/* ==================== HUD DO JOGO ==================== */
+.hidden {
+    display: none !important;
+}
+
+#gameHUD {
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     pointer-events: none;
+    z-index: 100;
 }
 
-.menu-content {
-    position: relative;
-    z-index: 10;
-    text-align: center;
+.top-bar {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
 }
 
-.logo-container {
-    margin-bottom: 30px;
-    animation: logoFloat 3s ease-in-out infinite;
-}
-
-@keyframes logoFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-
-.logo {
-    font-size: clamp(2rem, 8vw, 4rem);
-    font-weight: bold;
-    background: linear-gradient(135deg, #39C5BB 0%, #00BFFF 50%, #00D4AA 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow: 0 0 60px rgba(57, 197, 187, 0.5);
-    letter-spacing: 3px;
-}
-
-.logo-sub {
-    font-size: clamp(0.8rem, 3vw, 1.2rem);
-    color: var(--primary);
-    margin-top: 5px;
-    opacity: 0.9;
-    animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 0.7; }
-    50% { opacity: 1; }
-}
-
-.menu-box {
-    background: linear-gradient(145deg, rgba(0,0,0,0.7), rgba(20,40,60,0.5));
-    padding: clamp(20px, 5vw, 40px);
-    border-radius: 25px;
-    border: 2px solid var(--primary);
-    box-shadow: 0 0 50px rgba(57, 197, 187, 0.2), inset 0 0 30px rgba(57, 197, 187, 0.05);
+.player-stats {
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid rgba(76, 175, 80, 0.5);
+    border-radius: 10px;
+    padding: 10px 15px;
     backdrop-filter: blur(10px);
-    min-width: 300px;
-    max-width: 90vw;
+    pointer-events: auto;
 }
 
-.input-group {
-    margin: 15px 0;
-    position: relative;
-}
-
-.input-group label {
-    display: block;
-    text-align: left;
+.stat-bar {
+    display: flex;
+    align-items: center;
     margin-bottom: 8px;
-    color: var(--primary);
-    font-size: 0.9rem;
-    font-weight: 500;
 }
 
-input {
-    width: 100%;
-    padding: 15px 20px;
-    border: 2px solid rgba(57, 197, 187, 0.3);
+.stat-bar:last-child {
+    margin-bottom: 0;
+}
+
+.stat-icon {
+    width: 30px;
+    font-size: 20px;
+}
+
+.stat-progress {
+    flex: 1;
+    height: 20px;
     background: rgba(0, 0, 0, 0.5);
-    color: white;
-    border-radius: 12px;
-    font-size: 16px;
-    transition: all 0.3s ease;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 0 10px;
+    min-width: 150px;
 }
 
-input:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 20px rgba(57, 197, 187, 0.3);
-    background: rgba(57, 197, 187, 0.1);
-}
-
-input::placeholder {
-    color: rgba(255,255,255,0.4);
-}
-
-.btn {
-    width: 100%;
-    padding: 15px 25px;
-    margin: 10px 0;
-    border: none;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
+.stat-fill {
+    height: 100%;
+    transition: width 0.3s ease;
     position: relative;
     overflow: hidden;
 }
 
-.btn-primary {
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
+.hp-fill {
+    background: linear-gradient(90deg, #D32F2F, #F44336);
+    box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.3);
+}
+
+.hp-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.xp-fill {
+    background: linear-gradient(90deg, #1976D2, #2196F3);
+    box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.3);
+}
+
+.stat-text {
     color: white;
-    box-shadow: 0 5px 0 var(--primary-dark), 0 10px 30px rgba(57, 197, 187, 0.3);
+    font-size: 12px;
+    font-weight: bold;
+    min-width: 60px;
+    text-align: right;
 }
 
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 7px 0 var(--primary-dark), 0 15px 40px rgba(57, 197, 187, 0.4);
+.resources {
+    display: flex;
+    gap: 15px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid rgba(76, 175, 80, 0.5);
+    border-radius: 10px;
+    padding: 10px 15px;
+    backdrop-filter: blur(10px);
 }
 
-.btn-primary:active {
-    transform: translateY(3px);
-    box-shadow: 0 2px 0 var(--primary-dark);
-}
-
-.btn-secondary {
-    background: linear-gradient(135deg, rgba(57,197,187,0.2), rgba(0,191,255,0.2));
-    color: var(--primary);
-    border: 2px solid var(--primary);
-}
-
-.btn-secondary:hover {
-    background: linear-gradient(135deg, rgba(57,197,187,0.3), rgba(0,191,255,0.3));
-}
-
-.divider {
+.resource-item {
     display: flex;
     align-items: center;
-    margin: 20px 0;
-    color: rgba(255,255,255,0.5);
-    font-size: 0.9rem;
+    gap: 5px;
 }
 
-.divider::before, .divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(57,197,187,0.5), transparent);
+.resource-icon {
+    font-size: 20px;
 }
 
-.divider span {
-    padding: 0 15px;
+.resource-count {
+    color: #8BC34A;
+    font-weight: bold;
+    font-size: 16px;
 }
 
-.hidden {
-    display: none !important;
+.wave-indicator {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid #F44336;
+    border-radius: 10px;
+    padding: 10px 20px;
+    color: #F44336;
+    font-size: 18px;
+    font-weight: bold;
+    animation: wavePulse 2s ease-in-out infinite;
 }
 
-#loading {
+@keyframes wavePulse {
+    0%, 100% { transform: translateX(-50%) scale(1); }
+    50% { transform: translateX(-50%) scale(1.05); }
+}
+
+/* ==================== MINIMAP ==================== */
+.minimap-container {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 180px;
+    height: 180px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 3px solid #4CAF50;
+    border-radius: 10px;
+    overflow: hidden;
+    pointer-events: auto;
+}
+
+#minimap {
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+}
+
+/* ==================== HOTBAR (ESTILO MINECRAFT) ==================== */
+.hotbar {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 4px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid rgba(76, 175, 80, 0.5);
+    border-radius: 8px;
+    padding: 8px;
+    pointer-events: auto;
+}
+
+.hotbar-slot {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, rgba(40, 40, 40, 0.9), rgba(20, 20, 20, 0.9));
+    border: 2px solid #555;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.hotbar-slot.selected {
+    border-color: #4CAF50;
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
+    transform: scale(1.1);
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(20, 20, 20, 0.9));
+}
+
+.hotbar-slot:hover {
+    background: linear-gradient(135deg, rgba(60, 60, 60, 0.9), rgba(40, 40, 40, 0.9));
+}
+
+.slot-icon {
+    font-size: 24px;
+}
+
+.slot-count {
+    position: absolute;
+    bottom: 2px;
+    right: 4px;
+    font-size: 11px;
+    color: white;
+    text-shadow: 1px 1px 2px black;
+    font-weight: bold;
+}
+
+.slot-key {
+    position: absolute;
+    top: 2px;
+    left: 4px;
+    font-size: 10px;
+    color: #999;
+    font-weight: bold;
+}
+
+/* ==================== ACTION BUTTONS ==================== */
+.action-buttons {
+    position: absolute;
+    bottom: 100px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: auto;
+}
+
+.action-btn {
+    width: 60px;
+    height: 60px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 3px solid #4CAF50;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    background: rgba(76, 175, 80, 0.2);
+    transform: scale(1.1);
+}
+
+.action-btn:active {
+    transform: scale(0.95);
+}
+
+.action-btn.active {
+    background: rgba(76, 175, 80, 0.4);
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+}
+
+/* ==================== INVENTORY MODAL ==================== */
+#inventoryModal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, rgba(20, 20, 20, 0.98), rgba(40, 40, 40, 0.98));
+    border: 3px solid #4CAF50;
+    border-radius: 15px;
+    padding: 20px;
+    display: none;
+    z-index: 200;
+    pointer-events: auto;
+}
+
+.inventory-title {
+    color: #4CAF50;
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(9, 50px);
+    gap: 4px;
+    margin-bottom: 15px;
+}
+
+.inventory-slot {
+    width: 50px;
+    height: 50px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #333;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+}
+
+.inventory-slot:hover {
+    background: rgba(76, 175, 80, 0.1);
+    border-color: #4CAF50;
+}
+
+/* ==================== BUILD MENU ==================== */
+#buildMenu {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid #4CAF50;
+    border-radius: 10px;
+    padding: 15px;
+    display: none;
+    pointer-events: auto;
+}
+
+.build-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 60px);
+    gap: 10px;
+}
+
+.build-item {
+    width: 60px;
+    height: 60px;
+    background: rgba(40, 40, 40, 0.9);
+    border: 2px solid #555;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.build-item:hover {
+    background: rgba(76, 175, 80, 0.2);
+    border-color: #4CAF50;
+    transform: scale(1.1);
+}
+
+.build-item.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.build-icon {
+    font-size: 24px;
+    margin-bottom: 2px;
+}
+
+.build-cost {
+    font-size: 9px;
+    color: #8BC34A;
+    text-align: center;
+}
+
+/* ==================== CHAT ==================== */
+.chat-container {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: 300px;
+    pointer-events: auto;
+}
+
+.chat-messages {
+    max-height: 150px;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 5px;
+}
+
+.chat-message {
+    color: white;
+    font-size: 12px;
+    margin-bottom: 5px;
+    word-wrap: break-word;
+}
+
+.chat-message .player-name {
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.chat-input {
+    width: 100%;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid #4CAF50;
+    border-radius: 5px;
+    color: white;
+    font-size: 12px;
+}
+
+/* ==================== MOBILE CONTROLS ==================== */
+.mobile-controls {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 90;
+}
+
+@media (max-width: 768px) {
+    .mobile-controls {
+        display: block;
+    }
+    
+    .chat-container {
+        display: none;
+    }
+    
+    .action-buttons {
+        bottom: 150px;
+        right: 10px;
+    }
+    
+    .hotbar {
+        bottom: 10px;
+    }
+    
+    .hotbar-slot {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .slot-icon {
+        font-size: 20px;
+    }
+}
+
+.joystick-area {
+    position: absolute;
+    pointer-events: auto;
+}
+
+.joystick-left {
+    bottom: 20px;
+    left: 20px;
+    width: 150px;
+    height: 150px;
+}
+
+.joystick-right {
+    bottom: 20px;
+    right: 20px;
+    width: 150px;
+    height: 150px;
+}
+
+/* ==================== EFFECTS ==================== */
+.damage-number {
+    position: fixed;
+    font-weight: bold;
+    font-size: 18px;
+    pointer-events: none;
+    z-index: 150;
+    animation: damageFloat 1s ease-out forwards;
+}
+
+@keyframes damageFloat {
+    0% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-40px);
+    }
+}
+
+.damage-number.critical {
+    font-size: 24px;
+    color: #FFD700 !important;
+}
+
+/* ==================== GAME CANVAS ==================== */
+#gameCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
+
+/* ==================== LOADING SCREEN ==================== */
+#loadingScreen {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: var(--darker);
+    background: radial-gradient(circle, #1a1a1a 0%, #0d0d0d 100%);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    z-index: 999;
+    z-index: 3000;
 }
 
 .loader {
     width: 80px;
     height: 80px;
-    border: 4px solid rgba(57,197,187,0.2);
-    border-top-color: var(--primary);
+    border: 4px solid rgba(76, 175, 80, 0.2);
+    border-top-color: #4CAF50;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -236,751 +915,548 @@ input::placeholder {
 
 .loading-text {
     margin-top: 20px;
-    color: var(--primary);
+    color: #4CAF50;
     font-size: 1.2rem;
+    animation: pulse 1.5s ease-in-out infinite;
 }
 
-#hud {
+@keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+/* ==================== NOTIFICATIONS ==================== */
+.notification {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 100;
-}
-
-.room-info {
-    position: absolute;
-    top: 15px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(20,40,60,0.6));
-    padding: 10px 25px;
-    border-radius: 25px;
-    border: 2px solid var(--primary);
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.room-code {
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: var(--primary);
-    letter-spacing: 2px;
-}
-
-.wave-info {
-    font-size: 1rem;
-    color: #9B59B6;
-}
-
-.stats-container {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.stat-bar {
-    width: clamp(150px, 25vw, 220px);
-    height: 28px;
-    background: rgba(0,0,0,0.7);
-    border: 2px solid rgba(255,255,255,0.2);
-    border-radius: 14px;
-    overflow: hidden;
-    position: relative;
-}
-
-.stat-fill {
-    height: 100%;
-    transition: width 0.3s ease;
-    position: relative;
-}
-
-.hp-fill {
-    background: linear-gradient(90deg, #C0392B, #E74C3C, #FF6B6B);
-    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.3), 0 0 10px rgba(231,76,60,0.5);
-}
-
-.xp-fill {
-    background: linear-gradient(90deg, #2A9D8F, #39C5BB, #00D4AA);
-    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.3), 0 0 10px rgba(57,197,187,0.5);
-}
-
-.stat-text {
-    position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 12px;
-    font-weight: bold;
-    text-shadow: 1px 1px 2px black;
-    white-space: nowrap;
-}
-
-.stat-icon {
-    position: absolute;
-    left: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 14px;
-}
-
-.level-badge {
-    position: absolute;
-    right: -5px;
-    top: -5px;
-    background: linear-gradient(135deg, #F1C40F, #F39C12);
-    color: #000;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: bold;
-    border: 2px solid #FFF;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-}
-
-.inventory {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.inv-item {
-    background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(20,40,60,0.6));
-    padding: 8px 15px;
-    border-radius: 12px;
-    border: 2px solid rgba(57,197,187,0.5);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 14px;
-    min-width: 80px;
-}
-
-.inv-item .icon {
-    font-size: 18px;
-}
-
-.inv-item .count {
-    font-weight: bold;
-    color: var(--primary);
-}
-
-.action-buttons {
-    position: absolute;
-    bottom: 100px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 15px;
-    pointer-events: auto;
-}
-
-.action-btn {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: linear-gradient(145deg, rgba(57,197,187,0.3), rgba(0,0,0,0.5));
-    border: 3px solid var(--primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background: rgba(0, 0, 0, 0.9);
+    border: 3px solid #4CAF50;
+    border-radius: 10px;
+    padding: 20px 40px;
+    color: white;
     font-size: 24px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-
-.action-btn:active {
-    transform: scale(0.9);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-}
-
-.action-btn.disabled {
-    opacity: 0.5;
-    border-color: #666;
-}
-
-.minimap-container {
-    position: absolute;
-    bottom: 15px;
-    right: 15px;
-    width: clamp(100px, 20vw, 160px);
-    height: clamp(100px, 20vw, 160px);
-    border: 3px solid var(--primary);
-    border-radius: 15px;
-    overflow: hidden;
-    background: rgba(0,0,0,0.7);
-    box-shadow: 0 5px 20px rgba(0,0,0,0.5);
-}
-
-#minimap {
-    width: 100%;
-    height: 100%;
-}
-
-#craftMenu {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: linear-gradient(145deg, rgba(10,22,40,0.98), rgba(5,15,30,0.98));
-    padding: 25px;
-    border-radius: 20px;
-    border: 2px solid var(--primary);
-    z-index: 200;
-    min-width: 320px;
-    max-width: 90vw;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-    pointer-events: auto;
-}
-
-.menu-title {
-    text-align: center;
-    font-size: 1.5rem;
-    color: var(--primary);
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-}
-
-.craft-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.craft-item {
-    background: linear-gradient(145deg, rgba(57,197,187,0.15), rgba(0,0,0,0.3));
-    padding: 15px;
-    border-radius: 12px;
-    border: 2px solid rgba(57,197,187,0.3);
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.craft-item:hover {
-    border-color: var(--primary);
-    background: linear-gradient(145deg, rgba(57,197,187,0.25), rgba(0,0,0,0.4));
-    transform: translateY(-2px);
-}
-
-.craft-icon {
-    font-size: 2rem;
-    margin-bottom: 8px;
-}
-
-.craft-name {
     font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.craft-cost {
-    font-size: 0.8rem;
-    color: rgba(255,255,255,0.7);
-}
-
-#levelUp {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: linear-gradient(145deg, rgba(20,15,30,0.98), rgba(10,5,20,0.98));
-    padding: 30px;
-    border-radius: 20px;
-    border: 3px solid #F1C40F;
-    z-index: 200;
-    text-align: center;
-    box-shadow: 0 0 60px rgba(241,196,15,0.3);
-    pointer-events: auto;
-    animation: levelUpPop 0.5s ease;
-}
-
-@keyframes levelUpPop {
-    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-    50% { transform: translate(-50%, -50%) scale(1.1); }
-    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-}
-
-.level-title {
-    font-size: 2rem;
-    color: #F1C40F;
-    margin-bottom: 10px;
-    text-shadow: 0 0 20px rgba(241,196,15,0.5);
-}
-
-.level-number {
-    font-size: 3rem;
-    font-weight: bold;
-    color: #FFF;
-    margin-bottom: 20px;
-}
-
-.upgrades-grid {
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-.upgrade-card {
-    background: linear-gradient(145deg, rgba(241,196,15,0.2), rgba(0,0,0,0.3));
-    padding: 20px;
-    border-radius: 15px;
-    border: 2px solid rgba(241,196,15,0.5);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    min-width: 100px;
-}
-
-.upgrade-card:hover {
-    border-color: #F1C40F;
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(241,196,15,0.3);
-}
-
-.upgrade-icon {
-    font-size: 2rem;
-    margin-bottom: 10px;
-}
-
-.upgrade-name {
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.upgrade-desc {
-    font-size: 0.8rem;
-    color: rgba(255,255,255,0.7);
-}
-
-#death {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.9);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 300;
-    animation: fadeIn 0.5s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.death-title {
-    font-size: 3rem;
-    color: var(--danger);
-    margin-bottom: 20px;
-    text-shadow: 0 0 30px rgba(231,76,60,0.5);
-}
-
-.death-stats {
-    margin: 20px 0;
-    text-align: center;
-}
-
-.death-stat {
-    font-size: 1.2rem;
-    margin: 10px 0;
-    color: rgba(255,255,255,0.8);
-}
-
-.wave-alert {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: clamp(2rem, 8vw, 4rem);
-    font-weight: bold;
-    color: #9B59B6;
-    text-shadow: 0 0 40px #9B59B6, 0 0 80px #9B59B6;
-    animation: waveAlert 3s forwards;
+    z-index: 250;
+    animation: notificationPop 0.5s ease;
     pointer-events: none;
-    z-index: 150;
 }
 
-@keyframes waveAlert {
-    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-    15% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-    25% { transform: translate(-50%, -50%) scale(1); }
-    75% { opacity: 1; }
-    100% { opacity: 0; transform: translate(-50%, -50%) translateY(-50px); }
-}
-
-.toast {
-    position: fixed;
-    bottom: 150px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.9);
-    padding: 12px 25px;
-    border-radius: 25px;
-    border: 2px solid var(--primary);
-    animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
-    z-index: 150;
-}
-
-@keyframes toastIn {
-    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
-    to { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-
-@keyframes toastOut {
-    from { opacity: 1; }
-    to { opacity: 0; }
-}
-
-#game {
-    display: block;
-    position: fixed;
-    top: 0;
-    left: 0;
+@keyframes notificationPop {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
 }
 </style>
 </head>
 <body>
 
-<div id="loading" class="hidden">
+<!-- ==================== LOADING SCREEN ==================== -->
+<div id="loadingScreen" class="hidden">
     <div class="loader"></div>
-    <div class="loading-text">Conectando...</div>
+    <div class="loading-text">Carregando...</div>
 </div>
 
-<div id="menu">
-    <canvas id="menuParticles"></canvas>
-    
-    <div class="menu-content">
-        <div class="logo-container">
-            <div class="logo">⚔️ RPG LEGENDS</div>
-            <div class="logo-sub">💙 Miku Edition 💙</div>
+<!-- ==================== MAIN MENU ==================== -->
+<div id="mainMenu">
+    <div class="menu-container">
+        <div class="game-logo">
+            <h1 class="game-title">🧟 ZOMBIE SURVIVAL</h1>
+            <p class="game-subtitle">Sobreviva às hordas infinitas!</p>
         </div>
         
-        <div class="menu-box">
-            <div class="input-group">
-                <label>👤 Nome do Herói</label>
-                <input type="text" id="playerName" placeholder="Digite seu nome..." maxlength="12">
+        <div class="menu-content">
+            <!-- Player Setup -->
+            <div class="menu-section">
+                <h2 class="section-title">
+                    <span>👤</span>
+                    <span>Configurar Jogador</span>
+                </h2>
+                
+                <div class="input-group">
+                    <label>Nome do Sobrevivente</label>
+                    <input type="text" id="playerName" placeholder="Digite seu nome..." maxlength="16">
+                </div>
+                
+                <div class="input-group">
+                    <label>Escolha sua Cor</label>
+                    <div class="color-picker" id="colorPicker">
+                        <div class="color-option selected" data-color="100,150,200" style="background: rgb(100,150,200)"></div>
+                        <div class="color-option" data-color="200,100,100" style="background: rgb(200,100,100)"></div>
+                        <div class="color-option" data-color="100,200,100" style="background: rgb(100,200,100)"></div>
+                        <div class="color-option" data-color="200,200,100" style="background: rgb(200,200,100)"></div>
+                        <div class="color-option" data-color="200,100,200" style="background: rgb(200,100,200)"></div>
+                        <div class="color-option" data-color="100,200,200" style="background: rgb(100,200,200)"></div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" onclick="createNewServer()" style="width: 100%; margin-top: 20px;">
+                    🌍 CRIAR NOVO SERVIDOR
+                </button>
+                
+                <button class="btn btn-secondary" onclick="openSettings()" style="width: 100%; margin-top: 10px;">
+                    ⚙️ CONFIGURAÇÕES
+                </button>
             </div>
             
-            <button class="btn btn-primary" id="btnCreate">
-                🌍 CRIAR MUNDO
-            </button>
-            
-            <div class="divider"><span>ou entre em um mundo</span></div>
-            
-            <div class="input-group">
-                <label>🔑 Código da Sala</label>
-                <input type="text" id="roomCodeInput" placeholder="EX: ABC12" maxlength="5" style="text-transform: uppercase;">
+            <!-- Server List -->
+            <div class="menu-section">
+                <h2 class="section-title">
+                    <span>🌐</span>
+                    <span>Servidores Disponíveis</span>
+                </h2>
+                
+                <button class="btn btn-secondary" onclick="refreshServers()" style="width: 100%; margin-bottom: 15px;">
+                    🔄 ATUALIZAR LISTA
+                </button>
+                
+                <div class="server-list" id="serverList">
+                    <!-- Servers will be dynamically added here -->
+                </div>
             </div>
-            
-            <button class="btn btn-secondary" id="btnJoin">
-                🚪 ENTRAR
-            </button>
         </div>
     </div>
 </div>
 
-<div id="hud" class="hidden">
-    <div class="room-info">
-        <div class="room-code">🔑 <span id="roomCodeDisplay">-----</span></div>
-        <div class="wave-info">🌊 Wave <span id="waveDisplay">1</span></div>
-    </div>
-    
-    <div class="stats-container">
-        <div class="stat-bar">
-            <div class="stat-fill hp-fill" id="hpBar" style="width: 100%"></div>
-            <span class="stat-icon">❤️</span>
-            <span class="stat-text"><span id="hpText">100</span>/<span id="hpMaxText">100</span></span>
-            <div class="level-badge" id="levelBadge">1</div>
+<!-- ==================== SETTINGS MODAL ==================== -->
+<div id="settingsModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">⚙️ Configurações</h2>
+            <span class="close-modal" onclick="closeSettings()">✖</span>
         </div>
-        <div class="stat-bar">
-            <div class="stat-fill xp-fill" id="xpBar" style="width: 0%"></div>
-            <span class="stat-icon">⭐</span>
-            <span class="stat-text"><span id="xpText">0</span>/<span id="xpNextText">100</span></span>
+        
+        <div class="setting-item">
+            <div class="setting-label">
+                <span>🔊 Volume Geral</span>
+                <span id="volumeValue">50%</span>
+            </div>
+            <input type="range" class="slider" id="volumeSlider" min="0" max="100" value="50">
+        </div>
+        
+        <div class="setting-item">
+            <div class="setting-label">
+                <span>🎮 Sensibilidade</span>
+                <span id="sensitivityValue">50%</span>
+            </div>
+            <input type="range" class="slider" id="sensitivitySlider" min="0" max="100" value="50">
+        </div>
+        
+        <div class="setting-item">
+            <div class="setting-label">
+                <span>📊 Mostrar FPS</span>
+                <div class="toggle-switch" id="fpsToggle">
+                    <div class="toggle-slider"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="setting-item">
+            <div class="setting-label">
+                <span>🎨 Qualidade Gráfica</span>
+                <select id="qualitySelect" style="background: #333; color: white; padding: 5px; border: 1px solid #4CAF50; border-radius: 5px;">
+                    <option value="low">Baixa</option>
+                    <option value="medium" selected>Média</option>
+                    <option value="high">Alta</option>
+                </select>
+            </div>
+        </div>
+        
+        <button class="btn btn-primary" onclick="toggleFullscreen()" style="width: 100%; margin-top: 20px;">
+            📺 TELA CHEIA
+        </button>
+    </div>
+</div>
+
+<!-- ==================== GAME HUD ==================== -->
+<div id="gameHUD" class="hidden">
+    <div class="top-bar">
+        <!-- Player Stats -->
+        <div class="player-stats">
+            <div class="stat-bar">
+                <span class="stat-icon">❤️</span>
+                <div class="stat-progress">
+                    <div class="stat-fill hp-fill" id="hpBar" style="width: 100%"></div>
+                </div>
+                <span class="stat-text" id="hpText">100/100</span>
+            </div>
+            <div class="stat-bar">
+                <span class="stat-icon">⭐</span>
+                <div class="stat-progress">
+                    <div class="stat-fill xp-fill" id="xpBar" style="width: 0%"></div>
+                </div>
+                <span class="stat-text" id="xpText">0/100</span>
+            </div>
+        </div>
+        
+        <!-- Resources -->
+        <div class="resources">
+            <div class="resource-item">
+                <span class="resource-icon">🪵</span>
+                <span class="resource-count" id="woodCount">0</span>
+            </div>
+            <div class="resource-item">
+                <span class="resource-icon">🪨</span>
+                <span class="resource-count" id="stoneCount">0</span>
+            </div>
+            <div class="resource-item">
+                <span class="resource-icon">🪙</span>
+                <span class="resource-count" id="coinCount">0</span>
+            </div>
+            <div class="resource-item">
+                <span class="resource-icon">🍖</span>
+                <span class="resource-count" id="foodCount">5</span>
+            </div>
         </div>
     </div>
     
-    <div class="inventory">
-        <div class="inv-item"><span class="icon">🪵</span><span class="count" id="woodCount">0</span></div>
-        <div class="inv-item"><span class="icon">🪨</span><span class="count" id="stoneCount">0</span></div>
-        <div class="inv-item"><span class="icon">💎</span><span class="count" id="crystalCount">0</span></div>
-        <div class="inv-item"><span class="icon">🍖</span><span class="count" id="foodCount">5</span></div>
+    <!-- Wave Indicator -->
+    <div class="wave-indicator">
+        🧟 WAVE <span id="waveNumber">1</span>
     </div>
     
-    <div class="action-buttons">
-        <div class="action-btn" id="btnCraft">🛠️</div>
-        <div class="action-btn" id="btnFood">🍖</div>
-    </div>
-    
+    <!-- Minimap -->
     <div class="minimap-container">
         <canvas id="minimap"></canvas>
     </div>
-</div>
-
-<div id="craftMenu" class="hidden">
-    <div class="menu-title">🛠️ Construções</div>
-    <div class="craft-grid" id="craftGrid"></div>
-    <button class="btn btn-secondary" id="btnCloseCraft" style="pointer-events: auto;">Fechar</button>
-</div>
-
-<div id="levelUp" class="hidden">
-    <div class="level-title">🎉 LEVEL UP!</div>
-    <div class="level-number">Lv.<span id="newLevel">2</span></div>
-    <div class="upgrades-grid" id="upgradesGrid"></div>
-</div>
-
-<div id="death" class="hidden">
-    <div class="death-title">💀 VOCÊ MORREU</div>
-    <div class="death-stats">
-        <div class="death-stat">Inimigos derrotados: <span id="deathKills">0</span></div>
-        <div class="death-stat">Nível alcançado: <span id="deathLevel">1</span></div>
+    
+    <!-- Hotbar -->
+    <div class="hotbar">
+        <div class="hotbar-slot selected" data-slot="0">
+            <span class="slot-icon">🗡️</span>
+            <span class="slot-key">1</span>
+        </div>
+        <div class="hotbar-slot" data-slot="1">
+            <span class="slot-icon">🧱</span>
+            <span class="slot-count" id="wallCount">0</span>
+            <span class="slot-key">2</span>
+        </div>
+        <div class="hotbar-slot" data-slot="2">
+            <span class="slot-icon">🛡️</span>
+            <span class="slot-count" id="spikeCount">0</span>
+            <span class="slot-key">3</span>
+        </div>
+        <div class="hotbar-slot" data-slot="3">
+            <span class="slot-icon">🔫</span>
+            <span class="slot-count" id="turretCount">0</span>
+            <span class="slot-key">4</span>
+        </div>
+        <div class="hotbar-slot" data-slot="4">
+            <span class="slot-icon">🔥</span>
+            <span class="slot-count" id="campfireCount">0</span>
+            <span class="slot-key">5</span>
+        </div>
+        <div class="hotbar-slot" data-slot="5">
+            <span class="slot-icon">🍌</span>
+            <span class="slot-count" id="bananaCount">0</span>
+            <span class="slot-key">6</span>
+        </div>
+        <div class="hotbar-slot" data-slot="6">
+            <span class="slot-icon">🍖</span>
+            <span class="slot-count" id="foodHotbarCount">5</span>
+            <span class="slot-key">7</span>
+        </div>
+        <div class="hotbar-slot" data-slot="7">
+            <span class="slot-icon"></span>
+            <span class="slot-key">8</span>
+        </div>
+        <div class="hotbar-slot" data-slot="8">
+            <span class="slot-icon"></span>
+            <span class="slot-key">9</span>
+        </div>
     </div>
-    <button class="btn btn-primary" id="btnRespawn" style="pointer-events: auto; width: auto; padding: 15px 40px;">
-        🔄 RENASCER
-    </button>
+    
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+        <div class="action-btn" onclick="toggleBuildMenu()">🛠️</div>
+        <div class="action-btn" onclick="toggleInventory()">🎒</div>
+        <div class="action-btn" id="autoFireBtn" onclick="toggleAutoFire()">🎯</div>
+        <div class="action-btn" onclick="toggleFullscreen()">📺</div>
+    </div>
+    
+    <!-- Build Menu -->
+    <div id="buildMenu">
+        <div class="build-grid">
+            <div class="build-item" onclick="selectBuild('wall')">
+                <span class="build-icon">🧱</span>
+                <span class="build-cost">5🪵 2🪨</span>
+            </div>
+            <div class="build-item" onclick="selectBuild('spike')">
+                <span class="build-icon">🛡️</span>
+                <span class="build-cost">3🪵 5🪨</span>
+            </div>
+            <div class="build-item" onclick="selectBuild('turret')">
+                <span class="build-icon">🔫</span>
+                <span class="build-cost">10🪵 8🪨 10🪙</span>
+            </div>
+            <div class="build-item" onclick="selectBuild('campfire')">
+                <span class="build-icon">🔥</span>
+                <span class="build-cost">8🪵 3🪨</span>
+            </div>
+            <div class="build-item" onclick="selectBuild('banana')">
+                <span class="build-icon">🍌</span>
+                <span class="build-cost">3🪙</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Inventory Modal -->
+    <div id="inventoryModal">
+        <h2 class="inventory-title">🎒 Inventário</h2>
+        <div class="inventory-grid" id="inventoryGrid">
+            <!-- 27 slots will be generated -->
+        </div>
+        <button class="btn btn-secondary" onclick="toggleInventory()" style="width: 100%;">Fechar</button>
+    </div>
+    
+    <!-- Chat -->
+    <div class="chat-container">
+        <div class="chat-messages" id="chatMessages"></div>
+        <input type="text" class="chat-input" id="chatInput" placeholder="Digite para conversar..." maxlength="100">
+    </div>
+    
+    <!-- Mobile Controls -->
+    <div class="mobile-controls">
+        <div class="joystick-area joystick-left" id="joystickLeft"></div>
+        <div class="joystick-area joystick-right" id="joystickRight"></div>
+    </div>
 </div>
 
-<canvas id="game"></canvas>
+<!-- ==================== GAME CANVAS ==================== -->
+<canvas id="gameCanvas"></canvas>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
+// ==================== GAME ENGINE ====================
 (function() {
+    'use strict';
+    
     // ==================== CANVAS SETUP ====================
-    var canvas = document.getElementById('game');
-    var ctx = canvas.getContext('2d');
-    var minimap = document.getElementById('minimap');
-    var miniCtx = minimap.getContext('2d');
-    var menuCanvas = document.getElementById('menuParticles');
-    var menuCtx = menuCanvas.getContext('2d');
-
-    var MAP_SIZE = 3200;
-
-    function resize() {
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    
+    const minimap = document.getElementById('minimap');
+    const miniCtx = minimap.getContext('2d');
+    miniCtx.imageSmoothingEnabled = false;
+    
+    function resizeCanvas() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        menuCanvas.width = window.innerWidth;
-        menuCanvas.height = window.innerHeight;
-        minimap.width = minimap.parentElement.clientWidth;
-        minimap.height = minimap.parentElement.clientHeight;
+        minimap.width = 180;
+        minimap.height = 180;
     }
-    resize();
-    window.addEventListener('resize', resize);
-
-    // ==================== VARIÁVEIS GLOBAIS ====================
-    var socket = null;
-    var myId = null;
-    var roomCode = null;
-    var buildCosts = {};
-    var inGame = false;
-
-    var gameState = {
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    // ==================== GAME VARIABLES ====================
+    let socket = null;
+    let myId = null;
+    let serverId = null;
+    let gameState = {
         players: {},
-        enemies: [],
+        zombies: [],
         resources: [],
         buildings: [],
+        items: [],
         projectiles: [],
         orbs: [],
         effects: [],
-        wave: 1,
-        gameTime: 0
+        wave: 1
     };
-
-    var localPlayer = {
-        x: MAP_SIZE / 2,
-        y: MAP_SIZE / 2,
-        vx: 0,
-        vy: 0,
+    
+    let localPlayer = {
+        x: 1200,
+        y: 1200,
         hp: 100,
         maxHp: 100,
-        level: 1,
         xp: 0,
         nextXp: 100,
+        level: 1,
         wood: 0,
         stone: 0,
-        crystal: 0,
+        coins: 10,
         food: 5,
         speed: 4,
-        state: 'idle',
-        animFrame: 0,
+        selectedSlot: 0,
+        autoFire: false,
         facing: 1,
-        attackAngle: 0,
-        kills: 0
+        state: 'idle',
+        animFrame: 0
     };
-
-    var camera = { x: 0, y: 0 };
-    var joystick = { active: false, x: 0, y: 0, dx: 0, dy: 0, id: null };
-    var attackJoystick = { active: false, x: 0, y: 0, angle: 0, id: null };
-    var keys = {};
-
-    // ==================== MENU PARTICLES ====================
-    var menuParticles = [];
-
-    function initMenuParticles() {
-        menuParticles = [];
-        for (var i = 0; i < 50; i++) {
-            menuParticles.push({
-                x: Math.random() * menuCanvas.width,
-                y: Math.random() * menuCanvas.height,
-                size: Math.random() * 3 + 1,
-                speedX: (Math.random() - 0.5) * 0.5,
-                speedY: (Math.random() - 0.5) * 0.5,
-                opacity: Math.random() * 0.5 + 0.2
-            });
-        }
+    
+    let camera = { x: 0, y: 0 };
+    let controls = {
+        keys: {},
+        mouse: { x: 0, y: 0 },
+        joystickLeft: { active: false, x: 0, y: 0, dx: 0, dy: 0 },
+        joystickRight: { active: false, x: 0, y: 0, angle: 0 }
+    };
+    
+    let settings = {
+        volume: 50,
+        sensitivity: 50,
+        showFPS: false,
+        quality: 'medium'
+    };
+    
+    let selectedColor = { r: 100, g: 150, b: 200 };
+    let buildMode = null;
+    let lastAutoFire = 0;
+    let animationTime = 0;
+    let fps = 60;
+    let lastFrameTime = 0;
+    
+    // ==================== PIXEL ART SPRITES ====================
+    const sprites = {};
+    
+    function createSprites() {
+        // Create zombie sprite
+        const zombieCanvas = document.createElement('canvas');
+        zombieCanvas.width = 32;
+        zombieCanvas.height = 32;
+        const zctx = zombieCanvas.getContext('2d');
+        zctx.imageSmoothingEnabled = false;
+        
+        // Draw pixel zombie
+        zctx.fillStyle = '#4A5F4A';
+        // Head
+        zctx.fillRect(12, 4, 8, 8);
+        // Body
+        zctx.fillRect(10, 12, 12, 10);
+        // Arms
+        zctx.fillRect(6, 14, 4, 8);
+        zctx.fillRect(22, 14, 4, 8);
+        // Legs
+        zctx.fillRect(12, 22, 4, 8);
+        zctx.fillRect(16, 22, 4, 8);
+        // Eyes (red)
+        zctx.fillStyle = '#FF0000';
+        zctx.fillRect(14, 6, 2, 2);
+        zctx.fillRect(18, 6, 2, 2);
+        
+        sprites.zombie = zombieCanvas;
+        
+        // Create player sprite
+        const playerCanvas = document.createElement('canvas');
+        playerCanvas.width = 32;
+        playerCanvas.height = 32;
+        const pctx = playerCanvas.getContext('2d');
+        pctx.imageSmoothingEnabled = false;
+        
+        sprites.player = playerCanvas;
     }
-
-    function animateMenuParticles() {
-        if (inGame) return;
-
-        menuCtx.clearRect(0, 0, menuCanvas.width, menuCanvas.height);
-
-        for (var i = 0; i < menuParticles.length; i++) {
-            var p = menuParticles[i];
-            p.x += p.speedX;
-            p.y += p.speedY;
-
-            if (p.x < 0) p.x = menuCanvas.width;
-            if (p.x > menuCanvas.width) p.x = 0;
-            if (p.y < 0) p.y = menuCanvas.height;
-            if (p.y > menuCanvas.height) p.y = 0;
-
-            menuCtx.beginPath();
-            menuCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            menuCtx.fillStyle = 'rgba(57, 197, 187, ' + p.opacity + ')';
-            menuCtx.fill();
-        }
-
-        requestAnimationFrame(animateMenuParticles);
-    }
-
-    initMenuParticles();
-    animateMenuParticles();
-
-    // ==================== UTILIDADES ====================
+    
+    createSprites();
+    
+    // ==================== MENU FUNCTIONS ====================
     function showLoading() {
-        document.getElementById('loading').classList.remove('hidden');
+        document.getElementById('loadingScreen').classList.remove('hidden');
     }
-
+    
     function hideLoading() {
-        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('loadingScreen').classList.add('hidden');
     }
-
-    function showToast(message) {
-        var toast = document.createElement('div');
-        toast.className = 'toast';
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        setTimeout(function() {
-            if (toast.parentNode) {
-                toast.parentNode.removeChild(toast);
-            }
-        }, 3000);
-    }
-
-    // ==================== CONEXÃO ====================
-    function createRoom() {
-        var name = document.getElementById('playerName').value.trim() || 'Miku';
+    
+    function createNewServer() {
+        const name = document.getElementById('playerName').value.trim() || 'Sobrevivente';
+        
+        if (socket) socket.disconnect();
+        
         showLoading();
-
         socket = io();
-
-        socket.on('connect', function() {
-            console.log('Conectado ao servidor!');
+        
+        socket.on('connect', () => {
             myId = socket.id;
-            socket.emit('createRoom', name);
+            socket.emit('createServer', {
+                name: name + "'s Server",
+                maxPlayers: 8,
+                playerName: name,
+                color: selectedColor
+            });
         });
-
-        socket.on('roomJoined', function(data) {
-            console.log('Sala criada:', data.roomCode);
-            roomCode = data.roomCode;
-            MAP_SIZE = data.mapSize || 3200;
-            buildCosts = data.buildCosts || {};
-            hideLoading();
-            startGame();
-        });
-
-        socket.on('roomError', function(msg) {
-            hideLoading();
-            showToast(msg);
-        });
-
-        socket.on('connect_error', function(err) {
-            console.log('Erro de conexão:', err);
-            hideLoading();
-            showToast('Erro ao conectar!');
-        });
-
-        setupGameEvents();
+        
+        setupSocketEvents();
     }
-
-    function joinRoom() {
-        var name = document.getElementById('playerName').value.trim() || 'Miku';
-        var code = document.getElementById('roomCodeInput').value.toUpperCase().trim();
-
-        if (!code || code.length < 5) {
-            showToast('Digite um código válido!');
-            return;
+    
+    function joinServer(id) {
+        const name = document.getElementById('playerName').value.trim() || 'Sobrevivente';
+        
+        if (socket) socket.disconnect();
+        
+        showLoading();
+        socket = io();
+        
+        socket.on('connect', () => {
+            myId = socket.id;
+            socket.emit('joinServer', {
+                serverId: id,
+                playerName: name,
+                color: selectedColor
+            });
+        });
+        
+        setupSocketEvents();
+    }
+    
+    function refreshServers() {
+        if (!socket) {
+            socket = io();
         }
-
-        showLoading();
-        socket = io();
-
-        socket.on('connect', function() {
-            console.log('Conectado ao servidor!');
-            myId = socket.id;
-            socket.emit('joinRoom', { code: code, name: name });
+        
+        socket.emit('getServers');
+        socket.on('serverList', (servers) => {
+            const serverList = document.getElementById('serverList');
+            serverList.innerHTML = '';
+            
+            if (servers.length === 0) {
+                serverList.innerHTML = '<div style="text-align: center; color: #666;">Nenhum servidor encontrado</div>';
+                return;
+            }
+            
+            servers.forEach(server => {
+                const serverItem = document.createElement('div');
+                serverItem.className = 'server-item';
+                serverItem.innerHTML = `
+                    <div class="server-name">${server.name}</div>
+                    <div class="server-info">
+                        <span>👥 ${server.players}/${server.maxPlayers}</span>
+                        <span>🌊 Wave ${server.wave}</span>
+                    </div>
+                `;
+                serverItem.onclick = () => joinServer(server.id);
+                serverList.appendChild(serverItem);
+            });
         });
-
-        socket.on('roomJoined', function(data) {
-            console.log('Entrou na sala:', data.roomCode);
-            roomCode = data.roomCode;
-            MAP_SIZE = data.mapSize || 3200;
-            buildCosts = data.buildCosts || {};
+    }
+    
+    // ==================== SOCKET EVENTS ====================
+    function setupSocketEvents() {
+        socket.on('joinedServer', (data) => {
+            serverId = data.serverId;
             hideLoading();
             startGame();
         });
-
-        socket.on('roomError', function(msg) {
+        
+        socket.on('error', (data) => {
             hideLoading();
-            showToast(msg);
+            showNotification(data.message, 'error');
         });
-
-        socket.on('connect_error', function(err) {
-            console.log('Erro de conexão:', err);
-            hideLoading();
-            showToast('Erro ao conectar!');
-        });
-
-        setupGameEvents();
-    }
-
-    function setupGameEvents() {
-        socket.on('gameState', function(state) {
+        
+        socket.on('gameState', (state) => {
             gameState = state;
-
-            if (gameState.players && gameState.players[myId]) {
-                var p = gameState.players[myId];
+            
+            if (gameState.players[myId]) {
+                const p = gameState.players[myId];
                 localPlayer.hp = p.hp;
                 localPlayer.maxHp = p.maxHp;
                 localPlayer.level = p.level;
@@ -988,785 +1464,1188 @@ input::placeholder {
                 localPlayer.nextXp = p.nextXp;
                 localPlayer.wood = p.wood;
                 localPlayer.stone = p.stone;
-                localPlayer.crystal = p.crystal;
+                localPlayer.coins = p.coins;
                 localPlayer.food = p.food;
-                localPlayer.kills = p.kills;
-                localPlayer.color = p.color;
-
+                
                 updateHUD();
             }
-
-            if (state.wave) {
-                document.getElementById('waveDisplay').textContent = state.wave;
+            
+            document.getElementById('waveNumber').textContent = state.wave;
+        });
+        
+        socket.on('newWave', (data) => {
+            showNotification(`🧟 WAVE ${data.wave} COMEÇOU!`, 'wave');
+        });
+        
+        socket.on('playerDied', (data) => {
+            if (data.playerId === myId) {
+                showNotification('💀 Você morreu! Pressione R para renascer', 'death');
             }
         });
-
-        socket.on('levelUp', function(level) {
-            document.getElementById('newLevel').textContent = level;
-            showUpgradeOptions();
-            document.getElementById('levelUp').classList.remove('hidden');
+        
+        socket.on('levelUp', (data) => {
+            showNotification(`🎉 LEVEL UP! Agora você é nível ${data.level}!`, 'levelup');
         });
-
-        socket.on('waveStart', function(wave) {
-            var alert = document.createElement('div');
-            alert.className = 'wave-alert';
-            alert.textContent = '⚔️ WAVE ' + wave;
-            document.body.appendChild(alert);
-            setTimeout(function() {
-                if (alert.parentNode) {
-                    alert.parentNode.removeChild(alert);
-                }
-            }, 3000);
+        
+        socket.on('resourceCollected', (data) => {
+            const icons = {
+                wood: '🪵',
+                stone: '🪨',
+                food: '🍖'
+            };
+            showFloatingText(`+${data.amount} ${icons[data.type]}`, localPlayer.x, localPlayer.y - 30, '#8BC34A');
         });
-
-        socket.on('playerDied', function() {
-            document.getElementById('deathKills').textContent = localPlayer.kills;
-            document.getElementById('deathLevel').textContent = localPlayer.level;
-            document.getElementById('death').classList.remove('hidden');
+        
+        socket.on('buildSuccess', (data) => {
+            updateBuildCounts();
         });
-
-        socket.on('buildSuccess', function() {
-            showToast('✅ Construção criada!');
-        });
-
-        socket.on('buildError', function(msg) {
-            showToast('❌ ' + msg);
-        });
-
-        socket.on('enemySpeak', function(data) {
-            var screenX = data.x - camera.x;
-            var screenY = data.y - camera.y;
-
-            if (screenX > 0 && screenX < canvas.width && screenY > 0 && screenY < canvas.height) {
-                var speech = document.createElement('div');
-                speech.style.cssText = 'position:fixed;left:' + screenX + 'px;top:' + screenY + 'px;background:rgba(0,0,0,0.8);color:white;padding:5px 12px;border-radius:10px;font-size:12px;pointer-events:none;z-index:50;transform:translateX(-50%);';
-                speech.textContent = data.message;
-                document.body.appendChild(speech);
-                setTimeout(function() {
-                    if (speech.parentNode) {
-                        speech.parentNode.removeChild(speech);
-                    }
-                }, 2000);
-            }
+        
+        socket.on('chatMessage', (data) => {
+            addChatMessage(data.player, data.message);
         });
     }
-
+    
+    // ==================== GAME START ====================
     function startGame() {
-        inGame = true;
-        document.getElementById('menu').classList.add('hidden');
-        document.getElementById('hud').classList.remove('hidden');
-        document.getElementById('roomCodeDisplay').textContent = roomCode;
-
-        initCraftMenu();
-        requestAnimationFrame(gameLoop);
+        document.getElementById('mainMenu').classList.add('hidden');
+        document.getElementById('gameHUD').classList.remove('hidden');
+        
+        initControls();
+        gameLoop();
+        
+        // Refresh servers periodically
+        setInterval(refreshServers, 5000);
     }
-
-    // ==================== HUD ====================
+    
+    // ==================== CONTROLS ====================
+    function initControls() {
+        // Keyboard
+        window.addEventListener('keydown', (e) => {
+            controls.keys[e.key.toLowerCase()] = true;
+            
+            // Number keys for hotbar
+            if (e.key >= '1' && e.key <= '9') {
+                selectHotbarSlot(parseInt(e.key) - 1);
+            }
+            
+            // R to respawn
+            if (e.key.toLowerCase() === 'r' && localPlayer.hp <= 0) {
+                socket.emit('respawn');
+            }
+            
+            // Enter for chat
+            if (e.key === 'Enter') {
+                const chatInput = document.getElementById('chatInput');
+                if (document.activeElement === chatInput) {
+                    if (chatInput.value.trim()) {
+                        socket.emit('chatMessage', chatInput.value);
+                        chatInput.value = '';
+                    }
+                    chatInput.blur();
+                } else {
+                    chatInput.focus();
+                }
+            }
+            
+            // B for build menu
+            if (e.key.toLowerCase() === 'b') {
+                toggleBuildMenu();
+            }
+            
+            // E for inventory
+            if (e.key.toLowerCase() === 'e') {
+                toggleInventory();
+            }
+        });
+        
+        window.addEventListener('keyup', (e) => {
+            controls.keys[e.key.toLowerCase()] = false;
+        });
+        
+        // Mouse
+        canvas.addEventListener('mousemove', (e) => {
+            controls.mouse.x = e.clientX;
+            controls.mouse.y = e.clientY;
+        });
+        
+        canvas.addEventListener('mousedown', (e) => {
+            if (e.button === 0) { // Left click
+                handleAttackOrBuild();
+            }
+        });
+        
+        // Touch controls for mobile
+        if ('ontouchstart' in window) {
+            initMobileControls();
+        }
+    }
+    
+    function initMobileControls() {
+        const leftArea = document.getElementById('joystickLeft');
+        const rightArea = document.getElementById('joystickRight');
+        
+        // Left joystick (movement)
+        leftArea.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            controls.joystickLeft.active = true;
+            controls.joystickLeft.x = touch.clientX;
+            controls.joystickLeft.y = touch.clientY;
+        });
+        
+        leftArea.addEventListener('touchmove', (e) => {
+            if (!controls.joystickLeft.active) return;
+            const touch = e.touches[0];
+            const dx = touch.clientX - controls.joystickLeft.x;
+            const dy = touch.clientY - controls.joystickLeft.y;
+            const distance = Math.min(Math.sqrt(dx * dx + dy * dy), 60);
+            const angle = Math.atan2(dy, dx);
+            
+            controls.joystickLeft.dx = Math.cos(angle) * (distance / 60);
+            controls.joystickLeft.dy = Math.sin(angle) * (distance / 60);
+        });
+        
+        leftArea.addEventListener('touchend', () => {
+            controls.joystickLeft.active = false;
+            controls.joystickLeft.dx = 0;
+            controls.joystickLeft.dy = 0;
+        });
+        
+        // Right joystick (attack)
+        rightArea.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            controls.joystickRight.active = true;
+            controls.joystickRight.x = touch.clientX;
+            controls.joystickRight.y = touch.clientY;
+        });
+        
+        rightArea.addEventListener('touchmove', (e) => {
+            if (!controls.joystickRight.active) return;
+            const touch = e.touches[0];
+            const dx = touch.clientX - controls.joystickRight.x;
+            const dy = touch.clientY - controls.joystickRight.y;
+            controls.joystickRight.angle = Math.atan2(dy, dx);
+        });
+        
+        rightArea.addEventListener('touchend', () => {
+            if (controls.joystickRight.active) {
+                handleAttackOrBuild();
+            }
+            controls.joystickRight.active = false;
+        });
+    }
+    
+    // ==================== GAMEPLAY FUNCTIONS ====================
+    function handleAttackOrBuild() {
+        if (buildMode) {
+            const angle = Math.atan2(
+                controls.mouse.y - canvas.height / 2,
+                controls.mouse.x - canvas.width / 2
+            );
+            
+            const distance = 80;
+            const buildX = localPlayer.x + Math.cos(angle) * distance;
+            const buildY = localPlayer.y + Math.sin(angle) * distance;
+            
+            socket.emit('build', {
+                type: buildMode,
+                x: buildX,
+                y: buildY
+            });
+            
+            buildMode = null;
+            document.getElementById('buildMenu').style.display = 'none';
+        } else {
+            const angle = Math.atan2(
+                controls.mouse.y - canvas.height / 2,
+                controls.mouse.x - canvas.width / 2
+            );
+            
+            socket.emit('playerAttack', { angle: angle });
+            
+            // Attack animation
+            localPlayer.state = 'attack';
+            localPlayer.animFrame = 0;
+        }
+    }
+    
+    function selectHotbarSlot(slot) {
+        localPlayer.selectedSlot = slot;
+        
+        document.querySelectorAll('.hotbar-slot').forEach((el, index) => {
+            if (index === slot) {
+                el.classList.add('selected');
+            } else {
+                el.classList.remove('selected');
+            }
+        });
+    }
+    
+    function selectBuild(type) {
+        buildMode = type;
+        document.getElementById('buildMenu').style.display = 'none';
+        showNotification(`Clique para construir ${type}`, 'info');
+    }
+    
+    function toggleBuildMenu() {
+        const menu = document.getElementById('buildMenu');
+        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    }
+    
+    function toggleInventory() {
+        const inv = document.getElementById('inventoryModal');
+        inv.style.display = inv.style.display === 'none' ? 'block' : 'none';
+    }
+    
+    function toggleAutoFire() {
+        localPlayer.autoFire = !localPlayer.autoFire;
+        const btn = document.getElementById('autoFireBtn');
+        btn.classList.toggle('active');
+        showNotification(localPlayer.autoFire ? 'Auto-fire ativado!' : 'Auto-fire desativado', 'info');
+    }
+    
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            document.exitFullscreen();
+        }
+    }
+    
+    // ==================== UI UPDATES ====================
     function updateHUD() {
-        var hpPercent = (localPlayer.hp / localPlayer.maxHp * 100);
-        document.getElementById('hpBar').style.width = hpPercent + '%';
-        document.getElementById('hpText').textContent = Math.floor(localPlayer.hp);
-        document.getElementById('hpMaxText').textContent = localPlayer.maxHp;
-
-        var xpPercent = (localPlayer.xp / localPlayer.nextXp * 100);
-        document.getElementById('xpBar').style.width = xpPercent + '%';
-        document.getElementById('xpText').textContent = localPlayer.xp;
-        document.getElementById('xpNextText').textContent = localPlayer.nextXp;
-
-        document.getElementById('levelBadge').textContent = localPlayer.level;
-
+        // HP Bar
+        document.getElementById('hpBar').style.width = (localPlayer.hp / localPlayer.maxHp * 100) + '%';
+        document.getElementById('hpText').textContent = `${Math.floor(localPlayer.hp)}/${localPlayer.maxHp}`;
+        
+        // XP Bar
+        document.getElementById('xpBar').style.width = (localPlayer.xp / localPlayer.nextXp * 100) + '%';
+        document.getElementById('xpText').textContent = `${localPlayer.xp}/${localPlayer.nextXp}`;
+        
+        // Resources
         document.getElementById('woodCount').textContent = localPlayer.wood;
         document.getElementById('stoneCount').textContent = localPlayer.stone;
-        document.getElementById('crystalCount').textContent = localPlayer.crystal;
+        document.getElementById('coinCount').textContent = localPlayer.coins;
         document.getElementById('foodCount').textContent = localPlayer.food;
-
-        var btnFood = document.getElementById('btnFood');
-        if (localPlayer.food <= 0 || localPlayer.hp >= localPlayer.maxHp) {
-            btnFood.classList.add('disabled');
+        document.getElementById('foodHotbarCount').textContent = localPlayer.food;
+        
+        updateBuildCounts();
+    }
+    
+    function updateBuildCounts() {
+        // Calculate how many buildings we can make
+        const wallCount = Math.floor(Math.min(localPlayer.wood / 5, localPlayer.stone / 2));
+        const spikeCount = Math.floor(Math.min(localPlayer.wood / 3, localPlayer.stone / 5));
+        const turretCount = Math.floor(Math.min(localPlayer.wood / 10, localPlayer.stone / 8, localPlayer.coins / 10));
+        const campfireCount = Math.floor(Math.min(localPlayer.wood / 8, localPlayer.stone / 3));
+        const bananaCount = Math.floor(localPlayer.coins / 3);
+        
+        document.getElementById('wallCount').textContent = wallCount;
+        document.getElementById('spikeCount').textContent = spikeCount;
+        document.getElementById('turretCount').textContent = turretCount;
+        document.getElementById('campfireCount').textContent = campfireCount;
+        document.getElementById('bananaCount').textContent = bananaCount;
+    }
+    
+    function addChatMessage(player, message) {
+        const chatMessages = document.getElementById('chatMessages');
+        const messageEl = document.createElement('div');
+        messageEl.className = 'chat-message';
+        messageEl.innerHTML = `<span class="player-name">${player}:</span> ${message}`;
+        chatMessages.appendChild(messageEl);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Remove old messages
+        if (chatMessages.children.length > 20) {
+            chatMessages.removeChild(chatMessages.firstChild);
+        }
+    }
+    
+    function showNotification(text, type) {
+        const notification = document.createElement('div');
+        notification.className = 'notification';
+        notification.textContent = text;
+        
+        if (type === 'wave') {
+            notification.style.borderColor = '#F44336';
+            notification.style.color = '#F44336';
+        } else if (type === 'levelup') {
+            notification.style.borderColor = '#FFD700';
+            notification.style.color = '#FFD700';
+        }
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+    
+    function showFloatingText(text, x, y, color) {
+        const damageEl = document.createElement('div');
+        damageEl.className = 'damage-number';
+        damageEl.style.left = (x - camera.x) + 'px';
+        damageEl.style.top = (y - camera.y) + 'px';
+        damageEl.style.color = color || '#FFD700';
+        damageEl.textContent = text;
+        document.body.appendChild(damageEl);
+        
+        setTimeout(() => {
+            damageEl.remove();
+        }, 1000);
+    }
+    
+    // ==================== SETTINGS ====================
+    function openSettings() {
+        document.getElementById('settingsModal').style.display = 'flex';
+    }
+    
+    function closeSettings() {
+        document.getElementById('settingsModal').style.display = 'none';
+    }
+    
+    // Volume slider
+    document.getElementById('volumeSlider').addEventListener('input', (e) => {
+        settings.volume = e.target.value;
+        document.getElementById('volumeValue').textContent = settings.volume + '%';
+    });
+    
+    // Sensitivity slider
+    document.getElementById('sensitivitySlider').addEventListener('input', (e) => {
+        settings.sensitivity = e.target.value;
+        document.getElementById('sensitivityValue').textContent = settings.sensitivity + '%';
+    });
+    
+    // FPS toggle
+    document.getElementById('fpsToggle').addEventListener('click', () => {
+        settings.showFPS = !settings.showFPS;
+        document.getElementById('fpsToggle').classList.toggle('active');
+    });
+    
+    // Quality select
+    document.getElementById('qualitySelect').addEventListener('change', (e) => {
+        settings.quality = e.target.value;
+    });
+    
+    // Color picker
+    document.querySelectorAll('.color-option').forEach(el => {
+        el.addEventListener('click', () => {
+            document.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            const colors = el.dataset.color.split(',');
+            selectedColor = { r: parseInt(colors[0]), g: parseInt(colors[1]), b: parseInt(colors[2]) };
+        });
+    });
+    
+    // ==================== RENDERING ====================
+    function drawPixelCharacter(x, y, color, isZombie = false, type = 'player') {
+        const screenX = x - camera.x;
+        const screenY = y - camera.y;
+        
+        const time = animationTime;
+        const walkCycle = Math.sin(time * 0.1) * 3;
+        const armSwing = Math.sin(time * 0.15) * 5;
+        
+        ctx.save();
+        ctx.translate(screenX, screenY);
+        
+        if (isZombie) {
+            // Draw zombie
+            const zombieColor = type === 'tank' ? '#2C3E2C' : type === 'fast' ? '#6B8E6B' : '#4A5F4A';
+            const size = type === 'boss' ? 1.5 : type === 'tank' ? 1.2 : 1;
+            
+            ctx.scale(size, size);
+            
+            // Shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fillRect(-10, 28, 20, 6);
+            
+            // Legs with walk animation
+            ctx.fillStyle = zombieColor;
+            ctx.fillRect(-4 + walkCycle, 16, 6, 12);
+            ctx.fillRect(2 - walkCycle, 16, 6, 12);
+            
+            // Body
+            ctx.fillRect(-6, 6, 12, 12);
+            
+            // Arms with animation
+            ctx.save();
+            ctx.translate(-6, 8);
+            ctx.rotate((armSwing * Math.PI) / 180);
+            ctx.fillRect(-2, 0, 4, 10);
+            ctx.restore();
+            
+            ctx.save();
+            ctx.translate(6, 8);
+            ctx.rotate((-armSwing * Math.PI) / 180);
+            ctx.fillRect(-2, 0, 4, 10);
+            ctx.restore();
+            
+            // Head
+            ctx.fillRect(-5, -4, 10, 10);
+            
+            // Eyes (glowing red)
+            ctx.fillStyle = '#FF0000';
+            ctx.fillRect(-3, 0, 2, 2);
+            ctx.fillRect(1, 0, 2, 2);
+            
+            // Mouth
+            ctx.fillStyle = '#000';
+            ctx.fillRect(-2, 3, 4, 1);
         } else {
-            btnFood.classList.remove('disabled');
-        }
-    }
-
-    // ==================== CRAFT ====================
-    function initCraftMenu() {
-        var grid = document.getElementById('craftGrid');
-        grid.innerHTML = '';
-
-        var items = [
-            { type: 'wall', icon: '🧱', name: 'Parede' },
-            { type: 'turret', icon: '🔫', name: 'Torreta' },
-            { type: 'campfire', icon: '🔥', name: 'Fogueira' },
-            { type: 'spikes', icon: '🗡️', name: 'Espinhos' },
-            { type: 'healpad', icon: '💚', name: 'Cura' }
-        ];
-
-        for (var i = 0; i < items.length; i++) {
-            var item = items[i];
-            var cost = buildCosts[item.type];
-            if (!cost) continue;
-
-            var div = document.createElement('div');
-            div.className = 'craft-item';
-            div.setAttribute('data-type', item.type);
-            div.innerHTML = '<div class="craft-icon">' + item.icon + '</div><div class="craft-name">' + item.name + '</div><div class="craft-cost">🪵' + cost.wood + ' 🪨' + cost.stone + ' 💎' + cost.crystal + '</div>';
-            grid.appendChild(div);
-        }
-
-        grid.addEventListener('click', function(e) {
-            var craftItem = e.target.closest('.craft-item');
-            if (craftItem) {
-                var type = craftItem.getAttribute('data-type');
-                craft(type);
+            // Draw player
+            // Shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fillRect(-10, 28, 20, 6);
+            
+            // Legs with walk animation
+            ctx.fillStyle = '#333';
+            ctx.fillRect(-4 + walkCycle, 16, 6, 12);
+            ctx.fillRect(2 - walkCycle, 16, 6, 12);
+            
+            // Body
+            ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
+            ctx.fillRect(-6, 6, 12, 12);
+            
+            // Arms with animation
+            ctx.fillStyle = '#FDB7B2';
+            ctx.save();
+            ctx.translate(-6, 8);
+            ctx.rotate((armSwing * Math.PI) / 180);
+            ctx.fillRect(-2, 0, 4, 10);
+            ctx.restore();
+            
+            ctx.save();
+            ctx.translate(6, 8);
+            ctx.rotate((-armSwing * Math.PI) / 180);
+            ctx.fillRect(-2, 0, 4, 10);
+            
+            // Weapon in hand
+            if (localPlayer.selectedSlot === 0) {
+                ctx.fillStyle = '#C0C0C0';
+                ctx.fillRect(0, 6, 2, 10);
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(-1, 6, 4, 3);
             }
-        });
+            ctx.restore();
+            
+            // Head
+            ctx.fillStyle = '#FDB7B2';
+            ctx.fillRect(-5, -4, 10, 10);
+            
+            // Hair
+            ctx.fillStyle = '#333';
+            ctx.fillRect(-5, -4, 10, 4);
+            
+            // Eyes
+            ctx.fillStyle = '#000';
+            ctx.fillRect(-3, 0, 2, 2);
+            ctx.fillRect(1, 0, 2, 2);
+            
+            // Mouth
+            ctx.fillRect(-1, 3, 2, 1);
+        }
+        
+        ctx.restore();
     }
-
-    function openCraft() {
-        document.getElementById('craftMenu').classList.remove('hidden');
+    
+    function drawTree(x, y) {
+        const screenX = x - camera.x;
+        const screenY = y - camera.y;
+        
+        // Trunk
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(screenX - 8, screenY - 10, 16, 30);
+        
+        // Leaves (3 layers)
+        ctx.fillStyle = '#228B22';
+        ctx.fillRect(screenX - 24, screenY - 30, 48, 20);
+        ctx.fillRect(screenX - 20, screenY - 45, 40, 18);
+        ctx.fillRect(screenX - 16, screenY - 55, 32, 15);
+        
+        // Highlights
+        ctx.fillStyle = '#32CD32';
+        ctx.fillRect(screenX - 18, screenY - 40, 10, 10);
+        ctx.fillRect(screenX + 8, screenY - 50, 8, 8);
+        
+        // Shadow
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        ctx.fillRect(screenX - 12, screenY + 18, 24, 8);
     }
-
-    function closeCraft() {
-        document.getElementById('craftMenu').classList.add('hidden');
+    
+    function drawStone(x, y) {
+        const screenX = x - camera.x;
+        const screenY = y - camera.y;
+        
+        // Main stone
+        ctx.fillStyle = '#696969';
+        ctx.fillRect(screenX - 15, screenY - 10, 30, 20);
+        ctx.fillRect(screenX - 12, screenY - 15, 24, 8);
+        ctx.fillRect(screenX - 10, screenY + 10, 20, 5);
+        
+        // Highlights
+        ctx.fillStyle = '#808080';
+        ctx.fillRect(screenX - 10, screenY - 8, 8, 8);
+        ctx.fillRect(screenX + 5, screenY - 5, 6, 6);
+        
+        // Dark spots
+        ctx.fillStyle = '#4B4B4B';
+        ctx.fillRect(screenX - 5, screenY + 2, 4, 4);
+        ctx.fillRect(screenX + 8, screenY - 2, 3, 3);
+        
+        // Shadow
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillRect(screenX - 12, screenY + 13, 24, 5);
     }
-
-    function craft(type) {
-        if (socket && socket.connected) {
-            socket.emit('build', { type: type, x: localPlayer.x, y: localPlayer.y });
-        }
-        closeCraft();
+    
+    function drawBush(x, y) {
+        const screenX = x - camera.x;
+        const screenY = y - camera.y;
+        
+        // Bush body
+        ctx.fillStyle = '#228B22';
+        ctx.fillRect(screenX - 12, screenY - 8, 24, 16);
+        ctx.fillRect(screenX - 10, screenY - 12, 20, 8);
+        ctx.fillRect(screenX - 8, screenY + 8, 16, 4);
+                // Berries
+        ctx.fillStyle = '#DC143C';
+        ctx.fillRect(screenX - 6, screenY - 4, 3, 3);
+        ctx.fillRect(screenX + 3, screenY - 2, 3, 3);
+        ctx.fillRect(screenX - 2, screenY + 2, 3, 3);
+        
+        // Shadow
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        ctx.fillRect(screenX - 10, screenY + 10, 20, 4);
     }
-
-    // ==================== UPGRADES ====================
-    function showUpgradeOptions() {
-        var grid = document.getElementById('upgradesGrid');
-        grid.innerHTML = '';
-
-        var upgrades = [
-            { id: 'damage', icon: '⚔️', name: 'Dano', desc: '+8 ATK' },
-            { id: 'health', icon: '❤️', name: 'Vida', desc: '+25 HP' },
-            { id: 'speed', icon: '💨', name: 'Velocidade', desc: '+0.8 SPD' }
-        ];
-
-        for (var i = 0; i < upgrades.length; i++) {
-            var up = upgrades[i];
-            var div = document.createElement('div');
-            div.className = 'upgrade-card';
-            div.setAttribute('data-upgrade', up.id);
-            div.innerHTML = '<div class="upgrade-icon">' + up.icon + '</div><div class="upgrade-name">' + up.name + '</div><div class="upgrade-desc">' + up.desc + '</div>';
-            grid.appendChild(div);
+    
+    function drawWall(x, y) {
+        const screenX = x - camera.x;
+        const screenY = y - camera.y;
+        
+        // Wall base
+        ctx.fillStyle = '#8B7355';
+        ctx.fillRect(screenX - 20, screenY - 20, 40, 40);
+        
+        // Brick pattern
+        ctx.fillStyle = '#6B5945';
+        for (let i = 0; i < 4; i++) {
+            ctx.fillRect(screenX - 20, screenY - 18 + i * 10, 40, 2);
         }
-
-        grid.addEventListener('click', function(e) {
-            var card = e.target.closest('.upgrade-card');
-            if (card) {
-                var upgradeId = card.getAttribute('data-upgrade');
-                chooseUpgrade(upgradeId);
-            }
-        });
+        for (let i = 0; i < 3; i++) {
+            ctx.fillRect(screenX - 18 + i * 13, screenY - 20, 2, 20);
+            ctx.fillRect(screenX - 18 + i * 13 + 6, screenY, 2, 20);
+        }
+        
+        // Shadow
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        ctx.fillRect(screenX - 18, screenY + 18, 36, 6);
     }
-
-    function chooseUpgrade(upgrade) {
-        if (socket && socket.connected) {
-            socket.emit('chooseUpgrade', upgrade);
+    
+    function drawSpike(x, y) {
+        const screenX = x - camera.x;
+        const screenY = y - camera.y;
+        
+        // Base
+        ctx.fillStyle = '#696969';
+        ctx.fillRect(screenX - 15, screenY + 10, 30, 10);
+        
+        // Spikes
+        ctx.fillStyle = '#C0C0C0';
+        for (let i = 0; i < 5; i++) {
+            const spikeX = screenX - 12 + i * 6;
+            ctx.beginPath();
+            ctx.moveTo(spikeX, screenY + 10);
+            ctx.lineTo(spikeX + 3, screenY - 10);
+            ctx.lineTo(spikeX + 6, screenY + 10);
+            ctx.closePath();
+            ctx.fill();
         }
-        document.getElementById('levelUp').classList.add('hidden');
+        
+        // Shadow
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillRect(screenX - 12, screenY + 18, 24, 4);
     }
-
-    function useFood() {
-        if (localPlayer.food > 0 && localPlayer.hp < localPlayer.maxHp) {
-            if (socket && socket.connected) {
-                socket.emit('useFood');
-            }
+    
+    function drawTurret(x, y) {
+        const screenX = x - camera.x;
+        const screenY = y - camera.y;
+        const time = animationTime * 0.02;
+        
+        // Base
+        ctx.fillStyle = '#4B4B4B';
+        ctx.fillRect(screenX - 15, screenY + 5, 30, 15);
+        
+        // Rotating top
+        ctx.save();
+        ctx.translate(screenX, screenY);
+        ctx.rotate(time);
+        
+        // Barrel holder
+        ctx.fillStyle = '#696969';
+        ctx.fillRect(-10, -10, 20, 20);
+        
+        // Barrels
+        ctx.fillStyle = '#2C2C2C';
+        ctx.fillRect(-15, -3, 20, 3);
+        ctx.fillRect(-15, 0, 20, 3);
+        
+        ctx.restore();
+        
+        // Shadow
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillRect(screenX - 12, screenY + 18, 24, 4);
+    }
+    
+    function drawCampfire(x, y) {
+        const screenX = x - camera.x;
+        const screenY = y - camera.y;
+        const time = animationTime * 0.1;
+        
+        // Logs
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(screenX - 12, screenY + 10, 8, 5);
+        ctx.fillRect(screenX + 4, screenY + 10, 8, 5);
+        ctx.fillRect(screenX - 4, screenY + 8, 8, 5);
+        
+        // Fire (animated)
+        const flicker = Math.sin(time) * 2;
+        
+        // Outer flame
+        ctx.fillStyle = '#FF4500';
+        ctx.fillRect(screenX - 6, screenY - 5 + flicker, 12, 15);
+        ctx.fillRect(screenX - 4, screenY - 10 + flicker, 8, 8);
+        
+        // Inner flame
+        ctx.fillStyle = '#FFD700';
+        ctx.fillRect(screenX - 3, screenY + flicker, 6, 8);
+        ctx.fillRect(screenX - 2, screenY - 5 + flicker, 4, 6);
+        
+        // Embers
+        ctx.fillStyle = '#FF6347';
+        ctx.fillRect(screenX - 8 + Math.random() * 16, screenY + 12, 2, 2);
+        
+        // Shadow
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        ctx.fillRect(screenX - 10, screenY + 13, 20, 4);
+    }
+    
+    function drawBanana(x, y) {
+        const screenX = x - camera.x;
+        const screenY = y - camera.y;
+        
+        // Banana shape
+        ctx.fillStyle = '#FFD700';
+        ctx.fillRect(screenX - 6, screenY - 2, 12, 4);
+        ctx.fillRect(screenX - 8, screenY, 4, 3);
+        ctx.fillRect(screenX + 4, screenY, 4, 3);
+        
+        // Brown spots
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(screenX - 2, screenY, 1, 1);
+        ctx.fillRect(screenX + 2, screenY + 1, 1, 1);
+        
+        // Shadow
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        ctx.fillRect(screenX - 6, screenY + 3, 12, 2);
+    }
+    
+    function drawOrb(x, y, type) {
+        const screenX = x - camera.x;
+        const screenY = y - camera.y;
+        const pulse = Math.sin(animationTime * 0.05) * 2;
+        
+        if (type === 'coin') {
+            // Gold coin
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(screenX, screenY, 6 + pulse, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#FFA500';
+            ctx.beginPath();
+            ctx.arc(screenX, screenY, 4 + pulse, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            // XP orb
+            ctx.fillStyle = '#00BFFF';
+            ctx.beginPath();
+            ctx.arc(screenX, screenY, 5 + pulse, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.arc(screenX, screenY, 3 + pulse, 0, Math.PI * 2);
+            ctx.fill();
         }
     }
-
-    function respawn() {
-        if (socket && socket.connected) {
-            socket.emit('respawn');
+    
+    function drawProjectile(proj) {
+        const screenX = proj.x - camera.x;
+        const screenY = proj.y - camera.y;
+        
+        if (proj.type === 'bullet') {
+            // Turret bullet
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(screenX - 2, screenY - 2, 4, 4);
+            
+            // Trail
+            ctx.fillStyle = 'rgba(255, 215, 0, 0.5)';
+            ctx.fillRect(screenX - 4, screenY - 1, 8, 2);
         }
-        document.getElementById('death').classList.add('hidden');
     }
-
-    // ==================== CONTROLES TOUCH ====================
-    canvas.addEventListener('touchstart', function(e) {
-        e.preventDefault();
-
-        for (var i = 0; i < e.changedTouches.length; i++) {
-            var touch = e.changedTouches[i];
-            if (touch.clientX < canvas.width / 2) {
-                joystick.active = true;
-                joystick.x = touch.clientX;
-                joystick.y = touch.clientY;
-                joystick.id = touch.identifier;
-            } else {
-                attackJoystick.active = true;
-                attackJoystick.x = touch.clientX;
-                attackJoystick.y = touch.clientY;
-                attackJoystick.id = touch.identifier;
-            }
-        }
-    }, { passive: false });
-
-    canvas.addEventListener('touchmove', function(e) {
-        e.preventDefault();
-
-        for (var i = 0; i < e.changedTouches.length; i++) {
-            var touch = e.changedTouches[i];
-
-            if (touch.identifier === joystick.id && joystick.active) {
-                var dx = touch.clientX - joystick.x;
-                var dy = touch.clientY - joystick.y;
-                var dist = Math.min(Math.sqrt(dx * dx + dy * dy), 60);
-                var angle = Math.atan2(dy, dx);
-                joystick.dx = Math.cos(angle) * (dist / 60);
-                joystick.dy = Math.sin(angle) * (dist / 60);
-            }
-
-            if (touch.identifier === attackJoystick.id && attackJoystick.active) {
-                var adx = touch.clientX - attackJoystick.x;
-                var ady = touch.clientY - attackJoystick.y;
-                attackJoystick.angle = Math.atan2(ady, adx);
-            }
-        }
-    }, { passive: false });
-
-    canvas.addEventListener('touchend', function(e) {
-        e.preventDefault();
-
-        for (var i = 0; i < e.changedTouches.length; i++) {
-            var touch = e.changedTouches[i];
-
-            if (touch.identifier === joystick.id) {
-                joystick.active = false;
-                joystick.dx = 0;
-                joystick.dy = 0;
-            }
-
-            if (touch.identifier === attackJoystick.id) {
-                if (attackJoystick.active && socket && socket.connected) {
-                    socket.emit('playerAttack', { angle: attackJoystick.angle });
-                }
-                attackJoystick.active = false;
-            }
-        }
-    }, { passive: false });
-
-    // ==================== CONTROLES TECLADO ====================
-    window.addEventListener('keydown', function(e) {
-        keys[e.key.toLowerCase()] = true;
-
-        if (e.key === ' ' && socket && socket.connected) {
-            socket.emit('playerAttack', { angle: localPlayer.facing > 0 ? 0 : Math.PI });
-        }
-    });
-
-    window.addEventListener('keyup', function(e) {
-        keys[e.key.toLowerCase()] = false;
-    });
-
-    // ==================== MOUSE ====================
-    canvas.addEventListener('click', function(e) {
-        if (socket && socket.connected) {
-            var angle = Math.atan2(e.clientY - canvas.height / 2, e.clientX - canvas.width / 2);
-            socket.emit('playerAttack', { angle: angle });
-        }
-    });
-
-    // ==================== BOTÕES ====================
-    document.getElementById('btnCreate').addEventListener('click', createRoom);
-    document.getElementById('btnJoin').addEventListener('click', joinRoom);
-    document.getElementById('btnCraft').addEventListener('click', openCraft);
-    document.getElementById('btnCloseCraft').addEventListener('click', closeCraft);
-    document.getElementById('btnFood').addEventListener('click', useFood);
-    document.getElementById('btnRespawn').addEventListener('click', respawn);
-
-    // ==================== DESENHO ====================
+    
     function drawBackground() {
-        ctx.fillStyle = '#1a472a';
+        // Create gradient background
+        const gradient = ctx.createRadialGradient(
+            canvas.width / 2, canvas.height / 2, 0,
+            canvas.width / 2, canvas.height / 2, canvas.width
+        );
+        gradient.addColorStop(0, '#2A4A2A');
+        gradient.addColorStop(1, '#1A3A1A');
+        
+        ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        ctx.strokeStyle = '#2d5a3a';
+        
+        // Draw grid
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
         ctx.lineWidth = 1;
-
-        var startX = -(camera.x % 100);
-        var startY = -(camera.y % 100);
-
-        for (var x = startX; x < canvas.width; x += 100) {
+        
+        const gridSize = 50;
+        const startX = -(camera.x % gridSize);
+        const startY = -(camera.y % gridSize);
+        
+        for (let x = startX; x < canvas.width; x += gridSize) {
             ctx.beginPath();
             ctx.moveTo(x, 0);
             ctx.lineTo(x, canvas.height);
             ctx.stroke();
         }
-
-        for (var y = startY; y < canvas.height; y += 100) {
+        
+        for (let y = startY; y < canvas.height; y += gridSize) {
             ctx.beginPath();
             ctx.moveTo(0, y);
             ctx.lineTo(canvas.width, y);
             ctx.stroke();
         }
-
-        // Borda do mapa
-        ctx.strokeStyle = '#39C5BB';
-        ctx.lineWidth = 4;
-        ctx.strokeRect(-camera.x, -camera.y, MAP_SIZE, MAP_SIZE);
-    }
-
-    function drawResources() {
-        if (!gameState.resources) return;
-
-        for (var i = 0; i < gameState.resources.length; i++) {
-            var r = gameState.resources[i];
-            if (r.depleted) continue;
-
-            var sx = r.x - camera.x;
-            var sy = r.y - camera.y;
-
-            if (sx < -50 || sx > canvas.width + 50 || sy < -50 || sy > canvas.height + 50) continue;
-
-            ctx.font = '32px Arial';
-            ctx.textAlign = 'center';
-
-            var icon = '🌲';
-            if (r.type === 'bush' || r.type === 'cactus') icon = '🌿';
-            if (r.type === 'mushroom') icon = '🍄';
-            if (r.type === 'fossil' || r.type === 'obsidian') icon = '🪨';
-            if (r.type === 'icepatch') icon = '❄️';
-
-            ctx.fillText(icon, sx, sy + 10);
-
-            if (r.hp < r.maxHp) {
-                ctx.fillStyle = '#333';
-                ctx.fillRect(sx - 20, sy - 30, 40, 6);
-                ctx.fillStyle = '#2ECC71';
-                ctx.fillRect(sx - 20, sy - 30, 40 * (r.hp / r.maxHp), 6);
-            }
+        
+        // Random grass details
+        const seed = Math.floor(camera.x / 100) * 100 + Math.floor(camera.y / 100);
+        const random = new Math.seedrandom(seed);
+        
+        for (let i = 0; i < 30; i++) {
+            const x = random() * canvas.width;
+            const y = random() * canvas.height;
+            
+            ctx.fillStyle = 'rgba(34, 139, 34, 0.3)';
+            ctx.fillRect(x, y, 3, 8);
+            ctx.fillRect(x - 2, y + 2, 2, 6);
+            ctx.fillRect(x + 3, y + 1, 2, 7);
         }
     }
-
-    function drawBuildings() {
-        if (!gameState.buildings) return;
-
-        for (var i = 0; i < gameState.buildings.length; i++) {
-            var b = gameState.buildings[i];
-            var sx = b.x - camera.x;
-            var sy = b.y - camera.y;
-
-            if (sx < -50 || sx > canvas.width + 50 || sy < -50 || sy > canvas.height + 50) continue;
-
-            ctx.font = '36px Arial';
-            ctx.textAlign = 'center';
-
-            var icon = '🏠';
-            if (b.type === 'wall') icon = '🧱';
-            if (b.type === 'turret') icon = '🔫';
-            if (b.type === 'campfire') icon = '🔥';
-            if (b.type === 'spikes') icon = '🗡️';
-            if (b.type === 'healpad') icon = '💚';
-
-            ctx.fillText(icon, sx, sy + 10);
-
-            ctx.fillStyle = '#333';
-            ctx.fillRect(sx - 20, sy - 35, 40, 5);
-            ctx.fillStyle = '#3498DB';
-            ctx.fillRect(sx - 20, sy - 35, 40 * (b.hp / b.maxHp), 5);
-        }
-    }
-
-    function drawEnemies() {
-        if (!gameState.enemies) return;
-
-        for (var i = 0; i < gameState.enemies.length; i++) {
-            var e = gameState.enemies[i];
-            var sx = e.x - camera.x;
-            var sy = e.y - camera.y;
-
-            if (sx < -50 || sx > canvas.width + 50 || sy < -50 || sy > canvas.height + 50) continue;
-
-            // Sombra
-            ctx.fillStyle = 'rgba(0,0,0,0.3)';
-            ctx.beginPath();
-            ctx.ellipse(sx, sy + 20, e.isBoss ? 25 : 15, 8, 0, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Corpo
-            var size = e.isBoss ? 30 : 20;
-            ctx.fillStyle = e.color || '#E74C3C';
-            ctx.beginPath();
-            ctx.arc(sx, sy, size, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Olhos
-            ctx.fillStyle = '#FFF';
-            ctx.beginPath();
-            ctx.arc(sx - 7, sy - 3, 5, 0, Math.PI * 2);
-            ctx.arc(sx + 7, sy - 3, 5, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.fillStyle = '#000';
-            ctx.beginPath();
-            ctx.arc(sx - 5, sy - 3, 2, 0, Math.PI * 2);
-            ctx.arc(sx + 9, sy - 3, 2, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Barra de HP
-            ctx.fillStyle = '#333';
-            ctx.fillRect(sx - 25, sy - size - 15, 50, 8);
-            ctx.fillStyle = e.isBoss ? '#9B59B6' : '#E74C3C';
-            ctx.fillRect(sx - 25, sy - size - 15, 50 * (e.hp / e.maxHp), 8);
-
-            // Coroa do boss
-            if (e.isBoss) {
-                ctx.font = '20px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('👑', sx, sy - size - 22);
-            }
-        }
-    }
-
-    function drawPlayers() {
-        if (!gameState.players) return;
-
-        for (var id in gameState.players) {
-            var p = gameState.players[id];
-            var sx = p.x - camera.x;
-            var sy = p.y - camera.y;
-
-            if (sx < -50 || sx > canvas.width + 50 || sy < -50 || sy > canvas.height + 50) continue;
-
-            var isLocal = id === myId;
-
-            // Sombra
-            ctx.fillStyle = 'rgba(0,0,0,0.3)';
-            ctx.beginPath();
-            ctx.ellipse(sx, sy + 25, 18, 8, 0, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Indicador do player local
-            if (isLocal) {
-                ctx.strokeStyle = '#39C5BB';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.arc(sx, sy, 35, 0, Math.PI * 2);
-                ctx.stroke();
-            }
-
-            // Cor do cabelo
-            var hairColor = '#39C5BB';
-            if (p.color && p.color.hair) {
-                hairColor = p.color.hair;
-            }
-
-            // Twintails
-            ctx.fillStyle = hairColor;
-            ctx.beginPath();
-            ctx.ellipse(sx - 18, sy + 5, 6, 22, -0.2, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.ellipse(sx + 18, sy + 5, 6, 22, 0.2, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Cabeça
-            ctx.fillStyle = '#FDB7B2';
-            ctx.beginPath();
-            ctx.arc(sx, sy - 5, 18, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Cabelo franja
-            ctx.fillStyle = hairColor;
-            ctx.beginPath();
-            ctx.ellipse(sx, sy - 18, 20, 10, 0, Math.PI, Math.PI * 2);
-            ctx.fill();
-
-            // Olhos
-            ctx.fillStyle = hairColor;
-            ctx.beginPath();
-            ctx.ellipse(sx - 7, sy - 6, 4, 5, 0, 0, Math.PI * 2);
-            ctx.ellipse(sx + 7, sy - 6, 4, 5, 0, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Boca
-            ctx.strokeStyle = '#C0392B';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(sx, sy + 4, 4, 0.1, Math.PI - 0.1);
-            ctx.stroke();
-
-            // Nome
-            ctx.fillStyle = '#FFF';
-            ctx.font = 'bold 12px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText(p.name, sx, sy - 42);
-
-            // Barra de HP (outros players)
-            if (!isLocal) {
-                ctx.fillStyle = '#333';
-                ctx.fillRect(sx - 20, sy - 55, 40, 5);
-                ctx.fillStyle = '#E74C3C';
-                ctx.fillRect(sx - 20, sy - 55, 40 * (p.hp / p.maxHp), 5);
-            }
-        }
-    }
-
-    function drawOrbs() {
-        if (!gameState.orbs) return;
-
-        for (var i = 0; i < gameState.orbs.length; i++) {
-            var o = gameState.orbs[i];
-            var sx = o.x - camera.x;
-            var sy = o.y - camera.y;
-
-            if (sx < -20 || sx > canvas.width + 20 || sy < -20 || sy > canvas.height + 20) continue;
-
-            var pulse = Math.sin(Date.now() / 100 + o.x) * 2;
-
-            // Glow
-            var gradient = ctx.createRadialGradient(sx, sy, 0, sx, sy, 12 + pulse);
-            gradient.addColorStop(0, 'rgba(57, 197, 187, 0.8)');
-            gradient.addColorStop(1, 'rgba(57, 197, 187, 0)');
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.arc(sx, sy, 12 + pulse, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Core
-            ctx.fillStyle = '#39C5BB';
-            ctx.beginPath();
-            ctx.arc(sx, sy, 6, 0, Math.PI * 2);
-            ctx.fill();
-        }
-    }
-
-    function drawEffects() {
-        if (!gameState.effects) return;
-
-        for (var i = 0; i < gameState.effects.length; i++) {
-            var effect = gameState.effects[i];
-            var sx = effect.x - camera.x;
-            var sy = effect.y - camera.y;
-
-            if (sx < -100 || sx > canvas.width + 100 || sy < -100 || sy > canvas.height + 100) continue;
-
-            ctx.save();
-            ctx.globalAlpha = effect.life / 40;
-
-            if (effect.type === 'hit' || effect.type === 'playerHit') {
-                ctx.fillStyle = effect.crit ? '#F1C40F' : '#E74C3C';
-                ctx.font = 'bold ' + (effect.crit ? 20 : 16) + 'px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('-' + effect.damage, sx, sy - 30 + (30 - effect.life));
-            }
-
-            if (effect.type === 'death') {
-                ctx.font = '30px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('💀', sx, sy);
-            }
-
-            if (effect.type === 'heal') {
-                ctx.fillStyle = '#2ECC71';
-                ctx.font = 'bold 16px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('+35', sx, sy - 30 + (30 - effect.life));
-            }
-
-            ctx.restore();
-        }
-    }
-
-    function drawProjectiles() {
-        if (!gameState.projectiles) return;
-
-        for (var i = 0; i < gameState.projectiles.length; i++) {
-            var proj = gameState.projectiles[i];
-            var sx = proj.x - camera.x;
-            var sy = proj.y - camera.y;
-
-            if (sx < -20 || sx > canvas.width + 20 || sy < -20 || sy > canvas.height + 20) continue;
-
-            if (proj.type === 'fireball') {
-                ctx.fillStyle = '#E74C3C';
-                ctx.beginPath();
-                ctx.arc(sx, sy, 10, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.fillStyle = '#F39C12';
-                ctx.beginPath();
-                ctx.arc(sx, sy, 5, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-    }
-
-    function drawJoysticks() {
-        if (joystick.active) {
-            ctx.globalAlpha = 0.4;
-
-            ctx.fillStyle = '#333';
-            ctx.beginPath();
-            ctx.arc(joystick.x, joystick.y, 60, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.fillStyle = '#39C5BB';
-            ctx.beginPath();
-            ctx.arc(joystick.x + joystick.dx * 60, joystick.y + joystick.dy * 60, 25, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.globalAlpha = 1;
-        }
-
-        if (attackJoystick.active) {
-            ctx.globalAlpha = 0.4;
-
-            ctx.fillStyle = '#333';
-            ctx.beginPath();
-            ctx.arc(attackJoystick.x, attackJoystick.y, 50, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.strokeStyle = '#E74C3C';
-            ctx.lineWidth = 4;
-            ctx.beginPath();
-            ctx.moveTo(attackJoystick.x, attackJoystick.y);
-            ctx.lineTo(
-                attackJoystick.x + Math.cos(attackJoystick.angle) * 40,
-                attackJoystick.y + Math.sin(attackJoystick.angle) * 40
-            );
-            ctx.stroke();
-
-            ctx.globalAlpha = 1;
-        }
-    }
-
+    
     function drawMinimap() {
-        miniCtx.fillStyle = '#1a1a2e';
+        miniCtx.fillStyle = '#1A3A1A';
         miniCtx.fillRect(0, 0, minimap.width, minimap.height);
-
-        var scale = minimap.width / MAP_SIZE;
-
-        // Recursos
-        if (gameState.resources) {
-            miniCtx.fillStyle = '#2ECC71';
-            for (var i = 0; i < gameState.resources.length; i++) {
-                var r = gameState.resources[i];
-                if (!r.depleted) {
-                    miniCtx.fillRect(r.x * scale - 1, r.y * scale - 1, 2, 2);
-                }
+        
+        const scale = minimap.width / 2400;
+        
+        // Draw grid
+        miniCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        miniCtx.lineWidth = 1;
+        for (let i = 0; i <= 4; i++) {
+            const pos = i * minimap.width / 4;
+            miniCtx.beginPath();
+            miniCtx.moveTo(pos, 0);
+            miniCtx.lineTo(pos, minimap.height);
+            miniCtx.stroke();
+            
+            miniCtx.beginPath();
+            miniCtx.moveTo(0, pos);
+            miniCtx.lineTo(minimap.width, pos);
+            miniCtx.stroke();
+        }
+        
+        // Resources
+        miniCtx.fillStyle = '#228B22';
+        gameState.resources.forEach(r => {
+            miniCtx.fillRect(r.x * scale - 1, r.y * scale - 1, 2, 2);
+        });
+        
+        // Buildings
+        miniCtx.fillStyle = '#8B7355';
+        gameState.buildings.forEach(b => {
+            miniCtx.fillRect(b.x * scale - 2, b.y * scale - 2, 4, 4);
+        });
+        
+        // Zombies
+        miniCtx.fillStyle = '#FF0000';
+        gameState.zombies.forEach(z => {
+            const size = z.type === 'boss' ? 4 : 2;
+            miniCtx.fillRect(z.x * scale - size/2, z.y * scale - size/2, size, size);
+        });
+        
+        // Other players
+        for (const id in gameState.players) {
+            if (id !== myId) {
+                const p = gameState.players[id];
+                miniCtx.fillStyle = '#00BFFF';
+                miniCtx.fillRect(p.x * scale - 2, p.y * scale - 2, 4, 4);
             }
         }
-
-        // Inimigos
-        if (gameState.enemies) {
-            miniCtx.fillStyle = '#E74C3C';
-            for (var i = 0; i < gameState.enemies.length; i++) {
-                var e = gameState.enemies[i];
-                var size = e.isBoss ? 4 : 2;
-                miniCtx.fillRect(e.x * scale - size / 2, e.y * scale - size / 2, size, size);
-            }
-        }
-
-        // Construções
-        if (gameState.buildings) {
-            miniCtx.fillStyle = '#3498DB';
-            for (var i = 0; i < gameState.buildings.length; i++) {
-                var b = gameState.buildings[i];
-                miniCtx.fillRect(b.x * scale - 2, b.y * scale - 2, 4, 4);
-            }
-        }
-
-        // Outros players
-        if (gameState.players) {
-            miniCtx.fillStyle = '#9B59B6';
-            for (var id in gameState.players) {
-                if (id !== myId) {
-                    var p = gameState.players[id];
-                    miniCtx.fillRect(p.x * scale - 2, p.y * scale - 2, 4, 4);
-                }
-            }
-        }
-
-        // Eu
-        miniCtx.fillStyle = '#39C5BB';
+        
+        // Local player
+        miniCtx.fillStyle = '#00FF00';
         miniCtx.fillRect(localPlayer.x * scale - 3, localPlayer.y * scale - 3, 6, 6);
-
-        // Borda
-        miniCtx.strokeStyle = '#39C5BB';
+        
+        // Border
+        miniCtx.strokeStyle = '#4CAF50';
         miniCtx.lineWidth = 2;
         miniCtx.strokeRect(0, 0, minimap.width, minimap.height);
     }
-
-    // ==================== GAME LOOP ====================
-    function update() {
-        var moveX = 0;
-        var moveY = 0;
-
-        // Teclado
-        if (keys['w'] || keys['arrowup']) moveY -= 1;
-        if (keys['s'] || keys['arrowdown']) moveY += 1;
-        if (keys['a'] || keys['arrowleft']) moveX -= 1;
-        if (keys['d'] || keys['arrowright']) moveX += 1;
-
-        // Joystick
-        if (joystick.active) {
-            moveX = joystick.dx;
-            moveY = joystick.dy;
+    
+    // ==================== UPDATE FUNCTIONS ====================
+    function updatePlayer() {
+        let moveX = 0, moveY = 0;
+        
+        // Keyboard movement
+        if (controls.keys['w'] || controls.keys['arrowup']) moveY -= 1;
+        if (controls.keys['s'] || controls.keys['arrowdown']) moveY += 1;
+        if (controls.keys['a'] || controls.keys['arrowleft']) moveX -= 1;
+        if (controls.keys['d'] || controls.keys['arrowright']) moveX += 1;
+        
+        // Mobile joystick movement
+        if (controls.joystickLeft.active) {
+            moveX = controls.joystickLeft.dx;
+            moveY = controls.joystickLeft.dy;
         }
-
-        // Aplicar movimento
+        
+        // Apply movement
         if (moveX !== 0 || moveY !== 0) {
-            var mag = Math.sqrt(moveX * moveX + moveY * moveY);
+            const mag = Math.sqrt(moveX * moveX + moveY * moveY);
             moveX = (moveX / mag) * localPlayer.speed;
             moveY = (moveY / mag) * localPlayer.speed;
-
-            localPlayer.x = Math.max(30, Math.min(MAP_SIZE - 30, localPlayer.x + moveX));
-            localPlayer.y = Math.max(30, Math.min(MAP_SIZE - 30, localPlayer.y + moveY));
-
-            if (moveX !== 0) {
-                localPlayer.facing = moveX > 0 ? 1 : -1;
-            }
+            
+            localPlayer.x += moveX;
+            localPlayer.y += moveY;
+            
+            // Keep in bounds
+            localPlayer.x = Math.max(20, Math.min(2380, localPlayer.x));
+            localPlayer.y = Math.max(20, Math.min(2380, localPlayer.y));
+            
             localPlayer.state = 'walk';
+            if (moveX !== 0) localPlayer.facing = moveX > 0 ? 1 : -1;
         } else {
             localPlayer.state = 'idle';
         }
-
-        // Enviar posição para o servidor
+        
+        // Auto-fire
+        if (localPlayer.autoFire) {
+            const now = Date.now();
+            if (now - lastAutoFire > 300) {
+                // Find nearest zombie
+                let nearestZombie = null;
+                let nearestDist = Infinity;
+                
+                gameState.zombies.forEach(z => {
+                    const dist = Math.sqrt(
+                        Math.pow(z.x - localPlayer.x, 2) + 
+                        Math.pow(z.y - localPlayer.y, 2)
+                    );
+                    
+                    if (dist < nearestDist && dist < 150) {
+                        nearestDist = dist;
+                        nearestZombie = z;
+                    }
+                });
+                
+                if (nearestZombie) {
+                    const angle = Math.atan2(
+                        nearestZombie.y - localPlayer.y,
+                        nearestZombie.x - localPlayer.x
+                    );
+                    
+                    socket.emit('playerAttack', { angle: angle });
+                    lastAutoFire = now;
+                    
+                    localPlayer.state = 'attack';
+                    localPlayer.animFrame = 0;
+                }
+            }
+        }
+        
+        // Send update to server
         if (socket && socket.connected) {
             socket.emit('playerUpdate', {
                 x: localPlayer.x,
                 y: localPlayer.y,
                 state: localPlayer.state,
-                facing: localPlayer.facing
+                facing: localPlayer.facing,
+                selectedSlot: localPlayer.selectedSlot
             });
         }
-
-        // Atualizar câmera
+        
+        // Update camera
         camera.x = localPlayer.x - canvas.width / 2;
         camera.y = localPlayer.y - canvas.height / 2;
-        camera.x = Math.max(0, Math.min(MAP_SIZE - canvas.width, camera.x));
-        camera.y = Math.max(0, Math.min(MAP_SIZE - canvas.height, camera.y));
+        camera.x = Math.max(0, Math.min(2400 - canvas.width, camera.x));
+        camera.y = Math.max(0, Math.min(2400 - canvas.height, camera.y));
     }
-
+    
+    function handleOrbCollection() {
+        if (!gameState.orbs) return;
+        
+        gameState.orbs.forEach(orb => {
+            const dist = Math.sqrt(
+                Math.pow(orb.x - localPlayer.x, 2) + 
+                Math.pow(orb.y - localPlayer.y, 2)
+            );
+            
+            if (dist < 30) {
+                socket.emit('collectOrb', orb.id);
+            }
+        });
+    }
+    
+    // ==================== RENDER FUNCTIONS ====================
     function render() {
+        // Clear canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+        
+        // Draw background
         drawBackground();
-        drawResources();
-        drawBuildings();
-        drawOrbs();
-        drawEnemies();
-        drawPlayers();
-        drawProjectiles();
-        drawEffects();
-        drawJoysticks();
+        
+        // Draw resources
+        if (gameState.resources) {
+            gameState.resources.forEach(r => {
+                if (r.type === 'tree') {
+                    drawTree(r.x, r.y);
+                } else if (r.type === 'stone') {
+                    drawStone(r.x, r.y);
+                } else if (r.type === 'bush') {
+                    drawBush(r.x, r.y);
+                }
+                
+                // Draw HP bar if damaged
+                if (r.hp < r.maxHp) {
+                    const screenX = r.x - camera.x;
+                    const screenY = r.y - camera.y;
+                    
+                    ctx.fillStyle = '#333';
+                    ctx.fillRect(screenX - 15, screenY - 35, 30, 4);
+                    ctx.fillStyle = '#4CAF50';
+                    ctx.fillRect(screenX - 15, screenY - 35, 30 * (r.hp / r.maxHp), 4);
+                }
+            });
+        }
+        
+        // Draw items
+        if (gameState.items) {
+            gameState.items.forEach(item => {
+                if (item.type === 'banana') {
+                    drawBanana(item.x, item.y);
+                }
+            });
+        }
+        
+        // Draw buildings
+        if (gameState.buildings) {
+            gameState.buildings.forEach(b => {
+                if (b.type === 'wall') {
+                    drawWall(b.x, b.y);
+                } else if (b.type === 'spike') {
+                    drawSpike(b.x, b.y);
+                } else if (b.type === 'turret') {
+                    drawTurret(b.x, b.y);
+                } else if (b.type === 'campfire') {
+                    drawCampfire(b.x, b.y);
+                }
+                
+                // Draw HP bar if damaged
+                if (b.hp < b.maxHp) {
+                    const screenX = b.x - camera.x;
+                    const screenY = b.y - camera.y;
+                    
+                    ctx.fillStyle = '#333';
+                    ctx.fillRect(screenX - 20, screenY - 35, 40, 4);
+                    ctx.fillStyle = '#3498DB';
+                    ctx.fillRect(screenX - 20, screenY - 35, 40 * (b.hp / b.maxHp), 4);
+                }
+            });
+        }
+        
+        // Draw orbs
+        if (gameState.orbs) {
+            gameState.orbs.forEach(orb => {
+                drawOrb(orb.x, orb.y, orb.type);
+            });
+        }
+        
+        // Draw zombies
+        if (gameState.zombies) {
+            gameState.zombies.forEach(z => {
+                drawPixelCharacter(z.x, z.y, null, true, z.type);
+                
+                // Draw HP bar
+                const screenX = z.x - camera.x;
+                const screenY = z.y - camera.y;
+                
+                ctx.fillStyle = '#333';
+                ctx.fillRect(screenX - 15, screenY - 35, 30, 4);
+                ctx.fillStyle = '#FF0000';
+                ctx.fillRect(screenX - 15, screenY - 35, 30 * (z.hp / z.maxHp), 4);
+                
+                // Draw slipping effect
+                if (z.slipping) {
+                    ctx.fillStyle = 'rgba(255, 215, 0, 0.5)';
+                    ctx.font = '16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('SLIP!', screenX, screenY - 40);
+                }
+            });
+        }
+        
+        // Draw projectiles
+        if (gameState.projectiles) {
+            gameState.projectiles.forEach(proj => {
+                drawProjectile(proj);
+            });
+        }
+        
+        // Draw players
+        if (gameState.players) {
+            for (const id in gameState.players) {
+                const p = gameState.players[id];
+                if (p.hp > 0) {
+                    drawPixelCharacter(p.x, p.y, p.color || selectedColor, false);
+                    
+                    // Draw name
+                    const screenX = p.x - camera.x;
+                    const screenY = p.y - camera.y;
+                    
+                    ctx.fillStyle = '#FFF';
+                    ctx.font = 'bold 12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(p.name, screenX, screenY - 40);
+                    
+                    // Draw HP bar for other players
+                    if (id !== myId) {
+                        ctx.fillStyle = '#333';
+                        ctx.fillRect(screenX - 20, screenY - 50, 40, 4);
+                        ctx.fillStyle = '#4CAF50';
+                        ctx.fillRect(screenX - 20, screenY - 50, 40 * (p.hp / p.maxHp), 4);
+                    }
+                }
+            }
+        }
+        
+        // Draw effects
+        if (gameState.effects) {
+            gameState.effects.forEach(effect => {
+                const screenX = effect.x - camera.x;
+                const screenY = effect.y - camera.y;
+                
+                if (effect.type === 'hit' || effect.type === 'playerHit') {
+                    showFloatingText('-' + effect.damage, effect.x, effect.y, '#FFD700');
+                } else if (effect.type === 'heal' || effect.type === 'campfireHeal') {
+                    showFloatingText('+' + effect.amount, effect.x, effect.y, '#4CAF50');
+                }
+            });
+        }
+        
+        // Draw mobile joysticks
+        if (controls.joystickLeft.active) {
+            ctx.globalAlpha = 0.3;
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.arc(controls.joystickLeft.x, controls.joystickLeft.y, 60, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#4CAF50';
+            ctx.beginPath();
+            ctx.arc(
+                controls.joystickLeft.x + controls.joystickLeft.dx * 50,
+                controls.joystickLeft.y + controls.joystickLeft.dy * 50,
+                25, 0, Math.PI * 2
+            );
+            ctx.fill();
+            ctx.globalAlpha = 1;
+        }
+        
+        if (controls.joystickRight.active) {
+            ctx.globalAlpha = 0.3;
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.arc(controls.joystickRight.x, controls.joystickRight.y, 60, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.strokeStyle = '#FF0000';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(controls.joystickRight.x, controls.joystickRight.y);
+            ctx.lineTo(
+                controls.joystickRight.x + Math.cos(controls.joystickRight.angle) * 50,
+                controls.joystickRight.y + Math.sin(controls.joystickRight.angle) * 50
+            );
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+        }
+        
+        // Draw FPS
+        if (settings.showFPS) {
+            ctx.fillStyle = '#0F0';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('FPS: ' + Math.round(fps), 10, 30);
+        }
+        
+        // Draw minimap
         drawMinimap();
     }
-
+    
+    // ==================== GAME LOOP ====================
     function gameLoop() {
-        update();
+        // Calculate FPS
+        const now = performance.now();
+        const delta = now - lastFrameTime;
+        fps = 1000 / delta;
+        lastFrameTime = now;
+        
+        // Update animation time
+        animationTime++;
+        
+        // Update
+        updatePlayer();
+        handleOrbCollection();
+        
+        // Render
         render();
+        
+        // Continue loop
         requestAnimationFrame(gameLoop);
     }
-
+    
+    // ==================== SEEDED RANDOM FOR CONSISTENT GRASS ====================
+    Math.seedrandom = function(seed) {
+        const m = 2147483647;
+        let a = 1103515245;
+        let c = 12345;
+        let state = seed ? seed : Math.floor(Math.random() * (m - 1));
+        
+        return function() {
+            state = (a * state + c) % m;
+            return state / (m - 1);
+        };
+    };
+    
+    // ==================== INITIALIZE ====================
+    window.addEventListener('load', () => {
+        refreshServers();
+        
+        // Auto refresh server list
+        setInterval(refreshServers, 10000);
+    });
+    
 })();
 </script>
+
 </body>
 </html>

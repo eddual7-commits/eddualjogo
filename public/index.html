@@ -49,12 +49,14 @@ body {
     align-items: center;
     justify-content: center;
     transition: opacity 0.5s ease;
+    overflow-y: auto;
 }
 
 .menu-container {
     width: 90%;
     max-width: 1200px;
     animation: menuAppear 0.5s ease;
+    padding: 20px;
 }
 
 @keyframes menuAppear {
@@ -74,7 +76,7 @@ body {
 }
 
 .game-title {
-    font-size: clamp(3rem, 8vw, 5rem);
+    font-size: clamp(2.5rem, 7vw, 4rem);
     font-weight: 900;
     background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 50%, #CDDC39 100%);
     -webkit-background-clip: text;
@@ -341,14 +343,6 @@ body {
     cursor: pointer;
 }
 
-.slider::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    background: #4CAF50;
-    border-radius: 50%;
-    cursor: pointer;
-}
-
 .toggle-switch {
     position: relative;
     width: 50px;
@@ -449,22 +443,6 @@ body {
     box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.3);
 }
 
-.hp-fill::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    animation: shimmer 2s infinite;
-}
-
-@keyframes shimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
-}
-
 .xp-fill {
     background: linear-gradient(90deg, #1976D2, #2196F3);
     box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.3);
@@ -516,21 +494,14 @@ body {
     color: #F44336;
     font-size: 18px;
     font-weight: bold;
-    animation: wavePulse 2s ease-in-out infinite;
 }
 
-@keyframes wavePulse {
-    0%, 100% { transform: translateX(-50%) scale(1); }
-    50% { transform: translateX(-50%) scale(1.05); }
-}
-
-/* ==================== MINIMAP ==================== */
 .minimap-container {
     position: absolute;
     top: 10px;
     right: 10px;
-    width: 180px;
-    height: 180px;
+    width: 150px;
+    height: 150px;
     background: rgba(0, 0, 0, 0.8);
     border: 3px solid #4CAF50;
     border-radius: 10px;
@@ -544,7 +515,6 @@ body {
     image-rendering: pixelated;
 }
 
-/* ==================== HOTBAR (ESTILO MINECRAFT) ==================== */
 .hotbar {
     position: absolute;
     bottom: 20px;
@@ -560,8 +530,8 @@ body {
 }
 
 .hotbar-slot {
-    width: 50px;
-    height: 50px;
+    width: 45px;
+    height: 45px;
     background: linear-gradient(135deg, rgba(40, 40, 40, 0.9), rgba(20, 20, 20, 0.9));
     border: 2px solid #555;
     border-radius: 4px;
@@ -580,19 +550,15 @@ body {
     background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(20, 20, 20, 0.9));
 }
 
-.hotbar-slot:hover {
-    background: linear-gradient(135deg, rgba(60, 60, 60, 0.9), rgba(40, 40, 40, 0.9));
-}
-
 .slot-icon {
-    font-size: 24px;
+    font-size: 20px;
 }
 
 .slot-count {
     position: absolute;
     bottom: 2px;
     right: 4px;
-    font-size: 11px;
+    font-size: 10px;
     color: white;
     text-shadow: 1px 1px 2px black;
     font-weight: bold;
@@ -602,16 +568,14 @@ body {
     position: absolute;
     top: 2px;
     left: 4px;
-    font-size: 10px;
+    font-size: 9px;
     color: #999;
-    font-weight: bold;
 }
 
-/* ==================== ACTION BUTTONS ==================== */
 .action-buttons {
     position: absolute;
-    bottom: 100px;
-    right: 20px;
+    bottom: 90px;
+    right: 10px;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -619,26 +583,21 @@ body {
 }
 
 .action-btn {
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
     background: rgba(0, 0, 0, 0.8);
     border: 3px solid #4CAF50;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: 20px;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
-.action-btn:hover {
-    background: rgba(76, 175, 80, 0.2);
-    transform: scale(1.1);
-}
-
 .action-btn:active {
-    transform: scale(0.95);
+    transform: scale(0.9);
 }
 
 .action-btn.active {
@@ -646,54 +605,6 @@ body {
     box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
 }
 
-/* ==================== INVENTORY MODAL ==================== */
-#inventoryModal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: linear-gradient(135deg, rgba(20, 20, 20, 0.98), rgba(40, 40, 40, 0.98));
-    border: 3px solid #4CAF50;
-    border-radius: 15px;
-    padding: 20px;
-    display: none;
-    z-index: 200;
-    pointer-events: auto;
-}
-
-.inventory-title {
-    color: #4CAF50;
-    font-size: 1.5rem;
-    margin-bottom: 15px;
-    text-align: center;
-}
-
-.inventory-grid {
-    display: grid;
-    grid-template-columns: repeat(9, 50px);
-    gap: 4px;
-    margin-bottom: 15px;
-}
-
-.inventory-slot {
-    width: 50px;
-    height: 50px;
-    background: rgba(0, 0, 0, 0.7);
-    border: 2px solid #333;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    cursor: pointer;
-}
-
-.inventory-slot:hover {
-    background: rgba(76, 175, 80, 0.1);
-    border-color: #4CAF50;
-}
-
-/* ==================== BUILD MENU ==================== */
 #buildMenu {
     position: fixed;
     bottom: 90px;
@@ -725,38 +636,64 @@ body {
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
-    position: relative;
-}
-
-.build-item:hover {
-    background: rgba(76, 175, 80, 0.2);
-    border-color: #4CAF50;
-    transform: scale(1.1);
-}
-
-.build-item.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
 }
 
 .build-icon {
     font-size: 24px;
-    margin-bottom: 2px;
 }
 
 .build-cost {
     font-size: 9px;
     color: #8BC34A;
+}
+
+#inventoryModal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, rgba(20, 20, 20, 0.98), rgba(40, 40, 40, 0.98));
+    border: 3px solid #4CAF50;
+    border-radius: 15px;
+    padding: 20px;
+    display: none;
+    z-index: 200;
+    pointer-events: auto;
+}
+
+.inventory-title {
+    color: #4CAF50;
+    font-size: 1.5rem;
+    margin-bottom: 15px;
     text-align: center;
 }
 
-/* ==================== CHAT ==================== */
 .chat-container {
     position: absolute;
     bottom: 20px;
     left: 20px;
-    width: 300px;
+    width: 250px;
     pointer-events: auto;
+}
+
+@media (max-width: 768px) {
+    .chat-container {
+        display: none;
+    }
+    
+    .minimap-container {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .hotbar-slot {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .slot-icon {
+        font-size: 16px;
+    }
 }
 
 .chat-messages {
@@ -766,18 +703,6 @@ body {
     border-radius: 8px;
     padding: 10px;
     margin-bottom: 5px;
-}
-
-.chat-message {
-    color: white;
-    font-size: 12px;
-    margin-bottom: 5px;
-    word-wrap: break-word;
-}
-
-.chat-message .player-name {
-    color: #4CAF50;
-    font-weight: bold;
 }
 
 .chat-input {
@@ -790,66 +715,22 @@ body {
     font-size: 12px;
 }
 
-/* ==================== MOBILE CONTROLS ==================== */
-.mobile-controls {
-    display: none;
+.notification {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    border: 3px solid #4CAF50;
+    border-radius: 10px;
+    padding: 20px 40px;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    z-index: 250;
     pointer-events: none;
-    z-index: 90;
 }
 
-@media (max-width: 768px) {
-    .mobile-controls {
-        display: block;
-    }
-    
-    .chat-container {
-        display: none;
-    }
-    
-    .action-buttons {
-        bottom: 150px;
-        right: 10px;
-    }
-    
-    .hotbar {
-        bottom: 10px;
-    }
-    
-    .hotbar-slot {
-        width: 40px;
-        height: 40px;
-    }
-    
-    .slot-icon {
-        font-size: 20px;
-    }
-}
-
-.joystick-area {
-    position: absolute;
-    pointer-events: auto;
-}
-
-.joystick-left {
-    bottom: 20px;
-    left: 20px;
-    width: 150px;
-    height: 150px;
-}
-
-.joystick-right {
-    bottom: 20px;
-    right: 20px;
-    width: 150px;
-    height: 150px;
-}
-
-/* ==================== EFFECTS ==================== */
 .damage-number {
     position: fixed;
     font-weight: bold;
@@ -870,22 +751,13 @@ body {
     }
 }
 
-.damage-number.critical {
-    font-size: 24px;
-    color: #FFD700 !important;
-}
-
-/* ==================== GAME CANVAS ==================== */
 #gameCanvas {
     position: fixed;
     top: 0;
     left: 0;
     image-rendering: pixelated;
-    image-rendering: -moz-crisp-edges;
-    image-rendering: crisp-edges;
 }
 
-/* ==================== LOADING SCREEN ==================== */
 #loadingScreen {
     position: fixed;
     top: 0;
@@ -917,44 +789,6 @@ body {
     margin-top: 20px;
     color: #4CAF50;
     font-size: 1.2rem;
-    animation: pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 0.5; }
-    50% { opacity: 1; }
-}
-
-/* ==================== NOTIFICATIONS ==================== */
-.notification {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.9);
-    border: 3px solid #4CAF50;
-    border-radius: 10px;
-    padding: 20px 40px;
-    color: white;
-    font-size: 24px;
-    font-weight: bold;
-    z-index: 250;
-    animation: notificationPop 0.5s ease;
-    pointer-events: none;
-}
-
-@keyframes notificationPop {
-    0% {
-        transform: translate(-50%, -50%) scale(0);
-        opacity: 0;
-    }
-    50% {
-        transform: translate(-50%, -50%) scale(1.1);
-    }
-    100% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 1;
-    }
 }
 </style>
 </head>
@@ -999,11 +833,11 @@ body {
                     </div>
                 </div>
                 
-                <button class="btn btn-primary" onclick="createNewServer()" style="width: 100%; margin-top: 20px;">
+                <button class="btn btn-primary" id="btnCreateServer" style="width: 100%; margin-top: 20px;">
                     🌍 CRIAR NOVO SERVIDOR
                 </button>
                 
-                <button class="btn btn-secondary" onclick="openSettings()" style="width: 100%; margin-top: 10px;">
+                <button class="btn btn-secondary" id="btnSettings" style="width: 100%; margin-top: 10px;">
                     ⚙️ CONFIGURAÇÕES
                 </button>
             </div>
@@ -1015,12 +849,12 @@ body {
                     <span>Servidores Disponíveis</span>
                 </h2>
                 
-                <button class="btn btn-secondary" onclick="refreshServers()" style="width: 100%; margin-bottom: 15px;">
+                <button class="btn btn-secondary" id="btnRefreshServers" style="width: 100%; margin-bottom: 15px;">
                     🔄 ATUALIZAR LISTA
                 </button>
                 
                 <div class="server-list" id="serverList">
-                    <!-- Servers will be dynamically added here -->
+                    <div style="text-align: center; color: #666;">Clique em "Atualizar Lista" para buscar servidores</div>
                 </div>
             </div>
         </div>
@@ -1032,7 +866,7 @@ body {
     <div class="modal-content">
         <div class="modal-header">
             <h2 class="modal-title">⚙️ Configurações</h2>
-            <span class="close-modal" onclick="closeSettings()">✖</span>
+            <span class="close-modal" id="btnCloseSettings">✖</span>
         </div>
         
         <div class="setting-item">
@@ -1060,18 +894,7 @@ body {
             </div>
         </div>
         
-        <div class="setting-item">
-            <div class="setting-label">
-                <span>🎨 Qualidade Gráfica</span>
-                <select id="qualitySelect" style="background: #333; color: white; padding: 5px; border: 1px solid #4CAF50; border-radius: 5px;">
-                    <option value="low">Baixa</option>
-                    <option value="medium" selected>Média</option>
-                    <option value="high">Alta</option>
-                </select>
-            </div>
-        </div>
-        
-        <button class="btn btn-primary" onclick="toggleFullscreen()" style="width: 100%; margin-top: 20px;">
+        <button class="btn btn-primary" id="btnFullscreen" style="width: 100%; margin-top: 20px;">
             📺 TELA CHEIA
         </button>
     </div>
@@ -1165,44 +988,36 @@ body {
             <span class="slot-count" id="foodHotbarCount">5</span>
             <span class="slot-key">7</span>
         </div>
-        <div class="hotbar-slot" data-slot="7">
-            <span class="slot-icon"></span>
-            <span class="slot-key">8</span>
-        </div>
-        <div class="hotbar-slot" data-slot="8">
-            <span class="slot-icon"></span>
-            <span class="slot-key">9</span>
-        </div>
     </div>
     
     <!-- Action Buttons -->
     <div class="action-buttons">
-        <div class="action-btn" onclick="toggleBuildMenu()">🛠️</div>
-        <div class="action-btn" onclick="toggleInventory()">🎒</div>
-        <div class="action-btn" id="autoFireBtn" onclick="toggleAutoFire()">🎯</div>
-        <div class="action-btn" onclick="toggleFullscreen()">📺</div>
+        <div class="action-btn" id="btnBuildMenu">🛠️</div>
+        <div class="action-btn" id="btnInventory">🎒</div>
+        <div class="action-btn" id="autoFireBtn">🎯</div>
+        <div class="action-btn" id="btnFullscreenGame">📺</div>
     </div>
     
     <!-- Build Menu -->
     <div id="buildMenu">
         <div class="build-grid">
-            <div class="build-item" onclick="selectBuild('wall')">
+            <div class="build-item" data-type="wall">
                 <span class="build-icon">🧱</span>
                 <span class="build-cost">5🪵 2🪨</span>
             </div>
-            <div class="build-item" onclick="selectBuild('spike')">
+            <div class="build-item" data-type="spike">
                 <span class="build-icon">🛡️</span>
                 <span class="build-cost">3🪵 5🪨</span>
             </div>
-            <div class="build-item" onclick="selectBuild('turret')">
+            <div class="build-item" data-type="turret">
                 <span class="build-icon">🔫</span>
                 <span class="build-cost">10🪵 8🪨 10🪙</span>
             </div>
-            <div class="build-item" onclick="selectBuild('campfire')">
+            <div class="build-item" data-type="campfire">
                 <span class="build-icon">🔥</span>
                 <span class="build-cost">8🪵 3🪨</span>
             </div>
-            <div class="build-item" onclick="selectBuild('banana')">
+            <div class="build-item" data-type="banana">
                 <span class="build-icon">🍌</span>
                 <span class="build-cost">3🪙</span>
             </div>
@@ -1212,22 +1027,13 @@ body {
     <!-- Inventory Modal -->
     <div id="inventoryModal">
         <h2 class="inventory-title">🎒 Inventário</h2>
-        <div class="inventory-grid" id="inventoryGrid">
-            <!-- 27 slots will be generated -->
-        </div>
-        <button class="btn btn-secondary" onclick="toggleInventory()" style="width: 100%;">Fechar</button>
+        <button class="btn btn-secondary" id="btnCloseInventory" style="width: 100%;">Fechar</button>
     </div>
     
     <!-- Chat -->
     <div class="chat-container">
         <div class="chat-messages" id="chatMessages"></div>
         <input type="text" class="chat-input" id="chatInput" placeholder="Digite para conversar..." maxlength="100">
-    </div>
-    
-    <!-- Mobile Controls -->
-    <div class="mobile-controls">
-        <div class="joystick-area joystick-left" id="joystickLeft"></div>
-        <div class="joystick-area joystick-right" id="joystickRight"></div>
     </div>
 </div>
 
@@ -1237,1415 +1043,350 @@ body {
 <script src="/socket.io/socket.io.js"></script>
 <script>
 // ==================== GAME ENGINE ====================
-(function() {
-    'use strict';
+'use strict';
+
+// Canvas setup
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+
+const minimap = document.getElementById('minimap');
+const miniCtx = minimap.getContext('2d');
+miniCtx.imageSmoothingEnabled = false;
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    minimap.width = 150;
+    minimap.height = 150;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// Game variables
+let socket = null;
+let myId = null;
+let serverId = null;
+let gameState = {
+    players: {},
+    zombies: [],
+    resources: [],
+    buildings: [],
+    items: [],
+    projectiles: [],
+    orbs: [],
+    effects: [],
+    wave: 1
+};
+
+let localPlayer = {
+    x: 1200,
+    y: 1200,
+    hp: 100,
+    maxHp: 100,
+    xp: 0,
+    nextXp: 100,
+    level: 1,
+    wood: 0,
+    stone: 0,
+    coins: 10,
+    food: 5,
+    speed: 4,
+    selectedSlot: 0,
+    autoFire: false,
+    facing: 1,
+    state: 'idle',
+    animFrame: 0
+};
+
+let camera = { x: 0, y: 0 };
+let controls = {
+    keys: {},
+    mouse: { x: 0, y: 0 },
+    joystickLeft: { active: false, x: 0, y: 0, dx: 0, dy: 0 },
+    joystickRight: { active: false, x: 0, y: 0, angle: 0 }
+};
+
+let settings = {
+    volume: 50,
+    sensitivity: 50,
+    showFPS: false
+};
+
+let selectedColor = { r: 100, g: 150, b: 200 };
+let buildMode = null;
+let animationTime = 0;
+
+// Functions
+function showLoading() {
+    document.getElementById('loadingScreen').classList.remove('hidden');
+}
+
+function hideLoading() {
+    document.getElementById('loadingScreen').classList.add('hidden');
+}
+
+function showNotification(text, type) {
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.textContent = text;
+    document.body.appendChild(notification);
     
-    // ==================== CANVAS SETUP ====================
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    ctx.imageSmoothingEnabled = false;
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+function createNewServer() {
+    const name = document.getElementById('playerName').value.trim() || 'Sobrevivente';
     
-    const minimap = document.getElementById('minimap');
-    const miniCtx = minimap.getContext('2d');
-    miniCtx.imageSmoothingEnabled = false;
+    if (socket) socket.disconnect();
     
-    function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        minimap.width = 180;
-        minimap.height = 180;
-    }
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+    showLoading();
+    socket = io();
     
-    // ==================== GAME VARIABLES ====================
-    let socket = null;
-    let myId = null;
-    let serverId = null;
-    let gameState = {
-        players: {},
-        zombies: [],
-        resources: [],
-        buildings: [],
-        items: [],
-        projectiles: [],
-        orbs: [],
-        effects: [],
-        wave: 1
-    };
+    socket.on('connect', () => {
+        myId = socket.id;
+        socket.emit('createServer', {
+            name: name + "'s Server",
+            maxPlayers: 8,
+            playerName: name,
+            color: selectedColor
+        });
+    });
     
-    let localPlayer = {
-        x: 1200,
-        y: 1200,
-        hp: 100,
-        maxHp: 100,
-        xp: 0,
-        nextXp: 100,
-        level: 1,
-        wood: 0,
-        stone: 0,
-        coins: 10,
-        food: 5,
-        speed: 4,
-        selectedSlot: 0,
-        autoFire: false,
-        facing: 1,
-        state: 'idle',
-        animFrame: 0
-    };
+    setupSocketEvents();
+}
+
+function joinServer(id) {
+    const name = document.getElementById('playerName').value.trim() || 'Sobrevivente';
     
-    let camera = { x: 0, y: 0 };
-    let controls = {
-        keys: {},
-        mouse: { x: 0, y: 0 },
-        joystickLeft: { active: false, x: 0, y: 0, dx: 0, dy: 0 },
-        joystickRight: { active: false, x: 0, y: 0, angle: 0 }
-    };
+    if (socket) socket.disconnect();
     
-    let settings = {
-        volume: 50,
-        sensitivity: 50,
-        showFPS: false,
-        quality: 'medium'
-    };
+    showLoading();
+    socket = io();
     
-    let selectedColor = { r: 100, g: 150, b: 200 };
-    let buildMode = null;
-    let lastAutoFire = 0;
-    let animationTime = 0;
-    let fps = 60;
-    let lastFrameTime = 0;
+    socket.on('connect', () => {
+        myId = socket.id;
+        socket.emit('joinServer', {
+            serverId: id,
+            playerName: name,
+            color: selectedColor
+        });
+    });
     
-    // ==================== PIXEL ART SPRITES ====================
-    const sprites = {};
+    setupSocketEvents();
+}
+
+function refreshServers() {
+    console.log('Buscando servidores...');
     
-    function createSprites() {
-        // Create zombie sprite
-        const zombieCanvas = document.createElement('canvas');
-        zombieCanvas.width = 32;
-        zombieCanvas.height = 32;
-        const zctx = zombieCanvas.getContext('2d');
-        zctx.imageSmoothingEnabled = false;
-        
-        // Draw pixel zombie
-        zctx.fillStyle = '#4A5F4A';
-        // Head
-        zctx.fillRect(12, 4, 8, 8);
-        // Body
-        zctx.fillRect(10, 12, 12, 10);
-        // Arms
-        zctx.fillRect(6, 14, 4, 8);
-        zctx.fillRect(22, 14, 4, 8);
-        // Legs
-        zctx.fillRect(12, 22, 4, 8);
-        zctx.fillRect(16, 22, 4, 8);
-        // Eyes (red)
-        zctx.fillStyle = '#FF0000';
-        zctx.fillRect(14, 6, 2, 2);
-        zctx.fillRect(18, 6, 2, 2);
-        
-        sprites.zombie = zombieCanvas;
-        
-        // Create player sprite
-        const playerCanvas = document.createElement('canvas');
-        playerCanvas.width = 32;
-        playerCanvas.height = 32;
-        const pctx = playerCanvas.getContext('2d');
-        pctx.imageSmoothingEnabled = false;
-        
-        sprites.player = playerCanvas;
-    }
-    
-    createSprites();
-    
-    // ==================== MENU FUNCTIONS ====================
-    function showLoading() {
-        document.getElementById('loadingScreen').classList.remove('hidden');
-    }
-    
-    function hideLoading() {
-        document.getElementById('loadingScreen').classList.add('hidden');
-    }
-    
-    function createNewServer() {
-        const name = document.getElementById('playerName').value.trim() || 'Sobrevivente';
-        
-        if (socket) socket.disconnect();
-        
-        showLoading();
+    if (!socket || !socket.connected) {
         socket = io();
-        
-        socket.on('connect', () => {
-            myId = socket.id;
-            socket.emit('createServer', {
-                name: name + "'s Server",
-                maxPlayers: 8,
-                playerName: name,
-                color: selectedColor
-            });
-        });
-        
-        setupSocketEvents();
     }
     
-    function joinServer(id) {
-        const name = document.getElementById('playerName').value.trim() || 'Sobrevivente';
+    socket.emit('getServers');
+    socket.once('serverList', (servers) => {
+        console.log('Servidores encontrados:', servers);
+        const serverList = document.getElementById('serverList');
+        serverList.innerHTML = '';
         
-        if (socket) socket.disconnect();
-        
-        showLoading();
-        socket = io();
-        
-        socket.on('connect', () => {
-            myId = socket.id;
-            socket.emit('joinServer', {
-                serverId: id,
-                playerName: name,
-                color: selectedColor
-            });
-        });
-        
-        setupSocketEvents();
-    }
-    
-    function refreshServers() {
-        if (!socket) {
-            socket = io();
+        if (!servers || servers.length === 0) {
+            serverList.innerHTML = '<div style="text-align: center; color: #666;">Nenhum servidor encontrado. Crie um novo!</div>';
+            return;
         }
         
-        socket.emit('getServers');
-        socket.on('serverList', (servers) => {
-            const serverList = document.getElementById('serverList');
-            serverList.innerHTML = '';
-            
-            if (servers.length === 0) {
-                serverList.innerHTML = '<div style="text-align: center; color: #666;">Nenhum servidor encontrado</div>';
-                return;
-            }
-            
-            servers.forEach(server => {
-                const serverItem = document.createElement('div');
-                serverItem.className = 'server-item';
-                serverItem.innerHTML = `
-                    <div class="server-name">${server.name}</div>
-                    <div class="server-info">
-                        <span>👥 ${server.players}/${server.maxPlayers}</span>
-                        <span>🌊 Wave ${server.wave}</span>
-                    </div>
-                `;
-                serverItem.onclick = () => joinServer(server.id);
-                serverList.appendChild(serverItem);
-            });
-        });
-    }
-    
-    // ==================== SOCKET EVENTS ====================
-    function setupSocketEvents() {
-        socket.on('joinedServer', (data) => {
-            serverId = data.serverId;
-            hideLoading();
-            startGame();
-        });
-        
-        socket.on('error', (data) => {
-            hideLoading();
-            showNotification(data.message, 'error');
-        });
-        
-        socket.on('gameState', (state) => {
-            gameState = state;
-            
-            if (gameState.players[myId]) {
-                const p = gameState.players[myId];
-                localPlayer.hp = p.hp;
-                localPlayer.maxHp = p.maxHp;
-                localPlayer.level = p.level;
-                localPlayer.xp = p.xp;
-                localPlayer.nextXp = p.nextXp;
-                localPlayer.wood = p.wood;
-                localPlayer.stone = p.stone;
-                localPlayer.coins = p.coins;
-                localPlayer.food = p.food;
-                
-                updateHUD();
-            }
-            
-            document.getElementById('waveNumber').textContent = state.wave;
-        });
-        
-        socket.on('newWave', (data) => {
-            showNotification(`🧟 WAVE ${data.wave} COMEÇOU!`, 'wave');
-        });
-        
-        socket.on('playerDied', (data) => {
-            if (data.playerId === myId) {
-                showNotification('💀 Você morreu! Pressione R para renascer', 'death');
-            }
-        });
-        
-        socket.on('levelUp', (data) => {
-            showNotification(`🎉 LEVEL UP! Agora você é nível ${data.level}!`, 'levelup');
-        });
-        
-        socket.on('resourceCollected', (data) => {
-            const icons = {
-                wood: '🪵',
-                stone: '🪨',
-                food: '🍖'
-            };
-            showFloatingText(`+${data.amount} ${icons[data.type]}`, localPlayer.x, localPlayer.y - 30, '#8BC34A');
-        });
-        
-        socket.on('buildSuccess', (data) => {
-            updateBuildCounts();
-        });
-        
-        socket.on('chatMessage', (data) => {
-            addChatMessage(data.player, data.message);
-        });
-    }
-    
-    // ==================== GAME START ====================
-    function startGame() {
-        document.getElementById('mainMenu').classList.add('hidden');
-        document.getElementById('gameHUD').classList.remove('hidden');
-        
-        initControls();
-        gameLoop();
-        
-        // Refresh servers periodically
-        setInterval(refreshServers, 5000);
-    }
-    
-    // ==================== CONTROLS ====================
-    function initControls() {
-        // Keyboard
-        window.addEventListener('keydown', (e) => {
-            controls.keys[e.key.toLowerCase()] = true;
-            
-            // Number keys for hotbar
-            if (e.key >= '1' && e.key <= '9') {
-                selectHotbarSlot(parseInt(e.key) - 1);
-            }
-            
-            // R to respawn
-            if (e.key.toLowerCase() === 'r' && localPlayer.hp <= 0) {
-                socket.emit('respawn');
-            }
-            
-            // Enter for chat
-            if (e.key === 'Enter') {
-                const chatInput = document.getElementById('chatInput');
-                if (document.activeElement === chatInput) {
-                    if (chatInput.value.trim()) {
-                        socket.emit('chatMessage', chatInput.value);
-                        chatInput.value = '';
-                    }
-                    chatInput.blur();
-                } else {
-                    chatInput.focus();
-                }
-            }
-            
-            // B for build menu
-            if (e.key.toLowerCase() === 'b') {
-                toggleBuildMenu();
-            }
-            
-            // E for inventory
-            if (e.key.toLowerCase() === 'e') {
-                toggleInventory();
-            }
-        });
-        
-        window.addEventListener('keyup', (e) => {
-            controls.keys[e.key.toLowerCase()] = false;
-        });
-        
-        // Mouse
-        canvas.addEventListener('mousemove', (e) => {
-            controls.mouse.x = e.clientX;
-            controls.mouse.y = e.clientY;
-        });
-        
-        canvas.addEventListener('mousedown', (e) => {
-            if (e.button === 0) { // Left click
-                handleAttackOrBuild();
-            }
-        });
-        
-        // Touch controls for mobile
-        if ('ontouchstart' in window) {
-            initMobileControls();
-        }
-    }
-    
-    function initMobileControls() {
-        const leftArea = document.getElementById('joystickLeft');
-        const rightArea = document.getElementById('joystickRight');
-        
-        // Left joystick (movement)
-        leftArea.addEventListener('touchstart', (e) => {
-            const touch = e.touches[0];
-            controls.joystickLeft.active = true;
-            controls.joystickLeft.x = touch.clientX;
-            controls.joystickLeft.y = touch.clientY;
-        });
-        
-        leftArea.addEventListener('touchmove', (e) => {
-            if (!controls.joystickLeft.active) return;
-            const touch = e.touches[0];
-            const dx = touch.clientX - controls.joystickLeft.x;
-            const dy = touch.clientY - controls.joystickLeft.y;
-            const distance = Math.min(Math.sqrt(dx * dx + dy * dy), 60);
-            const angle = Math.atan2(dy, dx);
-            
-            controls.joystickLeft.dx = Math.cos(angle) * (distance / 60);
-            controls.joystickLeft.dy = Math.sin(angle) * (distance / 60);
-        });
-        
-        leftArea.addEventListener('touchend', () => {
-            controls.joystickLeft.active = false;
-            controls.joystickLeft.dx = 0;
-            controls.joystickLeft.dy = 0;
-        });
-        
-        // Right joystick (attack)
-        rightArea.addEventListener('touchstart', (e) => {
-            const touch = e.touches[0];
-            controls.joystickRight.active = true;
-            controls.joystickRight.x = touch.clientX;
-            controls.joystickRight.y = touch.clientY;
-        });
-        
-        rightArea.addEventListener('touchmove', (e) => {
-            if (!controls.joystickRight.active) return;
-            const touch = e.touches[0];
-            const dx = touch.clientX - controls.joystickRight.x;
-            const dy = touch.clientY - controls.joystickRight.y;
-            controls.joystickRight.angle = Math.atan2(dy, dx);
-        });
-        
-        rightArea.addEventListener('touchend', () => {
-            if (controls.joystickRight.active) {
-                handleAttackOrBuild();
-            }
-            controls.joystickRight.active = false;
-        });
-    }
-    
-    // ==================== GAMEPLAY FUNCTIONS ====================
-    function handleAttackOrBuild() {
-        if (buildMode) {
-            const angle = Math.atan2(
-                controls.mouse.y - canvas.height / 2,
-                controls.mouse.x - canvas.width / 2
-            );
-            
-            const distance = 80;
-            const buildX = localPlayer.x + Math.cos(angle) * distance;
-            const buildY = localPlayer.y + Math.sin(angle) * distance;
-            
-            socket.emit('build', {
-                type: buildMode,
-                x: buildX,
-                y: buildY
-            });
-            
-            buildMode = null;
-            document.getElementById('buildMenu').style.display = 'none';
-        } else {
-            const angle = Math.atan2(
-                controls.mouse.y - canvas.height / 2,
-                controls.mouse.x - canvas.width / 2
-            );
-            
-            socket.emit('playerAttack', { angle: angle });
-            
-            // Attack animation
-            localPlayer.state = 'attack';
-            localPlayer.animFrame = 0;
-        }
-    }
-    
-    function selectHotbarSlot(slot) {
-        localPlayer.selectedSlot = slot;
-        
-        document.querySelectorAll('.hotbar-slot').forEach((el, index) => {
-            if (index === slot) {
-                el.classList.add('selected');
-            } else {
-                el.classList.remove('selected');
-            }
-        });
-    }
-    
-    function selectBuild(type) {
-        buildMode = type;
-        document.getElementById('buildMenu').style.display = 'none';
-        showNotification(`Clique para construir ${type}`, 'info');
-    }
-    
-    function toggleBuildMenu() {
-        const menu = document.getElementById('buildMenu');
-        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-    }
-    
-    function toggleInventory() {
-        const inv = document.getElementById('inventoryModal');
-        inv.style.display = inv.style.display === 'none' ? 'block' : 'none';
-    }
-    
-    function toggleAutoFire() {
-        localPlayer.autoFire = !localPlayer.autoFire;
-        const btn = document.getElementById('autoFireBtn');
-        btn.classList.toggle('active');
-        showNotification(localPlayer.autoFire ? 'Auto-fire ativado!' : 'Auto-fire desativado', 'info');
-    }
-    
-    function toggleFullscreen() {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen();
-        } else {
-            document.exitFullscreen();
-        }
-    }
-    
-    // ==================== UI UPDATES ====================
-    function updateHUD() {
-        // HP Bar
-        document.getElementById('hpBar').style.width = (localPlayer.hp / localPlayer.maxHp * 100) + '%';
-        document.getElementById('hpText').textContent = `${Math.floor(localPlayer.hp)}/${localPlayer.maxHp}`;
-        
-        // XP Bar
-        document.getElementById('xpBar').style.width = (localPlayer.xp / localPlayer.nextXp * 100) + '%';
-        document.getElementById('xpText').textContent = `${localPlayer.xp}/${localPlayer.nextXp}`;
-        
-        // Resources
-        document.getElementById('woodCount').textContent = localPlayer.wood;
-        document.getElementById('stoneCount').textContent = localPlayer.stone;
-        document.getElementById('coinCount').textContent = localPlayer.coins;
-        document.getElementById('foodCount').textContent = localPlayer.food;
-        document.getElementById('foodHotbarCount').textContent = localPlayer.food;
-        
-        updateBuildCounts();
-    }
-    
-    function updateBuildCounts() {
-        // Calculate how many buildings we can make
-        const wallCount = Math.floor(Math.min(localPlayer.wood / 5, localPlayer.stone / 2));
-        const spikeCount = Math.floor(Math.min(localPlayer.wood / 3, localPlayer.stone / 5));
-        const turretCount = Math.floor(Math.min(localPlayer.wood / 10, localPlayer.stone / 8, localPlayer.coins / 10));
-        const campfireCount = Math.floor(Math.min(localPlayer.wood / 8, localPlayer.stone / 3));
-        const bananaCount = Math.floor(localPlayer.coins / 3);
-        
-        document.getElementById('wallCount').textContent = wallCount;
-        document.getElementById('spikeCount').textContent = spikeCount;
-        document.getElementById('turretCount').textContent = turretCount;
-        document.getElementById('campfireCount').textContent = campfireCount;
-        document.getElementById('bananaCount').textContent = bananaCount;
-    }
-    
-    function addChatMessage(player, message) {
-        const chatMessages = document.getElementById('chatMessages');
-        const messageEl = document.createElement('div');
-        messageEl.className = 'chat-message';
-        messageEl.innerHTML = `<span class="player-name">${player}:</span> ${message}`;
-        chatMessages.appendChild(messageEl);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-        
-        // Remove old messages
-        if (chatMessages.children.length > 20) {
-            chatMessages.removeChild(chatMessages.firstChild);
-        }
-    }
-    
-    function showNotification(text, type) {
-        const notification = document.createElement('div');
-        notification.className = 'notification';
-        notification.textContent = text;
-        
-        if (type === 'wave') {
-            notification.style.borderColor = '#F44336';
-            notification.style.color = '#F44336';
-        } else if (type === 'levelup') {
-            notification.style.borderColor = '#FFD700';
-            notification.style.color = '#FFD700';
-        }
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
-    }
-    
-    function showFloatingText(text, x, y, color) {
-        const damageEl = document.createElement('div');
-        damageEl.className = 'damage-number';
-        damageEl.style.left = (x - camera.x) + 'px';
-        damageEl.style.top = (y - camera.y) + 'px';
-        damageEl.style.color = color || '#FFD700';
-        damageEl.textContent = text;
-        document.body.appendChild(damageEl);
-        
-        setTimeout(() => {
-            damageEl.remove();
-        }, 1000);
-    }
-    
-    // ==================== SETTINGS ====================
-    function openSettings() {
-        document.getElementById('settingsModal').style.display = 'flex';
-    }
-    
-    function closeSettings() {
-        document.getElementById('settingsModal').style.display = 'none';
-    }
-    
-    // Volume slider
-    document.getElementById('volumeSlider').addEventListener('input', (e) => {
-        settings.volume = e.target.value;
-        document.getElementById('volumeValue').textContent = settings.volume + '%';
-    });
-    
-    // Sensitivity slider
-    document.getElementById('sensitivitySlider').addEventListener('input', (e) => {
-        settings.sensitivity = e.target.value;
-        document.getElementById('sensitivityValue').textContent = settings.sensitivity + '%';
-    });
-    
-    // FPS toggle
-    document.getElementById('fpsToggle').addEventListener('click', () => {
-        settings.showFPS = !settings.showFPS;
-        document.getElementById('fpsToggle').classList.toggle('active');
-    });
-    
-    // Quality select
-    document.getElementById('qualitySelect').addEventListener('change', (e) => {
-        settings.quality = e.target.value;
-    });
-    
-    // Color picker
-    document.querySelectorAll('.color-option').forEach(el => {
-        el.addEventListener('click', () => {
-            document.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
-            el.classList.add('selected');
-            const colors = el.dataset.color.split(',');
-            selectedColor = { r: parseInt(colors[0]), g: parseInt(colors[1]), b: parseInt(colors[2]) };
+        servers.forEach(server => {
+            const serverItem = document.createElement('div');
+            serverItem.className = 'server-item';
+            serverItem.innerHTML = `
+                <div class="server-name">${server.name}</div>
+                <div class="server-info">
+                    <span>👥 ${server.players}/${server.maxPlayers}</span>
+                    <span>🌊 Wave ${server.wave}</span>
+                </div>
+            `;
+            serverItem.onclick = () => joinServer(server.id);
+            serverList.appendChild(serverItem);
         });
     });
-    
-    // ==================== RENDERING ====================
-    function drawPixelCharacter(x, y, color, isZombie = false, type = 'player') {
-        const screenX = x - camera.x;
-        const screenY = y - camera.y;
-        
-        const time = animationTime;
-        const walkCycle = Math.sin(time * 0.1) * 3;
-        const armSwing = Math.sin(time * 0.15) * 5;
-        
-        ctx.save();
-        ctx.translate(screenX, screenY);
-        
-        if (isZombie) {
-            // Draw zombie
-            const zombieColor = type === 'tank' ? '#2C3E2C' : type === 'fast' ? '#6B8E6B' : '#4A5F4A';
-            const size = type === 'boss' ? 1.5 : type === 'tank' ? 1.2 : 1;
-            
-            ctx.scale(size, size);
-            
-            // Shadow
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-            ctx.fillRect(-10, 28, 20, 6);
-            
-            // Legs with walk animation
-            ctx.fillStyle = zombieColor;
-            ctx.fillRect(-4 + walkCycle, 16, 6, 12);
-            ctx.fillRect(2 - walkCycle, 16, 6, 12);
-            
-            // Body
-            ctx.fillRect(-6, 6, 12, 12);
-            
-            // Arms with animation
-            ctx.save();
-            ctx.translate(-6, 8);
-            ctx.rotate((armSwing * Math.PI) / 180);
-            ctx.fillRect(-2, 0, 4, 10);
-            ctx.restore();
-            
-            ctx.save();
-            ctx.translate(6, 8);
-            ctx.rotate((-armSwing * Math.PI) / 180);
-            ctx.fillRect(-2, 0, 4, 10);
-            ctx.restore();
-            
-            // Head
-            ctx.fillRect(-5, -4, 10, 10);
-            
-            // Eyes (glowing red)
-            ctx.fillStyle = '#FF0000';
-            ctx.fillRect(-3, 0, 2, 2);
-            ctx.fillRect(1, 0, 2, 2);
-            
-            // Mouth
-            ctx.fillStyle = '#000';
-            ctx.fillRect(-2, 3, 4, 1);
-        } else {
-            // Draw player
-            // Shadow
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-            ctx.fillRect(-10, 28, 20, 6);
-            
-            // Legs with walk animation
-            ctx.fillStyle = '#333';
-            ctx.fillRect(-4 + walkCycle, 16, 6, 12);
-            ctx.fillRect(2 - walkCycle, 16, 6, 12);
-            
-            // Body
-            ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
-            ctx.fillRect(-6, 6, 12, 12);
-            
-            // Arms with animation
-            ctx.fillStyle = '#FDB7B2';
-            ctx.save();
-            ctx.translate(-6, 8);
-            ctx.rotate((armSwing * Math.PI) / 180);
-            ctx.fillRect(-2, 0, 4, 10);
-            ctx.restore();
-            
-            ctx.save();
-            ctx.translate(6, 8);
-            ctx.rotate((-armSwing * Math.PI) / 180);
-            ctx.fillRect(-2, 0, 4, 10);
-            
-            // Weapon in hand
-            if (localPlayer.selectedSlot === 0) {
-                ctx.fillStyle = '#C0C0C0';
-                ctx.fillRect(0, 6, 2, 10);
-                ctx.fillStyle = '#8B4513';
-                ctx.fillRect(-1, 6, 4, 3);
-            }
-            ctx.restore();
-            
-            // Head
-            ctx.fillStyle = '#FDB7B2';
-            ctx.fillRect(-5, -4, 10, 10);
-            
-            // Hair
-            ctx.fillStyle = '#333';
-            ctx.fillRect(-5, -4, 10, 4);
-            
-            // Eyes
-            ctx.fillStyle = '#000';
-            ctx.fillRect(-3, 0, 2, 2);
-            ctx.fillRect(1, 0, 2, 2);
-            
-            // Mouth
-            ctx.fillRect(-1, 3, 2, 1);
-        }
-        
-        ctx.restore();
-    }
-    
-    function drawTree(x, y) {
-        const screenX = x - camera.x;
-        const screenY = y - camera.y;
-        
-        // Trunk
-        ctx.fillStyle = '#8B4513';
-        ctx.fillRect(screenX - 8, screenY - 10, 16, 30);
-        
-        // Leaves (3 layers)
-        ctx.fillStyle = '#228B22';
-        ctx.fillRect(screenX - 24, screenY - 30, 48, 20);
-        ctx.fillRect(screenX - 20, screenY - 45, 40, 18);
-        ctx.fillRect(screenX - 16, screenY - 55, 32, 15);
-        
-        // Highlights
-        ctx.fillStyle = '#32CD32';
-        ctx.fillRect(screenX - 18, screenY - 40, 10, 10);
-        ctx.fillRect(screenX + 8, screenY - 50, 8, 8);
-        
-        // Shadow
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-        ctx.fillRect(screenX - 12, screenY + 18, 24, 8);
-    }
-    
-    function drawStone(x, y) {
-        const screenX = x - camera.x;
-        const screenY = y - camera.y;
-        
-        // Main stone
-        ctx.fillStyle = '#696969';
-        ctx.fillRect(screenX - 15, screenY - 10, 30, 20);
-        ctx.fillRect(screenX - 12, screenY - 15, 24, 8);
-        ctx.fillRect(screenX - 10, screenY + 10, 20, 5);
-        
-        // Highlights
-        ctx.fillStyle = '#808080';
-        ctx.fillRect(screenX - 10, screenY - 8, 8, 8);
-        ctx.fillRect(screenX + 5, screenY - 5, 6, 6);
-        
-        // Dark spots
-        ctx.fillStyle = '#4B4B4B';
-        ctx.fillRect(screenX - 5, screenY + 2, 4, 4);
-        ctx.fillRect(screenX + 8, screenY - 2, 3, 3);
-        
-        // Shadow
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-        ctx.fillRect(screenX - 12, screenY + 13, 24, 5);
-    }
-    
-    function drawBush(x, y) {
-        const screenX = x - camera.x;
-        const screenY = y - camera.y;
-        
-        // Bush body
-        ctx.fillStyle = '#228B22';
-        ctx.fillRect(screenX - 12, screenY - 8, 24, 16);
-        ctx.fillRect(screenX - 10, screenY - 12, 20, 8);
-        ctx.fillRect(screenX - 8, screenY + 8, 16, 4);
-                // Berries
-        ctx.fillStyle = '#DC143C';
-        ctx.fillRect(screenX - 6, screenY - 4, 3, 3);
-        ctx.fillRect(screenX + 3, screenY - 2, 3, 3);
-        ctx.fillRect(screenX - 2, screenY + 2, 3, 3);
-        
-        // Shadow
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-        ctx.fillRect(screenX - 10, screenY + 10, 20, 4);
-    }
-    
-    function drawWall(x, y) {
-        const screenX = x - camera.x;
-        const screenY = y - camera.y;
-        
-        // Wall base
-        ctx.fillStyle = '#8B7355';
-        ctx.fillRect(screenX - 20, screenY - 20, 40, 40);
-        
-        // Brick pattern
-        ctx.fillStyle = '#6B5945';
-        for (let i = 0; i < 4; i++) {
-            ctx.fillRect(screenX - 20, screenY - 18 + i * 10, 40, 2);
-        }
-        for (let i = 0; i < 3; i++) {
-            ctx.fillRect(screenX - 18 + i * 13, screenY - 20, 2, 20);
-            ctx.fillRect(screenX - 18 + i * 13 + 6, screenY, 2, 20);
-        }
-        
-        // Shadow
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-        ctx.fillRect(screenX - 18, screenY + 18, 36, 6);
-    }
-    
-    function drawSpike(x, y) {
-        const screenX = x - camera.x;
-        const screenY = y - camera.y;
-        
-        // Base
-        ctx.fillStyle = '#696969';
-        ctx.fillRect(screenX - 15, screenY + 10, 30, 10);
-        
-        // Spikes
-        ctx.fillStyle = '#C0C0C0';
-        for (let i = 0; i < 5; i++) {
-            const spikeX = screenX - 12 + i * 6;
-            ctx.beginPath();
-            ctx.moveTo(spikeX, screenY + 10);
-            ctx.lineTo(spikeX + 3, screenY - 10);
-            ctx.lineTo(spikeX + 6, screenY + 10);
-            ctx.closePath();
-            ctx.fill();
-        }
-        
-        // Shadow
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-        ctx.fillRect(screenX - 12, screenY + 18, 24, 4);
-    }
-    
-    function drawTurret(x, y) {
-        const screenX = x - camera.x;
-        const screenY = y - camera.y;
-        const time = animationTime * 0.02;
-        
-        // Base
-        ctx.fillStyle = '#4B4B4B';
-        ctx.fillRect(screenX - 15, screenY + 5, 30, 15);
-        
-        // Rotating top
-        ctx.save();
-        ctx.translate(screenX, screenY);
-        ctx.rotate(time);
-        
-        // Barrel holder
-        ctx.fillStyle = '#696969';
-        ctx.fillRect(-10, -10, 20, 20);
-        
-        // Barrels
-        ctx.fillStyle = '#2C2C2C';
-        ctx.fillRect(-15, -3, 20, 3);
-        ctx.fillRect(-15, 0, 20, 3);
-        
-        ctx.restore();
-        
-        // Shadow
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-        ctx.fillRect(screenX - 12, screenY + 18, 24, 4);
-    }
-    
-    function drawCampfire(x, y) {
-        const screenX = x - camera.x;
-        const screenY = y - camera.y;
-        const time = animationTime * 0.1;
-        
-        // Logs
-        ctx.fillStyle = '#8B4513';
-        ctx.fillRect(screenX - 12, screenY + 10, 8, 5);
-        ctx.fillRect(screenX + 4, screenY + 10, 8, 5);
-        ctx.fillRect(screenX - 4, screenY + 8, 8, 5);
-        
-        // Fire (animated)
-        const flicker = Math.sin(time) * 2;
-        
-        // Outer flame
-        ctx.fillStyle = '#FF4500';
-        ctx.fillRect(screenX - 6, screenY - 5 + flicker, 12, 15);
-        ctx.fillRect(screenX - 4, screenY - 10 + flicker, 8, 8);
-        
-        // Inner flame
-        ctx.fillStyle = '#FFD700';
-        ctx.fillRect(screenX - 3, screenY + flicker, 6, 8);
-        ctx.fillRect(screenX - 2, screenY - 5 + flicker, 4, 6);
-        
-        // Embers
-        ctx.fillStyle = '#FF6347';
-        ctx.fillRect(screenX - 8 + Math.random() * 16, screenY + 12, 2, 2);
-        
-        // Shadow
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-        ctx.fillRect(screenX - 10, screenY + 13, 20, 4);
-    }
-    
-    function drawBanana(x, y) {
-        const screenX = x - camera.x;
-        const screenY = y - camera.y;
-        
-        // Banana shape
-        ctx.fillStyle = '#FFD700';
-        ctx.fillRect(screenX - 6, screenY - 2, 12, 4);
-        ctx.fillRect(screenX - 8, screenY, 4, 3);
-        ctx.fillRect(screenX + 4, screenY, 4, 3);
-        
-        // Brown spots
-        ctx.fillStyle = '#8B4513';
-        ctx.fillRect(screenX - 2, screenY, 1, 1);
-        ctx.fillRect(screenX + 2, screenY + 1, 1, 1);
-        
-        // Shadow
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-        ctx.fillRect(screenX - 6, screenY + 3, 12, 2);
-    }
-    
-    function drawOrb(x, y, type) {
-        const screenX = x - camera.x;
-        const screenY = y - camera.y;
-        const pulse = Math.sin(animationTime * 0.05) * 2;
-        
-        if (type === 'coin') {
-            // Gold coin
-            ctx.fillStyle = '#FFD700';
-            ctx.beginPath();
-            ctx.arc(screenX, screenY, 6 + pulse, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.fillStyle = '#FFA500';
-            ctx.beginPath();
-            ctx.arc(screenX, screenY, 4 + pulse, 0, Math.PI * 2);
-            ctx.fill();
-        } else {
-            // XP orb
-            ctx.fillStyle = '#00BFFF';
-            ctx.beginPath();
-            ctx.arc(screenX, screenY, 5 + pulse, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.fillStyle = '#FFFFFF';
-            ctx.beginPath();
-            ctx.arc(screenX, screenY, 3 + pulse, 0, Math.PI * 2);
-            ctx.fill();
-        }
-    }
-    
-    function drawProjectile(proj) {
-        const screenX = proj.x - camera.x;
-        const screenY = proj.y - camera.y;
-        
-        if (proj.type === 'bullet') {
-            // Turret bullet
-            ctx.fillStyle = '#FFD700';
-            ctx.fillRect(screenX - 2, screenY - 2, 4, 4);
-            
-            // Trail
-            ctx.fillStyle = 'rgba(255, 215, 0, 0.5)';
-            ctx.fillRect(screenX - 4, screenY - 1, 8, 2);
-        }
-    }
-    
-    function drawBackground() {
-        // Create gradient background
-        const gradient = ctx.createRadialGradient(
-            canvas.width / 2, canvas.height / 2, 0,
-            canvas.width / 2, canvas.height / 2, canvas.width
-        );
-        gradient.addColorStop(0, '#2A4A2A');
-        gradient.addColorStop(1, '#1A3A1A');
-        
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Draw grid
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
-        ctx.lineWidth = 1;
-        
-        const gridSize = 50;
-        const startX = -(camera.x % gridSize);
-        const startY = -(camera.y % gridSize);
-        
-        for (let x = startX; x < canvas.width; x += gridSize) {
-            ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, canvas.height);
-            ctx.stroke();
-        }
-        
-        for (let y = startY; y < canvas.height; y += gridSize) {
-            ctx.beginPath();
-            ctx.moveTo(0, y);
-            ctx.lineTo(canvas.width, y);
-            ctx.stroke();
-        }
-        
-        // Random grass details
-        const seed = Math.floor(camera.x / 100) * 100 + Math.floor(camera.y / 100);
-        const random = new Math.seedrandom(seed);
-        
-        for (let i = 0; i < 30; i++) {
-            const x = random() * canvas.width;
-            const y = random() * canvas.height;
-            
-            ctx.fillStyle = 'rgba(34, 139, 34, 0.3)';
-            ctx.fillRect(x, y, 3, 8);
-            ctx.fillRect(x - 2, y + 2, 2, 6);
-            ctx.fillRect(x + 3, y + 1, 2, 7);
-        }
-    }
-    
-    function drawMinimap() {
-        miniCtx.fillStyle = '#1A3A1A';
-        miniCtx.fillRect(0, 0, minimap.width, minimap.height);
-        
-        const scale = minimap.width / 2400;
-        
-        // Draw grid
-        miniCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-        miniCtx.lineWidth = 1;
-        for (let i = 0; i <= 4; i++) {
-            const pos = i * minimap.width / 4;
-            miniCtx.beginPath();
-            miniCtx.moveTo(pos, 0);
-            miniCtx.lineTo(pos, minimap.height);
-            miniCtx.stroke();
-            
-            miniCtx.beginPath();
-            miniCtx.moveTo(0, pos);
-            miniCtx.lineTo(minimap.width, pos);
-            miniCtx.stroke();
-        }
-        
-        // Resources
-        miniCtx.fillStyle = '#228B22';
-        gameState.resources.forEach(r => {
-            miniCtx.fillRect(r.x * scale - 1, r.y * scale - 1, 2, 2);
+}
+
+function openSettings() {
+    document.getElementById('settingsModal').style.display = 'flex';
+}
+
+function closeSettings() {
+    document.getElementById('settingsModal').style.display = 'none';
+}
+
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+            console.log('Fullscreen error:', err);
         });
-        
-        // Buildings
-        miniCtx.fillStyle = '#8B7355';
-        gameState.buildings.forEach(b => {
-            miniCtx.fillRect(b.x * scale - 2, b.y * scale - 2, 4, 4);
-        });
-        
-        // Zombies
-        miniCtx.fillStyle = '#FF0000';
-        gameState.zombies.forEach(z => {
-            const size = z.type === 'boss' ? 4 : 2;
-            miniCtx.fillRect(z.x * scale - size/2, z.y * scale - size/2, size, size);
-        });
-        
-        // Other players
-        for (const id in gameState.players) {
-            if (id !== myId) {
-                const p = gameState.players[id];
-                miniCtx.fillStyle = '#00BFFF';
-                miniCtx.fillRect(p.x * scale - 2, p.y * scale - 2, 4, 4);
-            }
-        }
-        
-        // Local player
-        miniCtx.fillStyle = '#00FF00';
-        miniCtx.fillRect(localPlayer.x * scale - 3, localPlayer.y * scale - 3, 6, 6);
-        
-        // Border
-        miniCtx.strokeStyle = '#4CAF50';
-        miniCtx.lineWidth = 2;
-        miniCtx.strokeRect(0, 0, minimap.width, minimap.height);
+    } else {
+        document.exitFullscreen();
     }
+}
+
+function toggleBuildMenu() {
+    const menu = document.getElementById('buildMenu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleInventory() {
+    const inv = document.getElementById('inventoryModal');
+    inv.style.display = inv.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleAutoFire() {
+    localPlayer.autoFire = !localPlayer.autoFire;
+    const btn = document.getElementById('autoFireBtn');
+    btn.classList.toggle('active');
+    showNotification(localPlayer.autoFire ? 'Auto-fire ativado!' : 'Auto-fire desativado', 'info');
+}
+
+function setupSocketEvents() {
+    socket.on('joinedServer', (data) => {
+        serverId = data.serverId;
+        hideLoading();
+        startGame();
+    });
     
-    // ==================== UPDATE FUNCTIONS ====================
-    function updatePlayer() {
-        let moveX = 0, moveY = 0;
+    socket.on('error', (data) => {
+        hideLoading();
+        showNotification(data.message, 'error');
+    });
+    
+    socket.on('gameState', (state) => {
+        gameState = state;
         
-        // Keyboard movement
-        if (controls.keys['w'] || controls.keys['arrowup']) moveY -= 1;
-        if (controls.keys['s'] || controls.keys['arrowdown']) moveY += 1;
-        if (controls.keys['a'] || controls.keys['arrowleft']) moveX -= 1;
-        if (controls.keys['d'] || controls.keys['arrowright']) moveX += 1;
-        
-        // Mobile joystick movement
-        if (controls.joystickLeft.active) {
-            moveX = controls.joystickLeft.dx;
-            moveY = controls.joystickLeft.dy;
-        }
-        
-        // Apply movement
-        if (moveX !== 0 || moveY !== 0) {
-            const mag = Math.sqrt(moveX * moveX + moveY * moveY);
-            moveX = (moveX / mag) * localPlayer.speed;
-            moveY = (moveY / mag) * localPlayer.speed;
+        if (gameState.players[myId]) {
+            const p = gameState.players[myId];
+            localPlayer.hp = p.hp;
+            localPlayer.maxHp = p.maxHp;
+            localPlayer.level = p.level;
+            localPlayer.xp = p.xp;
+            localPlayer.nextXp = p.nextXp;
+            localPlayer.wood = p.wood;
+            localPlayer.stone = p.stone;
+            localPlayer.coins = p.coins;
+            localPlayer.food = p.food;
             
-            localPlayer.x += moveX;
-            localPlayer.y += moveY;
-            
-            // Keep in bounds
-            localPlayer.x = Math.max(20, Math.min(2380, localPlayer.x));
-            localPlayer.y = Math.max(20, Math.min(2380, localPlayer.y));
-            
-            localPlayer.state = 'walk';
-            if (moveX !== 0) localPlayer.facing = moveX > 0 ? 1 : -1;
-        } else {
-            localPlayer.state = 'idle';
+            updateHUD();
         }
+    });
+}
+
+function startGame() {
+    document.getElementById('mainMenu').classList.add('hidden');
+    document.getElementById('gameHUD').classList.remove('hidden');
+    
+    gameLoop();
+}
+
+function updateHUD() {
+    document.getElementById('hpBar').style.width = (localPlayer.hp / localPlayer.maxHp * 100) + '%';
+    document.getElementById('hpText').textContent = Math.floor(localPlayer.hp) + '/' + localPlayer.maxHp;
+    
+    document.getElementById('xpBar').style.width = (localPlayer.xp / localPlayer.nextXp * 100) + '%';
+    document.getElementById('xpText').textContent = localPlayer.xp + '/' + localPlayer.nextXp;
+    
+    document.getElementById('woodCount').textContent = localPlayer.wood;
+    document.getElementById('stoneCount').textContent = localPlayer.stone;
+    document.getElementById('coinCount').textContent = localPlayer.coins;
+    document.getElementById('foodCount').textContent = localPlayer.food;
+}
+
+function gameLoop() {
+    animationTime++;
+    
+    // Update
+    let moveX = 0, moveY = 0;
+    if (controls.keys['w']) moveY = -1;
+    if (controls.keys['s']) moveY = 1;
+    if (controls.keys['a']) moveX = -1;
+    if (controls.keys['d']) moveX = 1;
+    
+    if (moveX !== 0 || moveY !== 0) {
+        localPlayer.x += moveX * localPlayer.speed;
+        localPlayer.y += moveY * localPlayer.speed;
         
-        // Auto-fire
-        if (localPlayer.autoFire) {
-            const now = Date.now();
-            if (now - lastAutoFire > 300) {
-                // Find nearest zombie
-                let nearestZombie = null;
-                let nearestDist = Infinity;
-                
-                gameState.zombies.forEach(z => {
-                    const dist = Math.sqrt(
-                        Math.pow(z.x - localPlayer.x, 2) + 
-                        Math.pow(z.y - localPlayer.y, 2)
-                    );
-                    
-                    if (dist < nearestDist && dist < 150) {
-                        nearestDist = dist;
-                        nearestZombie = z;
-                    }
-                });
-                
-                if (nearestZombie) {
-                    const angle = Math.atan2(
-                        nearestZombie.y - localPlayer.y,
-                        nearestZombie.x - localPlayer.x
-                    );
-                    
-                    socket.emit('playerAttack', { angle: angle });
-                    lastAutoFire = now;
-                    
-                    localPlayer.state = 'attack';
-                    localPlayer.animFrame = 0;
-                }
-            }
-        }
-        
-        // Send update to server
         if (socket && socket.connected) {
             socket.emit('playerUpdate', {
                 x: localPlayer.x,
                 y: localPlayer.y,
-                state: localPlayer.state,
-                facing: localPlayer.facing,
-                selectedSlot: localPlayer.selectedSlot
+                state: 'walk'
             });
         }
-        
-        // Update camera
-        camera.x = localPlayer.x - canvas.width / 2;
-        camera.y = localPlayer.y - canvas.height / 2;
-        camera.x = Math.max(0, Math.min(2400 - canvas.width, camera.x));
-        camera.y = Math.max(0, Math.min(2400 - canvas.height, camera.y));
     }
     
-    function handleOrbCollection() {
-        if (!gameState.orbs) return;
-        
-        gameState.orbs.forEach(orb => {
-            const dist = Math.sqrt(
-                Math.pow(orb.x - localPlayer.x, 2) + 
-                Math.pow(orb.y - localPlayer.y, 2)
-            );
-            
-            if (dist < 30) {
-                socket.emit('collectOrb', orb.id);
-            }
-        });
-    }
+    camera.x = localPlayer.x - canvas.width / 2;
+    camera.y = localPlayer.y - canvas.height / 2;
     
-    // ==================== RENDER FUNCTIONS ====================
-    function render() {
-        // Clear canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Draw background
-        drawBackground();
-        
-        // Draw resources
-        if (gameState.resources) {
-            gameState.resources.forEach(r => {
-                if (r.type === 'tree') {
-                    drawTree(r.x, r.y);
-                } else if (r.type === 'stone') {
-                    drawStone(r.x, r.y);
-                } else if (r.type === 'bush') {
-                    drawBush(r.x, r.y);
-                }
-                
-                // Draw HP bar if damaged
-                if (r.hp < r.maxHp) {
-                    const screenX = r.x - camera.x;
-                    const screenY = r.y - camera.y;
-                    
-                    ctx.fillStyle = '#333';
-                    ctx.fillRect(screenX - 15, screenY - 35, 30, 4);
-                    ctx.fillStyle = '#4CAF50';
-                    ctx.fillRect(screenX - 15, screenY - 35, 30 * (r.hp / r.maxHp), 4);
-                }
-            });
-        }
-        
-        // Draw items
-        if (gameState.items) {
-            gameState.items.forEach(item => {
-                if (item.type === 'banana') {
-                    drawBanana(item.x, item.y);
-                }
-            });
-        }
-        
-        // Draw buildings
-        if (gameState.buildings) {
-            gameState.buildings.forEach(b => {
-                if (b.type === 'wall') {
-                    drawWall(b.x, b.y);
-                } else if (b.type === 'spike') {
-                    drawSpike(b.x, b.y);
-                } else if (b.type === 'turret') {
-                    drawTurret(b.x, b.y);
-                } else if (b.type === 'campfire') {
-                    drawCampfire(b.x, b.y);
-                }
-                
-                // Draw HP bar if damaged
-                if (b.hp < b.maxHp) {
-                    const screenX = b.x - camera.x;
-                    const screenY = b.y - camera.y;
-                    
-                    ctx.fillStyle = '#333';
-                    ctx.fillRect(screenX - 20, screenY - 35, 40, 4);
-                    ctx.fillStyle = '#3498DB';
-                    ctx.fillRect(screenX - 20, screenY - 35, 40 * (b.hp / b.maxHp), 4);
-                }
-            });
-        }
-        
-        // Draw orbs
-        if (gameState.orbs) {
-            gameState.orbs.forEach(orb => {
-                drawOrb(orb.x, orb.y, orb.type);
-            });
-        }
-        
-        // Draw zombies
-        if (gameState.zombies) {
-            gameState.zombies.forEach(z => {
-                drawPixelCharacter(z.x, z.y, null, true, z.type);
-                
-                // Draw HP bar
-                const screenX = z.x - camera.x;
-                const screenY = z.y - camera.y;
-                
-                ctx.fillStyle = '#333';
-                ctx.fillRect(screenX - 15, screenY - 35, 30, 4);
-                ctx.fillStyle = '#FF0000';
-                ctx.fillRect(screenX - 15, screenY - 35, 30 * (z.hp / z.maxHp), 4);
-                
-                // Draw slipping effect
-                if (z.slipping) {
-                    ctx.fillStyle = 'rgba(255, 215, 0, 0.5)';
-                    ctx.font = '16px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('SLIP!', screenX, screenY - 40);
-                }
-            });
-        }
-        
-        // Draw projectiles
-        if (gameState.projectiles) {
-            gameState.projectiles.forEach(proj => {
-                drawProjectile(proj);
-            });
-        }
-        
-        // Draw players
-        if (gameState.players) {
-            for (const id in gameState.players) {
-                const p = gameState.players[id];
-                if (p.hp > 0) {
-                    drawPixelCharacter(p.x, p.y, p.color || selectedColor, false);
-                    
-                    // Draw name
-                    const screenX = p.x - camera.x;
-                    const screenY = p.y - camera.y;
-                    
-                    ctx.fillStyle = '#FFF';
-                    ctx.font = 'bold 12px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(p.name, screenX, screenY - 40);
-                    
-                    // Draw HP bar for other players
-                    if (id !== myId) {
-                        ctx.fillStyle = '#333';
-                        ctx.fillRect(screenX - 20, screenY - 50, 40, 4);
-                        ctx.fillStyle = '#4CAF50';
-                        ctx.fillRect(screenX - 20, screenY - 50, 40 * (p.hp / p.maxHp), 4);
-                    }
-                }
-            }
-        }
-        
-        // Draw effects
-        if (gameState.effects) {
-            gameState.effects.forEach(effect => {
-                const screenX = effect.x - camera.x;
-                const screenY = effect.y - camera.y;
-                
-                if (effect.type === 'hit' || effect.type === 'playerHit') {
-                    showFloatingText('-' + effect.damage, effect.x, effect.y, '#FFD700');
-                } else if (effect.type === 'heal' || effect.type === 'campfireHeal') {
-                    showFloatingText('+' + effect.amount, effect.x, effect.y, '#4CAF50');
-                }
-            });
-        }
-        
-        // Draw mobile joysticks
-        if (controls.joystickLeft.active) {
-            ctx.globalAlpha = 0.3;
-            ctx.fillStyle = '#333';
-            ctx.beginPath();
-            ctx.arc(controls.joystickLeft.x, controls.joystickLeft.y, 60, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.fillStyle = '#4CAF50';
-            ctx.beginPath();
-            ctx.arc(
-                controls.joystickLeft.x + controls.joystickLeft.dx * 50,
-                controls.joystickLeft.y + controls.joystickLeft.dy * 50,
-                25, 0, Math.PI * 2
-            );
-            ctx.fill();
-            ctx.globalAlpha = 1;
-        }
-        
-        if (controls.joystickRight.active) {
-            ctx.globalAlpha = 0.3;
-            ctx.fillStyle = '#333';
-            ctx.beginPath();
-            ctx.arc(controls.joystickRight.x, controls.joystickRight.y, 60, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.strokeStyle = '#FF0000';
-            ctx.lineWidth = 4;
-            ctx.beginPath();
-            ctx.moveTo(controls.joystickRight.x, controls.joystickRight.y);
-            ctx.lineTo(
-                controls.joystickRight.x + Math.cos(controls.joystickRight.angle) * 50,
-                controls.joystickRight.y + Math.sin(controls.joystickRight.angle) * 50
-            );
-            ctx.stroke();
-            ctx.globalAlpha = 1;
-        }
-        
-        // Draw FPS
-        if (settings.showFPS) {
-            ctx.fillStyle = '#0F0';
-            ctx.font = 'bold 16px Arial';
-            ctx.textAlign = 'left';
-            ctx.fillText('FPS: ' + Math.round(fps), 10, 30);
-        }
-        
-        // Draw minimap
-        drawMinimap();
-    }
+    // Render
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // ==================== GAME LOOP ====================
-    function gameLoop() {
-        // Calculate FPS
-        const now = performance.now();
-        const delta = now - lastFrameTime;
-        fps = 1000 / delta;
-        lastFrameTime = now;
-        
-        // Update animation time
-        animationTime++;
-        
-        // Update
-        updatePlayer();
-        handleOrbCollection();
-        
-        // Render
-        render();
-        
-        // Continue loop
-        requestAnimationFrame(gameLoop);
-    }
+    // Background
+    ctx.fillStyle = '#2A4A2A';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // ==================== SEEDED RANDOM FOR CONSISTENT GRASS ====================
-    Math.seedrandom = function(seed) {
-        const m = 2147483647;
-        let a = 1103515245;
-        let c = 12345;
-        let state = seed ? seed : Math.floor(Math.random() * (m - 1));
-        
-        return function() {
-            state = (a * state + c) % m;
-            return state / (m - 1);
-        };
-    };
+    // Placeholder text
+    ctx.fillStyle = '#FFF';
+    ctx.font = '20px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Jogo em desenvolvimento...', canvas.width/2, canvas.height/2);
     
-    // ==================== INITIALIZE ====================
-    window.addEventListener('load', () => {
-        refreshServers();
-        
-        // Auto refresh server list
-        setInterval(refreshServers, 10000);
-    });
-    
-})();
-</script>
+    requestAnimationFrame(gameLoop);
+}
 
+// Event Listeners
+document.getElementById('btnCreateServer').addEventListener('click', createNewServer);
+document.getElementById('btnRefreshServers').addEventListener('click', refreshServers);
+document.getElementById('btnSettings').addEventListener('click', openSettings);
+document.getElementById('btnCloseSettings').addEventListener('click', closeSettings);
+document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
+document.getElementById('btnFullscreenGame').addEventListener('click', toggleFullscreen);
+document.getElementById('btnBuildMenu').addEventListener('click', toggleBuildMenu);
+document.getElementById('btnInventory').addEventListener('click', toggleInventory);
+document.getElementById('btnCloseInventory').addEventListener('click', toggleInventory);
+document.getElementById('autoFireBtn').addEventListener('click', toggleAutoFire);
+
+// Color picker
+document.querySelectorAll('.color-option').forEach(el => {
+    el.addEventListener('click', () => {
+        document.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        const colors = el.dataset.color.split(',');
+        selectedColor = { r: parseInt(colors[0]), g: parseInt(colors[1]), b: parseInt(colors[2]) };
+    });
+});
+
+// Build items
+document.querySelectorAll('.build-item').forEach(el => {
+    el.addEventListener('click', () => {
+        buildMode = el.dataset.type;
+        document.getElementById('buildMenu').style.display = 'none';
+        showNotification('Clique para construir ' + buildMode, 'info');
+    });
+});
+
+// Keyboard
+window.addEventListener('keydown', (e) => {
+    controls.keys[e.key.toLowerCase()] = true;
+});
+
+window.addEventListener('keyup', (e) => {
+    controls.keys[e.key.toLowerCase()] = false;
+});
+
+// Initialize
+window.addEventListener('load', () => {
+    console.log('Jogo carregado!');
+    refreshServers();
+});
+
+</script>
 </body>
 </html>

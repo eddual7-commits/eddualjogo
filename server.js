@@ -6,7 +6,9 @@ const path = require('path');
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server, {
-    cors: { origin: "*" }
+    cors: { origin: "*" },
+    pingInterval: 2000,
+    pingTimeout: 5000
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -15,164 +17,165 @@ const PORT = process.env.PORT || 3000;
 
 // ============ CONFIGURAÇÕES ============
 const CONFIG = {
-    MAP_SIZE: 3200,
-    TILE_SIZE: 100,
+    MAP_SIZE: 2400,
+    TILE_SIZE: 50,
     PLAYER_SPEED: 4,
-    ATTACK_COOLDOWN: 400,
-    ENEMY_SPAWN_RATE: 4000,
-    MAX_ENEMIES: 40,
-    WAVE_DURATION: 90000
+    ATTACK_COOLDOWN: 300,
+    ZOMBIE_SPAWN_RATE: 3000,
+    MAX_ZOMBIES: 30,
+    WAVE_DURATION: 60000,
+    WALL_SIZE: 40,
+    BANANA_SLIP_DURATION: 2000,
+    TREE_RESPAWN_TIME: 45000,
+    BUILD_RANGE: 100
 };
 
-// ============ BIOMAS ============
-const BIOMES = {
-    forest: {
-        name: 'Floresta',
-        color: '#1a472a',
-        enemies: ['slime', 'goblin', 'wolf'],
-        resources: ['tree', 'bush', 'mushroom'],
-        dropBonus: { wood: 2, food: 1 }
+// ============ TIPOS DE ZUMBIS ============
+const ZOMBIE_TYPES = {
+    normal: {
+        hp: 30,
+        damage: 8,
+        speed: 1.2,
+        xp: 15,
+        color: '#4A5F4A',
+        size: 20,
+        coins: 5
     },
-    desert: {
-        name: 'Deserto',
-        color: '#c2a060',
-        enemies: ['scorpion', 'mummy', 'sandworm'],
-        resources: ['cactus', 'fossil', 'oasis'],
-        dropBonus: { stone: 2, crystal: 1 }
+    fast: {
+        hp: 20,
+        damage: 6,
+        speed: 2.5,
+        xp: 20,
+        color: '#6B8E6B',
+        size: 18,
+        coins: 8
     },
-    snow: {
-        name: 'Neve',
-        color: '#a8c8d8',
-        enemies: ['iceslime', 'yeti', 'frostbat'],
-        resources: ['pinetree', 'icepatch', 'snowpile'],
-        dropBonus: { crystal: 2, food: 1 }
+    tank: {
+        hp: 80,
+        damage: 15,
+        speed: 0.8,
+        xp: 40,
+        color: '#2C3E2C',
+        size: 28,
+        coins: 15
     },
-    volcanic: {
-        name: 'Vulcânico',
-        color: '#4a1c1c',
-        enemies: ['lavaslime', 'demon', 'fireelemental'],
-        resources: ['obsidian', 'magmarock', 'ashpile'],
-        dropBonus: { stone: 3, crystal: 2 }
+    spitter: {
+        hp: 25,
+        damage: 10,
+        speed: 1.5,
+        xp: 25,
+        color: '#5F7F5F',
+        size: 20,
+        coins: 10,
+        ranged: true
     },
-    swamp: {
-        name: 'Pântano',
-        color: '#2d3d2d',
-        enemies: ['toad', 'ghost', 'witch'],
-        resources: ['deadtree', 'lilypad', 'mudpile'],
-        dropBonus: { wood: 1, food: 2 }
+    boss: {
+        hp: 200,
+        damage: 25,
+        speed: 1.0,
+        xp: 100,
+        color: '#1A2E1A',
+        size: 40,
+        coins: 50
     }
-};
-
-// ============ STATS DOS INIMIGOS ============
-const ENEMY_STATS = {
-    slime: { hp: 25, damage: 5, speed: 1.2, xp: 10, attackType: 'melee', color: '#2ECC71' },
-    goblin: { hp: 40, damage: 8, speed: 2, xp: 20, attackType: 'melee', color: '#27AE60' },
-    wolf: { hp: 35, damage: 10, speed: 2.5, xp: 25, attackType: 'dash', color: '#5D6D7E' },
-    scorpion: { hp: 30, damage: 12, speed: 1.8, xp: 15, attackType: 'poison', color: '#D35400' },
-    mummy: { hp: 60, damage: 10, speed: 1, xp: 30, attackType: 'curse', color: '#BDC3C7' },
-    sandworm: { hp: 80, damage: 15, speed: 0.8, xp: 50, attackType: 'burrow', color: '#E67E22' },
-    iceslime: { hp: 30, damage: 6, speed: 1, xp: 12, attackType: 'freeze', color: '#85C1E9' },
-    yeti: { hp: 100, damage: 18, speed: 1.2, xp: 60, attackType: 'slam', color: '#ECF0F1' },
-    frostbat: { hp: 20, damage: 8, speed: 3, xp: 18, attackType: 'swoop', color: '#AED6F1' },
-    lavaslime: { hp: 35, damage: 10, speed: 1.5, xp: 20, attackType: 'burn', color: '#E74C3C' },
-    demon: { hp: 90, damage: 20, speed: 1.5, xp: 70, attackType: 'fireball', color: '#C0392B' },
-    fireelemental: { hp: 70, damage: 15, speed: 1.8, xp: 55, attackType: 'explosion', color: '#F39C12' },
-    toad: { hp: 25, damage: 7, speed: 1.5, xp: 12, attackType: 'tongue', color: '#1E8449' },
-    ghost: { hp: 40, damage: 12, speed: 2, xp: 30, attackType: 'phase', color: '#9B59B6' },
-    witch: { hp: 50, damage: 15, speed: 1.2, xp: 45, attackType: 'magic', color: '#8E44AD' }
-};
-
-// ============ FRASES DOS INIMIGOS ============
-const ENEMY_QUOTES = {
-    slime: ["Blurp!", "Gosmento~", "*ploft*", "Gelatina!"],
-    goblin: ["Hehe! Tesouro!", "Pega ele!", "Meu ouro!", "Grrr!"],
-    wolf: ["*Uivo*", "Arrrr!", "*Rosna*", "Caça!"],
-    scorpion: ["*Clique clique*", "Veneno!", "Picada!", "*Tss*"],
-    demon: ["QUEIME!", "Sua alma!", "INFERNO!", "MORRA!"],
-    ghost: ["Buuu~", "Venha...", "Frio...", "Eternidade..."],
-    yeti: ["ROAAAAR!", "*Bate no peito*", "GELO!", "ESMAGAR!"],
-    witch: ["Hehehe~", "Magia negra!", "Caldeirão!", "Maldição!"],
-    mummy: ["...", "Tumba...", "Maldição!", "Eterno..."],
-    sandworm: ["*TREMOR*", "AREIA!", "*emerge*"],
-    iceslime: ["Gelo~", "*cristaliza*", "Frio!"],
-    frostbat: ["*screech*", "Asas!", "*voa*"],
-    lavaslime: ["Queima!", "*borbulha*", "Lava!"],
-    fireelemental: ["FOGO!", "*crackle*", "CHAMAS!"],
-    toad: ["Croac!", "*língua*", "Pântano!"],
-    default: ["...", "!", "?"]
 };
 
 // ============ CUSTOS DE CONSTRUÇÃO ============
 const BUILD_COSTS = {
-    wall: { wood: 8, stone: 4, crystal: 0, hp: 150 },
-    turret: { wood: 15, stone: 10, crystal: 3, hp: 100 },
-    campfire: { wood: 12, stone: 3, crystal: 0, hp: 80 },
-    spikes: { wood: 5, stone: 8, crystal: 0, hp: 60 },
-    healpad: { wood: 10, stone: 5, crystal: 5, hp: 100 }
+    wall: { wood: 5, stone: 2, hp: 100 },
+    spike: { wood: 3, stone: 5, hp: 50, damage: 5 },
+    turret: { wood: 10, stone: 8, coins: 10, hp: 80, damage: 10, range: 150 },
+    campfire: { wood: 8, stone: 3, hp: 60 },
+    chest: { wood: 15, stone: 5, hp: 120 },
+    banana: { wood: 0, stone: 0, coins: 3 }
 };
 
-// ============ CORES DOS PLAYERS ============
-const PLAYER_COLORS = [
-    { hair: '#39C5BB', accent: '#00D4AA', name: 'Miku' },
-    { hair: '#FFB6C1', accent: '#FF69B4', name: 'Sakura' },
-    { hair: '#FFD700', accent: '#FFA500', name: 'Rin' },
-    { hair: '#9370DB', accent: '#8A2BE2', name: 'Yukari' },
-    { hair: '#87CEEB', accent: '#4169E1', name: 'Kaito' },
-    { hair: '#98FB98', accent: '#32CD32', name: 'Gumi' },
-    { hair: '#FF6347', accent: '#DC143C', name: 'Meiko' },
-    { hair: '#20B2AA', accent: '#008B8B', name: 'Luka' }
-];
-
-// ============ ARMAZENAMENTO ============
-var rooms = {};
-var playerColorIndex = 0;
+// ============ LISTA DE SERVIDORES ============
+const publicServers = {};
 
 // ============ FUNÇÕES AUXILIARES ============
-function generateRoomCode() {
-    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    var code = '';
-    for (var i = 0; i < 5; i++) {
-        code += chars[Math.floor(Math.random() * chars.length)];
-    }
-    return code;
-}
-
-function getBiomeAt(x, y) {
-    var biomeSize = CONFIG.MAP_SIZE / 3;
-    var bx = Math.floor(x / biomeSize);
-    var by = Math.floor(y / biomeSize);
-
-    var biomeMap = [
-        ['forest', 'snow', 'forest'],
-        ['swamp', 'forest', 'desert'],
-        ['volcanic', 'desert', 'volcanic']
-    ];
-
-    if (by < 0) by = 0;
-    if (by > 2) by = 2;
-    if (bx < 0) bx = 0;
-    if (bx > 2) bx = 2;
-
-    return biomeMap[by][bx];
-}
-
-function getNextPlayerColor() {
-    var color = PLAYER_COLORS[playerColorIndex % PLAYER_COLORS.length];
-    playerColorIndex++;
-    return {
-        hair: color.hair,
-        accent: color.accent,
-        name: color.name
+function createServer(name, maxPlayers) {
+    const serverId = 'server_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    
+    publicServers[serverId] = {
+        id: serverId,
+        name: name,
+        players: {},
+        maxPlayers: maxPlayers || 8,
+        zombies: [],
+        resources: generateResources(),
+        buildings: [],
+        projectiles: [],
+        items: [],
+        orbs: [],
+        effects: [],
+        wave: 1,
+        waveTimer: Date.now(),
+        zombieSpawnTimer: Date.now(),
+        gameTime: 0,
+        createdAt: Date.now(),
+        public: true
     };
+    
+    return serverId;
 }
 
-function createPlayer(name) {
-    var colorData = getNextPlayerColor();
+function generateResources() {
+    const resources = [];
+    
+    // Árvores
+    for (let i = 0; i < 100; i++) {
+        resources.push({
+            id: 'tree_' + i + '_' + Date.now(),
+            type: 'tree',
+            x: 100 + Math.random() * (CONFIG.MAP_SIZE - 200),
+            y: 100 + Math.random() * (CONFIG.MAP_SIZE - 200),
+            hp: 30,
+            maxHp: 30,
+            wood: 8 + Math.floor(Math.random() * 5),
+            depleted: false,
+            respawnTime: 0
+        });
+    }
+    
+    // Pedras
+    for (let i = 0; i < 60; i++) {
+        resources.push({
+            id: 'stone_' + i + '_' + Date.now(),
+            type: 'stone',
+            x: 100 + Math.random() * (CONFIG.MAP_SIZE - 200),
+            y: 100 + Math.random() * (CONFIG.MAP_SIZE - 200),
+            hp: 40,
+            maxHp: 40,
+            stone: 6 + Math.floor(Math.random() * 4),
+            depleted: false,
+            respawnTime: 0
+        });
+    }
+    
+    // Arbustos (comida)
+    for (let i = 0; i < 40; i++) {
+        resources.push({
+            id: 'bush_' + i + '_' + Date.now(),
+            type: 'bush',
+            x: 100 + Math.random() * (CONFIG.MAP_SIZE - 200),
+            y: 100 + Math.random() * (CONFIG.MAP_SIZE - 200),
+            hp: 10,
+            maxHp: 10,
+            food: 2 + Math.floor(Math.random() * 2),
+            depleted: false,
+            respawnTime: 0
+        });
+    }
+    
+    return resources;
+}
 
+function createPlayer(name, color) {
     return {
-        name: name || colorData.name,
-        x: CONFIG.MAP_SIZE / 2,
-        y: CONFIG.MAP_SIZE / 2,
+        name: name || 'Sobrevivente',
+        x: CONFIG.MAP_SIZE / 2 + (Math.random() - 0.5) * 200,
+        y: CONFIG.MAP_SIZE / 2 + (Math.random() - 0.5) * 200,
         vx: 0,
         vy: 0,
         hp: 100,
@@ -180,879 +183,823 @@ function createPlayer(name) {
         level: 1,
         xp: 0,
         nextXp: 100,
-        wood: 0,
-        stone: 0,
-        crystal: 0,
+        wood: 20,
+        stone: 10,
         food: 5,
+        coins: 10,
         speed: CONFIG.PLAYER_SPEED,
-        damage: 15,
+        damage: 10,
         defense: 0,
         state: 'idle',
         facing: 1,
-        animFrame: 0,
         attackCooldown: 0,
-        invincible: 0,
-        color: colorData,
+        buildCooldown: 0,
+        color: color || { r: 100, g: 150, b: 200 },
+        inventory: Array(27).fill(null),
+        hotbar: Array(9).fill(null),
+        selectedSlot: 0,
         kills: 0,
-        upgrades: []
+        constructions: 0,
+        alive: true
     };
 }
 
-function generateResources() {
-    var resources = [];
-
-    for (var i = 0; i < 150; i++) {
-        var x = 100 + Math.random() * (CONFIG.MAP_SIZE - 200);
-        var y = 100 + Math.random() * (CONFIG.MAP_SIZE - 200);
-        var biome = getBiomeAt(x, y);
-        var biomeData = BIOMES[biome];
-
-        var types = biomeData.resources;
-        var type = types[Math.floor(Math.random() * types.length)];
-
-        resources.push({
-            id: 'res_' + i + '_' + Date.now(),
-            type: type,
-            biome: biome,
-            x: x,
-            y: y,
-            hp: 40,
-            maxHp: 40,
-            depleted: false,
-            respawnTime: 0
-        });
-    }
-
-    return resources;
-}
-
-function createEnemy(room) {
-    var x = 100 + Math.random() * (CONFIG.MAP_SIZE - 200);
-    var y = 100 + Math.random() * (CONFIG.MAP_SIZE - 200);
-    var biome = getBiomeAt(x, y);
-    var biomeData = BIOMES[biome];
-
-    var types = biomeData.enemies;
-    var type = types[Math.floor(Math.random() * types.length)];
-    var stats = ENEMY_STATS[type];
-
-    if (!stats) return null;
-
-    var waveMultiplier = 1 + (room.wave - 1) * 0.15;
-    var isBoss = Math.random() < 0.05 + room.wave * 0.02;
-
+function createZombie(server, type) {
+    const zombieType = ZOMBIE_TYPES[type] || ZOMBIE_TYPES.normal;
+    const waveMultiplier = 1 + (server.wave - 1) * 0.2;
+    
+    // Spawn longe dos players
+    let x, y;
+    let attempts = 0;
+    do {
+        x = 50 + Math.random() * (CONFIG.MAP_SIZE - 100);
+        y = 50 + Math.random() * (CONFIG.MAP_SIZE - 100);
+        attempts++;
+    } while(attempts < 10 && isNearPlayers(x, y, server, 200));
+    
     return {
-        id: 'enemy_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+        id: 'zombie_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
         type: type,
-        biome: biome,
         x: x,
         y: y,
-        hp: Math.floor(stats.hp * waveMultiplier * (isBoss ? 4 : 1)),
-        maxHp: Math.floor(stats.hp * waveMultiplier * (isBoss ? 4 : 1)),
-        damage: Math.floor(stats.damage * waveMultiplier * (isBoss ? 1.5 : 1)),
-        speed: stats.speed * (isBoss ? 0.8 : 1),
-        xp: Math.floor(stats.xp * waveMultiplier * (isBoss ? 5 : 1)),
-        attackType: stats.attackType,
-        color: stats.color,
-        isBoss: isBoss,
+        vx: 0,
+        vy: 0,
+        hp: Math.floor(zombieType.hp * waveMultiplier),
+        maxHp: Math.floor(zombieType.hp * waveMultiplier),
+        damage: Math.floor(zombieType.damage * waveMultiplier),
+        speed: zombieType.speed,
+        xp: zombieType.xp,
+        coins: zombieType.coins,
+        size: zombieType.size,
+        color: zombieType.color,
         target: null,
         attackCooldown: 0,
-        specialCooldown: 0,
         state: 'wander',
         wanderAngle: Math.random() * Math.PI * 2,
-        lastSpeak: 0,
-        stunned: 0
+        stunned: 0,
+        slipping: false,
+        slipTime: 0,
+        pathfinding: [],
+        lastPathUpdate: 0
     };
 }
 
-function getResourceDrop(resource) {
-    var biomeData = BIOMES[resource.biome];
-    var drops = { wood: 0, stone: 0, crystal: 0, food: 0 };
-
-    switch (resource.type) {
-        case 'tree':
-        case 'pinetree':
-        case 'deadtree':
-            drops.wood = 4 + Math.floor(Math.random() * 3);
-            if (Math.random() < 0.2) drops.food = 1;
-            break;
-        case 'bush':
-        case 'cactus':
-            drops.food = 2 + Math.floor(Math.random() * 2);
-            drops.wood = 1;
-            break;
-        case 'fossil':
-        case 'obsidian':
-        case 'magmarock':
-            drops.stone = 3 + Math.floor(Math.random() * 3);
-            if (Math.random() < 0.15) drops.crystal = 1;
-            break;
-        case 'icepatch':
-            drops.crystal = 2 + Math.floor(Math.random() * 2);
-            break;
-        case 'mushroom':
-        case 'lilypad':
-        case 'oasis':
-            drops.food = 3 + Math.floor(Math.random() * 2);
-            break;
-        case 'snowpile':
-        case 'ashpile':
-        case 'mudpile':
-            drops.stone = 1 + Math.floor(Math.random() * 2);
-            break;
-        default:
-            drops.wood = 2;
-            drops.stone = 1;
+function isNearPlayers(x, y, server, distance) {
+    for (const playerId in server.players) {
+        const player = server.players[playerId];
+        const dist = Math.hypot(player.x - x, player.y - y);
+        if (dist < distance) return true;
     }
+    return false;
+}
 
-    if (biomeData && biomeData.dropBonus) {
-        for (var key in biomeData.dropBonus) {
-            if (drops[key]) {
-                drops[key] = Math.floor(drops[key] * (1 + biomeData.dropBonus[key] * 0.2));
+function checkCollisionWithWalls(x, y, size, server) {
+    for (const building of server.buildings) {
+        if (building.type === 'wall' || building.type === 'chest') {
+            const dx = Math.abs(x - building.x);
+            const dy = Math.abs(y - building.y);
+            
+            if (dx < (CONFIG.WALL_SIZE/2 + size) && dy < (CONFIG.WALL_SIZE/2 + size)) {
+                return true;
             }
         }
     }
+    return false;
+}
 
-    return drops;
+function findPath(zombie, targetX, targetY, server) {
+    // Simples pathfinding - evitar walls
+    const angle = Math.atan2(targetY - zombie.y, targetX - zombie.x);
+    let moveX = Math.cos(angle) * zombie.speed;
+    let moveY = Math.sin(angle) * zombie.speed;
+    
+    // Checar colisão à frente
+    const nextX = zombie.x + moveX * 5;
+    const nextY = zombie.y + moveY * 5;
+    
+    if (checkCollisionWithWalls(nextX, nextY, zombie.size, server)) {
+        // Tentar contornar
+        const leftAngle = angle - Math.PI / 3;
+        const rightAngle = angle + Math.PI / 3;
+        
+        const leftX = zombie.x + Math.cos(leftAngle) * zombie.speed * 5;
+        const leftY = zombie.y + Math.sin(leftAngle) * zombie.speed * 5;
+        
+        if (!checkCollisionWithWalls(leftX, leftY, zombie.size, server)) {
+            moveX = Math.cos(leftAngle) * zombie.speed;
+            moveY = Math.sin(leftAngle) * zombie.speed;
+        } else {
+            moveX = Math.cos(rightAngle) * zombie.speed;
+            moveY = Math.sin(rightAngle) * zombie.speed;
+        }
+    }
+    
+    return { moveX, moveY };
 }
 
 // ============ SOCKET.IO ============
-io.on('connection', function(socket) {
-    console.log('🎮 Player conectado:', socket.id);
-
-    // Criar sala
-    socket.on('createRoom', function(playerName) {
-        var roomCode = generateRoomCode();
-
-        console.log('📍 Criando sala:', roomCode);
-
-        rooms[roomCode] = {
-            code: roomCode,
-            players: {},
-            enemies: [],
-            resources: generateResources(),
-            buildings: [],
-            projectiles: [],
-            orbs: [],
-            effects: [],
-            wave: 1,
-            waveTimer: Date.now(),
-            enemySpawnTimer: Date.now(),
-            gameTime: 0
-        };
-
-        rooms[roomCode].players[socket.id] = createPlayer(playerName);
-        socket.join(roomCode);
-        socket.roomCode = roomCode;
-
-        socket.emit('roomJoined', {
-            roomCode: roomCode,
+io.on('connection', (socket) => {
+    console.log('🎮 Jogador conectado:', socket.id);
+    
+    // Listar servidores disponíveis
+    socket.on('getServers', () => {
+        const serverList = Object.values(publicServers).map(s => ({
+            id: s.id,
+            name: s.name,
+            players: Object.keys(s.players).length,
+            maxPlayers: s.maxPlayers,
+            wave: s.wave
+        }));
+        
+        socket.emit('serverList', serverList);
+    });
+    
+    // Criar servidor
+    socket.on('createServer', (data) => {
+        const serverId = createServer(data.name || 'Servidor Zumbi', data.maxPlayers || 8);
+        const server = publicServers[serverId];
+        
+        server.players[socket.id] = createPlayer(data.playerName, data.color);
+        socket.join(serverId);
+        socket.serverId = serverId;
+        
+        socket.emit('joinedServer', {
+            serverId: serverId,
             playerId: socket.id,
-            mapSize: CONFIG.MAP_SIZE,
-            biomes: BIOMES,
-            buildCosts: BUILD_COSTS
+            serverName: server.name
         });
-
-        console.log('✅ Sala criada com sucesso:', roomCode);
+        
+        console.log('✅ Servidor criado:', serverId);
     });
-
-    // Entrar em sala existente
-    socket.on('joinRoom', function(data) {
-        var roomCode = data.code.toUpperCase().trim();
-
-        console.log('🚪 Tentando entrar na sala:', roomCode);
-
-        if (rooms[roomCode]) {
-            rooms[roomCode].players[socket.id] = createPlayer(data.name);
-            socket.join(roomCode);
-            socket.roomCode = roomCode;
-
-            socket.emit('roomJoined', {
-                roomCode: roomCode,
-                playerId: socket.id,
-                mapSize: CONFIG.MAP_SIZE,
-                biomes: BIOMES,
-                buildCosts: BUILD_COSTS
-            });
-
-            socket.to(roomCode).emit('playerJoined', {
-                id: socket.id,
-                name: data.name
-            });
-
-            console.log('✅ Player entrou na sala:', roomCode);
-        } else {
-            socket.emit('roomError', 'Sala não encontrada!');
-            console.log('❌ Sala não encontrada:', roomCode);
+    
+    // Entrar em servidor
+    socket.on('joinServer', (data) => {
+        const server = publicServers[data.serverId];
+        
+        if (!server) {
+            socket.emit('error', { message: 'Servidor não encontrado!' });
+            return;
         }
+        
+        if (Object.keys(server.players).length >= server.maxPlayers) {
+            socket.emit('error', { message: 'Servidor cheio!' });
+            return;
+        }
+        
+        server.players[socket.id] = createPlayer(data.playerName, data.color);
+        socket.join(data.serverId);
+        socket.serverId = data.serverId;
+        
+        socket.emit('joinedServer', {
+            serverId: data.serverId,
+            playerId: socket.id,
+            serverName: server.name
+        });
+        
+        // Notificar outros jogadores
+        socket.to(data.serverId).emit('playerJoined', {
+            id: socket.id,
+            name: data.playerName
+        });
+        
+        console.log('✅ Jogador entrou no servidor:', data.serverId);
     });
-
-    // Atualização do player
-    socket.on('playerUpdate', function(data) {
-        var room = rooms[socket.roomCode];
-        if (!room || !room.players[socket.id]) return;
-
-        var player = room.players[socket.id];
-
+    
+    // Atualização do jogador
+    socket.on('playerUpdate', (data) => {
+        const server = publicServers[socket.serverId];
+        if (!server || !server.players[socket.id]) return;
+        
+        const player = server.players[socket.id];
+        
         if (typeof data.x === 'number' && typeof data.y === 'number') {
-            player.x = Math.max(30, Math.min(CONFIG.MAP_SIZE - 30, data.x));
-            player.y = Math.max(30, Math.min(CONFIG.MAP_SIZE - 30, data.y));
+            // Verificar colisão com walls
+            if (!checkCollisionWithWalls(data.x, data.y, 15, server)) {
+                player.x = Math.max(20, Math.min(CONFIG.MAP_SIZE - 20, data.x));
+                player.y = Math.max(20, Math.min(CONFIG.MAP_SIZE - 20, data.y));
+            }
         }
-
+        
         if (data.state) player.state = data.state;
         if (typeof data.facing === 'number') player.facing = data.facing;
-        if (typeof data.animFrame === 'number') player.animFrame = data.animFrame;
+        if (typeof data.selectedSlot === 'number') player.selectedSlot = data.selectedSlot;
     });
-
-    // Ataque do player
-    socket.on('playerAttack', function(data) {
-        var room = rooms[socket.roomCode];
-        if (!room || !room.players[socket.id]) return;
-
-        var player = room.players[socket.id];
-        if (player.attackCooldown > 0 || player.hp <= 0) return;
-
-        player.attackCooldown = CONFIG.ATTACK_COOLDOWN;
+    
+    // Ataque
+    socket.on('playerAttack', (data) => {
+        const server = publicServers[socket.serverId];
+        if (!server || !server.players[socket.id]) return;
+        
+        const player = server.players[socket.id];
+        const now = Date.now();
+        
+        if (player.attackCooldown > now || player.hp <= 0) return;
+        
+        player.attackCooldown = now + CONFIG.ATTACK_COOLDOWN;
         player.state = 'attack';
-
-        var angle = data.angle || 0;
-        var attackRange = 80;
-        var attackArc = 0.8;
-
-        // Atacar inimigos
-        for (var i = 0; i < room.enemies.length; i++) {
-            var enemy = room.enemies[i];
-            if (enemy.hp <= 0) continue;
-
-            var dx = enemy.x - player.x;
-            var dy = enemy.y - player.y;
-            var dist = Math.sqrt(dx * dx + dy * dy);
-            var angleToEnemy = Math.atan2(dy, dx);
-
-            var angleDiff = Math.abs(angle - angleToEnemy);
-            if (angleDiff > Math.PI) angleDiff = Math.PI * 2 - angleDiff;
-
-            if (dist < attackRange && angleDiff < attackArc) {
-                var isCrit = Math.random() < 0.15;
-                var damage = Math.floor(player.damage * (1 + player.level * 0.08) * (isCrit ? 2 : 1));
-
-                enemy.hp -= damage;
-                enemy.stunned = 200;
-
-                var knockback = 15;
-                enemy.x += Math.cos(angleToEnemy) * knockback;
-                enemy.y += Math.sin(angleToEnemy) * knockback;
-
-                room.effects.push({
+        
+        const angle = data.angle || 0;
+        const attackRange = 80;
+        
+        // Atacar zumbis
+        server.zombies.forEach(zombie => {
+            const dist = Math.hypot(zombie.x - player.x, zombie.y - player.y);
+            const angleToZombie = Math.atan2(zombie.y - player.y, zombie.x - player.x);
+            const angleDiff = Math.abs(angle - angleToZombie);
+            
+            if (dist < attackRange && (angleDiff < 0.8 || angleDiff > Math.PI * 2 - 0.8)) {
+                const damage = player.damage + Math.floor(Math.random() * 5);
+                zombie.hp -= damage;
+                zombie.stunned = 200;
+                
+                // Knockback
+                zombie.x += Math.cos(angleToZombie) * 20;
+                zombie.y += Math.sin(angleToZombie) * 20;
+                
+                server.effects.push({
                     type: 'hit',
-                    x: enemy.x,
-                    y: enemy.y,
+                    x: zombie.x,
+                    y: zombie.y,
                     damage: damage,
-                    crit: isCrit,
-                    life: 30
+                    color: '#FFD700'
                 });
-
-                if (enemy.hp <= 0) {
+                
+                if (zombie.hp <= 0) {
                     player.kills++;
-
-                    var orbCount = enemy.isBoss ? 8 : 4;
-                    for (var j = 0; j < orbCount; j++) {
-                        room.orbs.push({
-                            id: 'orb_' + Date.now() + '_' + j,
-                            x: enemy.x + (Math.random() - 0.5) * 40,
-                            y: enemy.y + (Math.random() - 0.5) * 40,
-                            value: Math.floor(enemy.xp / orbCount),
-                            life: 600
+                    player.xp += zombie.xp;
+                    player.coins += zombie.coins;
+                    
+                    // Level up
+                    while (player.xp >= player.nextXp) {
+                        player.xp -= player.nextXp;
+                        player.level++;
+                        player.nextXp = Math.floor(player.nextXp * 1.5);
+                        player.maxHp += 20;
+                        player.hp = player.maxHp;
+                        player.damage += 3;
+                        
+                        io.to(socket.id).emit('levelUp', {
+                            level: player.level,
+                            rewards: {
+                                hp: 20,
+                                damage: 3
+                            }
                         });
                     }
-
-                    if (Math.random() < 0.25) {
-                        player.food++;
+                    
+                    // Drop orbs
+                    for (let i = 0; i < 3; i++) {
+                        server.orbs.push({
+                            id: 'orb_' + Date.now() + '_' + i,
+                            x: zombie.x + (Math.random() - 0.5) * 30,
+                            y: zombie.y + (Math.random() - 0.5) * 30,
+                            type: Math.random() < 0.3 ? 'coin' : 'xp',
+                            value: zombie.type === 'boss' ? 10 : 3
+                        });
                     }
-
-                    room.effects.push({
-                        type: 'death',
-                        x: enemy.x,
-                        y: enemy.y,
-                        color: enemy.color,
-                        life: 40
-                    });
                 }
             }
-        }
-
+        });
+        
         // Atacar recursos
-        for (var i = 0; i < room.resources.length; i++) {
-            var resource = room.resources[i];
-            if (resource.depleted) continue;
-
-            var dist = Math.sqrt(
-                Math.pow(resource.x - player.x, 2) + 
-                Math.pow(resource.y - player.y, 2)
-            );
-
-            if (dist < 70) {
-                resource.hp -= 12;
-
-                room.effects.push({
+        server.resources.forEach(resource => {
+            if (resource.depleted) return;
+            
+            const dist = Math.hypot(resource.x - player.x, resource.y - player.y);
+            if (dist < 60) {
+                resource.hp -= 10;
+                
+                server.effects.push({
                     type: 'resourceHit',
                     x: resource.x,
-                    y: resource.y,
-                    life: 15
+                    y: resource.y
                 });
-
+                
                 if (resource.hp <= 0) {
                     resource.depleted = true;
-                    resource.respawnTime = Date.now() + 30000;
-
-                    var drops = getResourceDrop(resource);
-                    player.wood += drops.wood;
-                    player.stone += drops.stone;
-                    player.crystal += drops.crystal;
-                    player.food += drops.food;
-
-                    room.effects.push({
-                        type: 'resourceDrop',
-                        x: resource.x,
-                        y: resource.y,
-                        drops: drops,
-                        life: 40
-                    });
+                    resource.respawnTime = Date.now() + CONFIG.TREE_RESPAWN_TIME;
+                    
+                    // Dar recursos
+                    if (resource.type === 'tree') {
+                        player.wood += resource.wood;
+                        socket.emit('resourceCollected', {
+                            type: 'wood',
+                            amount: resource.wood
+                        });
+                    } else if (resource.type === 'stone') {
+                        player.stone += resource.stone;
+                        socket.emit('resourceCollected', {
+                            type: 'stone',
+                            amount: resource.stone
+                        });
+                    } else if (resource.type === 'bush') {
+                        player.food += resource.food;
+                        socket.emit('resourceCollected', {
+                            type: 'food',
+                            amount: resource.food
+                        });
+                    }
                 }
             }
-        }
+        });
     });
-
+    
     // Construir
-    socket.on('build', function(data) {
-        var room = rooms[socket.roomCode];
-        if (!room || !room.players[socket.id]) return;
-
-        var player = room.players[socket.id];
-        var cost = BUILD_COSTS[data.type];
-
+    socket.on('build', (data) => {
+        const server = publicServers[socket.serverId];
+        if (!server || !server.players[socket.id]) return;
+        
+        const player = server.players[socket.id];
+        const cost = BUILD_COSTS[data.type];
+        
         if (!cost) return;
-
-        if (player.wood >= cost.wood &&
-            player.stone >= cost.stone &&
-            player.crystal >= cost.crystal) {
-
-            var tooClose = false;
-            for (var i = 0; i < room.buildings.length; i++) {
-                var b = room.buildings[i];
-                var dist = Math.sqrt(Math.pow(b.x - data.x, 2) + Math.pow(b.y - data.y, 2));
-                if (dist < 50) {
-                    tooClose = true;
-                    break;
-                }
-            }
-
-            if (tooClose) {
-                socket.emit('buildError', 'Muito perto de outra construção!');
-                return;
-            }
-
-            player.wood -= cost.wood;
-            player.stone -= cost.stone;
-            player.crystal -= cost.crystal;
-
-            room.buildings.push({
-                id: 'build_' + Date.now(),
-                type: data.type,
-                x: data.x || player.x,
-                y: data.y || player.y,
-                hp: cost.hp,
-                maxHp: cost.hp,
-                owner: socket.id,
-                lastAction: 0
-            });
-
-            socket.emit('buildSuccess', data.type);
-        } else {
-            socket.emit('buildError', 'Recursos insuficientes!');
+        
+        // Verificar distância
+        const dist = Math.hypot(data.x - player.x, data.y - player.y);
+        if (dist > CONFIG.BUILD_RANGE) {
+            socket.emit('error', { message: 'Muito longe!' });
+            return;
         }
+        
+        // Verificar recursos
+        const hasResources = 
+            player.wood >= (cost.wood || 0) &&
+            player.stone >= (cost.stone || 0) &&
+            player.coins >= (cost.coins || 0);
+            
+        if (!hasResources) {
+            socket.emit('error', { message: 'Recursos insuficientes!' });
+            return;
+        }
+        
+        // Verificar espaço
+        const tooClose = server.buildings.some(b => 
+            Math.hypot(b.x - data.x, b.y - data.y) < 40
+        );
+        
+        if (tooClose && data.type !== 'banana') {
+            socket.emit('error', { message: 'Muito perto de outra construção!' });
+            return;
+        }
+        
+        // Item especial: Banana
+        if (data.type === 'banana') {
+            server.items.push({
+                id: 'banana_' + Date.now(),
+                type: 'banana',
+                x: data.x,
+                y: data.y,
+                owner: socket.id,
+                lifetime: 30000
+            });
+            
+            player.coins -= cost.coins;
+            socket.emit('buildSuccess', { type: 'banana' });
+            return;
+        }
+        
+        // Construir
+        player.wood -= cost.wood || 0;
+        player.stone -= cost.stone || 0;
+        player.coins -= cost.coins || 0;
+        player.constructions++;
+        
+        const building = {
+            id: 'build_' + Date.now(),
+            type: data.type,
+            x: data.x,
+            y: data.y,
+            hp: cost.hp,
+            maxHp: cost.hp,
+            owner: socket.id,
+            damage: cost.damage || 0,
+            range: cost.range || 0,
+            lastAction: 0
+        };
+        
+        server.buildings.push(building);
+        socket.emit('buildSuccess', { type: data.type });
     });
-
-    // Usar comida
-    socket.on('useFood', function() {
-        var room = rooms[socket.roomCode];
-        if (!room || !room.players[socket.id]) return;
-
-        var player = room.players[socket.id];
-
-        if (player.food > 0 && player.hp < player.maxHp) {
+    
+    // Usar item
+    socket.on('useItem', (data) => {
+        const server = publicServers[socket.serverId];
+        if (!server || !server.players[socket.id]) return;
+        
+        const player = server.players[socket.id];
+        
+        if (data.type === 'food' && player.food > 0 && player.hp < player.maxHp) {
             player.food--;
-            player.hp = Math.min(player.maxHp, player.hp + 35);
-
-            room.effects.push({
+            player.hp = Math.min(player.maxHp, player.hp + 30);
+            
+            server.effects.push({
                 type: 'heal',
                 x: player.x,
                 y: player.y,
-                life: 30
+                amount: 30
             });
         }
     });
-
-    // Escolher upgrade
-    socket.on('chooseUpgrade', function(upgrade) {
-        var room = rooms[socket.roomCode];
-        if (!room || !room.players[socket.id]) return;
-
-        var player = room.players[socket.id];
-        player.upgrades.push(upgrade);
-
-        switch (upgrade) {
-            case 'damage':
-                player.damage += 8;
-                break;
-            case 'health':
-                player.maxHp += 25;
-                player.hp = player.maxHp;
-                break;
-            case 'speed':
-                player.speed += 0.8;
-                break;
-            case 'defense':
-                player.defense += 3;
-                break;
-            case 'lifesteal':
-                player.lifesteal = (player.lifesteal || 0) + 0.1;
-                break;
-            case 'crit':
-                player.critChance = (player.critChance || 0.15) + 0.1;
-                break;
+    
+    // Coletar orb
+    socket.on('collectOrb', (orbId) => {
+        const server = publicServers[socket.serverId];
+        if (!server || !server.players[socket.id]) return;
+        
+        const player = server.players[socket.id];
+        const orbIndex = server.orbs.findIndex(o => o.id === orbId);
+        
+        if (orbIndex !== -1) {
+            const orb = server.orbs[orbIndex];
+            const dist = Math.hypot(orb.x - player.x, orb.y - player.y);
+            
+            if (dist < 30) {
+                if (orb.type === 'coin') {
+                    player.coins += orb.value;
+                } else {
+                    player.xp += orb.value;
+                }
+                
+                server.orbs.splice(orbIndex, 1);
+            }
         }
     });
-
+    
     // Respawn
-    socket.on('respawn', function() {
-        var room = rooms[socket.roomCode];
-        if (!room || !room.players[socket.id]) return;
-
-        var player = room.players[socket.id];
+    socket.on('respawn', () => {
+        const server = publicServers[socket.serverId];
+        if (!server || !server.players[socket.id]) return;
+        
+        const player = server.players[socket.id];
         player.hp = player.maxHp;
-        player.x = CONFIG.MAP_SIZE / 2;
-        player.y = CONFIG.MAP_SIZE / 2;
-        player.invincible = 3000;
-
-        player.wood = Math.floor(player.wood * 0.5);
-        player.stone = Math.floor(player.stone * 0.5);
-        player.crystal = Math.floor(player.crystal * 0.3);
+        player.x = CONFIG.MAP_SIZE / 2 + (Math.random() - 0.5) * 200;
+        player.y = CONFIG.MAP_SIZE / 2 + (Math.random() - 0.5) * 200;
+        player.alive = true;
+        
+        // Penalidade
+        player.wood = Math.floor(player.wood * 0.7);
+        player.stone = Math.floor(player.stone * 0.7);
+        player.coins = Math.floor(player.coins * 0.5);
     });
-
+    
+    // Chat
+    socket.on('chatMessage', (message) => {
+        const server = publicServers[socket.serverId];
+        if (!server || !server.players[socket.id]) return;
+        
+        io.to(socket.serverId).emit('chatMessage', {
+            player: server.players[socket.id].name,
+            message: message.substring(0, 100)
+        });
+    });
+    
     // Desconexão
-    socket.on('disconnect', function() {
-        console.log('👋 Player desconectado:', socket.id);
-
-        if (socket.roomCode && rooms[socket.roomCode]) {
-            delete rooms[socket.roomCode].players[socket.id];
-
-            var newBuildings = [];
-            for (var i = 0; i < rooms[socket.roomCode].buildings.length; i++) {
-                if (rooms[socket.roomCode].buildings[i].owner !== socket.id) {
-                    newBuildings.push(rooms[socket.roomCode].buildings[i]);
-                }
-            }
-            rooms[socket.roomCode].buildings = newBuildings;
-
-            if (Object.keys(rooms[socket.roomCode].players).length === 0) {
-                delete rooms[socket.roomCode];
-                console.log('🗑️ Sala deletada:', socket.roomCode);
+    socket.on('disconnect', () => {
+        console.log('👋 Jogador desconectado:', socket.id);
+        
+        if (socket.serverId && publicServers[socket.serverId]) {
+            const server = publicServers[socket.serverId];
+            delete server.players[socket.id];
+            
+            // Remover construções do jogador
+            server.buildings = server.buildings.filter(b => b.owner !== socket.id);
+            
+            // Deletar servidor se vazio
+            if (Object.keys(server.players).length === 0) {
+                delete publicServers[socket.serverId];
+                console.log('🗑️ Servidor removido:', socket.serverId);
             }
         }
     });
 });
 
 // ============ GAME LOOP ============
-setInterval(function() {
-    var now = Date.now();
-
-    for (var roomCode in rooms) {
-        var room = rooms[roomCode];
-
-        room.gameTime += 16;
-
-        // ===== SPAWN DE INIMIGOS =====
-        if (now - room.enemySpawnTimer > CONFIG.ENEMY_SPAWN_RATE) {
-            room.enemySpawnTimer = now;
-
-            if (room.enemies.length < CONFIG.MAX_ENEMIES) {
-                var enemy = createEnemy(room);
-                if (enemy) room.enemies.push(enemy);
+setInterval(() => {
+    const now = Date.now();
+    
+    for (const serverId in publicServers) {
+        const server = publicServers[serverId];
+        
+        // ===== SPAWN DE ZUMBIS =====
+        if (now - server.zombieSpawnTimer > CONFIG.ZOMBIE_SPAWN_RATE) {
+            server.zombieSpawnTimer = now;
+            
+            if (server.zombies.length < CONFIG.MAX_ZOMBIES) {
+                // Escolher tipo baseado na wave
+                const types = ['normal', 'normal', 'fast'];
+                if (server.wave > 2) types.push('tank');
+                if (server.wave > 4) types.push('spitter');
+                if (server.wave % 5 === 0) types.push('boss');
+                
+                const type = types[Math.floor(Math.random() * types.length)];
+                server.zombies.push(createZombie(server, type));
             }
         }
-
+        
         // ===== SISTEMA DE WAVES =====
-        if (now - room.waveTimer > CONFIG.WAVE_DURATION) {
-            room.waveTimer = now;
-            room.wave++;
-
-            var spawnCount = 3 + room.wave * 2;
-            for (var i = 0; i < spawnCount; i++) {
-                (function(index) {
-                    setTimeout(function() {
-                        if (room.enemies.length < CONFIG.MAX_ENEMIES + 10) {
-                            var enemy = createEnemy(room);
-                            if (enemy) room.enemies.push(enemy);
-                        }
-                    }, index * 300);
-                })(i);
-            }
-
-            io.to(roomCode).emit('waveStart', room.wave);
-        }
-
-        // ===== ATUALIZAR PLAYERS =====
-        for (var playerId in room.players) {
-            var player = room.players[playerId];
-
-            if (player.attackCooldown > 0) player.attackCooldown -= 16;
-            if (player.invincible > 0) player.invincible -= 16;
-
-            // Coletar orbs
-            var newOrbs = [];
-            for (var i = 0; i < room.orbs.length; i++) {
-                var orb = room.orbs[i];
-                orb.life -= 1;
-
-                if (orb.life <= 0) continue;
-
-                var dist = Math.sqrt(
-                    Math.pow(orb.x - player.x, 2) + 
-                    Math.pow(orb.y - player.y, 2)
-                );
-
-                if (dist < 100) {
-                    var angle = Math.atan2(player.y - orb.y, player.x - orb.x);
-                    orb.x += Math.cos(angle) * 4;
-                    orb.y += Math.sin(angle) * 4;
-                }
-
-                if (dist < 25) {
-                    player.xp += orb.value;
-
-                    while (player.xp >= player.nextXp) {
-                        player.xp -= player.nextXp;
-                        player.level++;
-                        player.nextXp = Math.floor(player.nextXp * 1.4);
-                        player.maxHp += 15;
-                        player.hp = player.maxHp;
-                        player.damage += 2;
-
-                        io.to(playerId).emit('levelUp', player.level);
+        if (now - server.waveTimer > CONFIG.WAVE_DURATION) {
+            server.waveTimer = now;
+            server.wave++;
+            
+            // Spawn em massa
+            const spawnCount = Math.min(5 + server.wave * 2, 20);
+            for (let i = 0; i < spawnCount; i++) {
+                setTimeout(() => {
+                    if (server.zombies.length < CONFIG.MAX_ZOMBIES + 10) {
+                        const type = Math.random() < 0.1 ? 'tank' : 'normal';
+                        server.zombies.push(createZombie(server, type));
                     }
+                }, i * 200);
+            }
+            
+            io.to(serverId).emit('newWave', { wave: server.wave });
+        }
+        
+        // ===== ATUALIZAR ZUMBIS =====
+        server.zombies = server.zombies.filter(zombie => {
+            if (zombie.hp <= 0) return false;
+            
+            // Cooldowns
+            if (zombie.attackCooldown > 0) zombie.attackCooldown -= 16;
+            if (zombie.stunned > 0) {
+                zombie.stunned -= 16;
+                return true;
+            }
+            
+            // Verificar se está escorregando na banana
+            if (zombie.slipping) {
+                zombie.slipTime -= 16;
+                if (zombie.slipTime <= 0) {
+                    zombie.slipping = false;
                 } else {
-                    newOrbs.push(orb);
+                    // Continuar escorregando
+                    zombie.x += zombie.vx;
+                    zombie.y += zombie.vy;
+                    
+                    // Desacelerar
+                    zombie.vx *= 0.95;
+                    zombie.vy *= 0.95;
+                    
+                    // Manter dentro do mapa
+                    zombie.x = Math.max(20, Math.min(CONFIG.MAP_SIZE - 20, zombie.x));
+                    zombie.y = Math.max(20, Math.min(CONFIG.MAP_SIZE - 20, zombie.y));
+                    return true;
                 }
             }
-            room.orbs = newOrbs;
-        }
-
-        // ===== ATUALIZAR INIMIGOS =====
-        var newEnemies = [];
-        for (var i = 0; i < room.enemies.length; i++) {
-            var enemy = room.enemies[i];
-
-            if (enemy.hp <= 0) continue;
-
-            if (enemy.attackCooldown > 0) enemy.attackCooldown -= 16;
-            if (enemy.specialCooldown > 0) enemy.specialCooldown -= 16;
-            if (enemy.stunned > 0) {
-                enemy.stunned -= 16;
-                newEnemies.push(enemy);
-                continue;
+            
+            // Verificar bananas no chão
+            for (const item of server.items) {
+                if (item.type === 'banana') {
+                    const dist = Math.hypot(item.x - zombie.x, item.y - zombie.y);
+                    if (dist < 20 && !zombie.slipping) {
+                        // Escorregar!
+                        zombie.slipping = true;
+                        zombie.slipTime = CONFIG.BANANA_SLIP_DURATION;
+                        zombie.vx = (Math.random() - 0.5) * 10;
+                        zombie.vy = (Math.random() - 0.5) * 10;
+                        
+                        server.effects.push({
+                            type: 'slip',
+                            x: zombie.x,
+                            y: zombie.y,
+                            text: 'SLIP!'
+                        });
+                        
+                        // Remover banana
+                        const itemIndex = server.items.indexOf(item);
+                        if (itemIndex !== -1) {
+                            server.items.splice(itemIndex, 1);
+                        }
+                    }
+                }
             }
-
-            var closestPlayer = null;
-            var closestDist = Infinity;
-
-            for (var playerId in room.players) {
-                var player = room.players[playerId];
+            
+            // IA do zumbi
+            let closestPlayer = null;
+            let closestDist = Infinity;
+            
+            for (const playerId in server.players) {
+                const player = server.players[playerId];
                 if (player.hp <= 0) continue;
-
-                var dist = Math.sqrt(
-                    Math.pow(player.x - enemy.x, 2) + 
-                    Math.pow(player.y - enemy.y, 2)
-                );
-
+                
+                const dist = Math.hypot(player.x - zombie.x, player.y - zombie.y);
                 if (dist < closestDist) {
                     closestDist = dist;
-                    closestPlayer = { id: playerId, x: player.x, y: player.y };
+                    closestPlayer = player;
                 }
             }
-
-            if (closestPlayer && closestDist < 400) {
-                enemy.state = 'chase';
-                enemy.target = closestPlayer.id;
-
-                var angle = Math.atan2(
-                    closestPlayer.y - enemy.y,
-                    closestPlayer.x - enemy.x
-                );
-
-                enemy.x += Math.cos(angle) * enemy.speed;
-                enemy.y += Math.sin(angle) * enemy.speed;
-
-                enemy.x = Math.max(30, Math.min(CONFIG.MAP_SIZE - 30, enemy.x));
-                enemy.y = Math.max(30, Math.min(CONFIG.MAP_SIZE - 30, enemy.y));
-
-                if (closestDist < 45 && enemy.attackCooldown <= 0) {
-                    var targetPlayer = room.players[closestPlayer.id];
-
-                    if (targetPlayer && targetPlayer.invincible <= 0) {
-                        var finalDamage = Math.max(1, enemy.damage - targetPlayer.defense);
-                        targetPlayer.hp -= finalDamage;
-                        enemy.attackCooldown = 1000;
-
-                        room.effects.push({
-                            type: 'playerHit',
-                            x: targetPlayer.x,
-                            y: targetPlayer.y,
-                            damage: finalDamage,
-                            life: 25
-                        });
-
-                        if (targetPlayer.hp <= 0) {
-                            io.to(closestPlayer.id).emit('playerDied');
-                        }
-                    }
-                }
-
-                if (enemy.specialCooldown <= 0 && closestDist < 200) {
-                    if (enemy.attackType === 'fireball' && closestDist > 80) {
-                        room.projectiles.push({
-                            id: 'proj_' + Date.now(),
-                            type: 'fireball',
-                            x: enemy.x,
-                            y: enemy.y,
-                            vx: Math.cos(angle) * 5,
-                            vy: Math.sin(angle) * 5,
-                            damage: enemy.damage * 1.5,
-                            owner: 'enemy',
-                            life: 100
-                        });
-                        enemy.specialCooldown = 3000;
-                    } else if (enemy.attackType === 'dash' && closestDist > 60 && closestDist < 150) {
-                        enemy.x += Math.cos(angle) * 40;
-                        enemy.y += Math.sin(angle) * 40;
-                        enemy.specialCooldown = 2000;
-                    }
-                }
-
-                if (now - enemy.lastSpeak > 6000 && Math.random() < 0.05) {
-                    enemy.lastSpeak = now;
-                    var quotes = ENEMY_QUOTES[enemy.type] || ENEMY_QUOTES.default;
-                    var quote = quotes[Math.floor(Math.random() * quotes.length)];
-
-                    io.to(roomCode).emit('enemySpeak', {
-                        x: enemy.x,
-                        y: enemy.y - 50,
-                        message: quote
+            
+            if (closestPlayer && closestDist < 300) {
+                zombie.state = 'chase';
+                zombie.target = closestPlayer;
+                
+                // Pathfinding simples
+                const path = findPath(zombie, closestPlayer.x, closestPlayer.y, server);
+                
+                zombie.x += path.moveX;
+                zombie.y += path.moveY;
+                
+                // Manter dentro do mapa
+                zombie.x = Math.max(20, Math.min(CONFIG.MAP_SIZE - 20, zombie.x));
+                zombie.y = Math.max(20, Math.min(CONFIG.MAP_SIZE - 20, zombie.y));
+                
+                // Atacar se perto
+                if (closestDist < 40 && zombie.attackCooldown <= 0) {
+                    closestPlayer.hp -= zombie.damage;
+                    zombie.attackCooldown = 1000;
+                    
+                    server.effects.push({
+                        type: 'playerHit',
+                        x: closestPlayer.x,
+                        y: closestPlayer.y,
+                        damage: zombie.damage
                     });
+                    
+                    if (closestPlayer.hp <= 0) {
+                        closestPlayer.alive = false;
+                        io.to(serverId).emit('playerDied', {
+                            playerId: Object.keys(server.players).find(id => 
+                                server.players[id] === closestPlayer
+                            )
+                        });
+                    }
                 }
             } else {
-                enemy.state = 'wander';
-
+                zombie.state = 'wander';
+                
                 if (Math.random() < 0.02) {
-                    enemy.wanderAngle = Math.random() * Math.PI * 2;
+                    zombie.wanderAngle = Math.random() * Math.PI * 2;
                 }
-
-                enemy.x += Math.cos(enemy.wanderAngle) * enemy.speed * 0.3;
-                enemy.y += Math.sin(enemy.wanderAngle) * enemy.speed * 0.3;
-
-                enemy.x = Math.max(100, Math.min(CONFIG.MAP_SIZE - 100, enemy.x));
-                enemy.y = Math.max(100, Math.min(CONFIG.MAP_SIZE - 100, enemy.y));
-            }
-
-            newEnemies.push(enemy);
-        }
-        room.enemies = newEnemies;
-
-        // ===== ATUALIZAR PROJÉTEIS =====
-        var newProjectiles = [];
-        for (var i = 0; i < room.projectiles.length; i++) {
-            var proj = room.projectiles[i];
-
-            proj.x += proj.vx;
-            proj.y += proj.vy;
-            proj.life--;
-
-            if (proj.life <= 0) continue;
-            if (proj.x < 0 || proj.x > CONFIG.MAP_SIZE) continue;
-            if (proj.y < 0 || proj.y > CONFIG.MAP_SIZE) continue;
-
-            var hitPlayer = false;
-
-            if (proj.owner === 'enemy') {
-                for (var playerId in room.players) {
-                    var player = room.players[playerId];
-                    if (player.hp <= 0 || player.invincible > 0) continue;
-
-                    var dist = Math.sqrt(
-                        Math.pow(player.x - proj.x, 2) + 
-                        Math.pow(player.y - proj.y, 2)
-                    );
-
-                    if (dist < 30) {
-                        var damage = Math.max(1, proj.damage - player.defense);
-                        player.hp -= damage;
-
-                        room.effects.push({
-                            type: 'playerHit',
-                            x: player.x,
-                            y: player.y,
-                            damage: damage,
-                            life: 25
-                        });
-
-                        if (player.hp <= 0) {
-                            io.to(playerId).emit('playerDied');
-                        }
-
-                        hitPlayer = true;
-                        break;
-                    }
+                
+                const moveX = Math.cos(zombie.wanderAngle) * zombie.speed * 0.5;
+                const moveY = Math.sin(zombie.wanderAngle) * zombie.speed * 0.5;
+                
+                if (!checkCollisionWithWalls(zombie.x + moveX, zombie.y + moveY, zombie.size, server)) {
+                    zombie.x += moveX;
+                    zombie.y += moveY;
                 }
+                
+                zombie.x = Math.max(50, Math.min(CONFIG.MAP_SIZE - 50, zombie.x));
+                zombie.y = Math.max(50, Math.min(CONFIG.MAP_SIZE - 50, zombie.y));
             }
-
-            if (!hitPlayer) {
-                newProjectiles.push(proj);
-            }
-        }
-        room.projectiles = newProjectiles;
-
+            
+            return true;
+        });
+        
         // ===== ATUALIZAR CONSTRUÇÕES =====
-        for (var i = 0; i < room.buildings.length; i++) {
-            var building = room.buildings[i];
-
+        server.buildings = server.buildings.filter(building => {
+            if (building.hp <= 0) return false;
+            
+            // Torreta atira
             if (building.type === 'turret' && now - building.lastAction > 500) {
-                var target = null;
-                for (var j = 0; j < room.enemies.length; j++) {
-                    var e = room.enemies[j];
-                    var dist = Math.sqrt(
-                        Math.pow(e.x - building.x, 2) + 
-                        Math.pow(e.y - building.y, 2)
-                    );
-                    if (dist < 180) {
-                        target = e;
-                        break;
-                    }
-                }
-
+                const target = server.zombies.find(z => 
+                    Math.hypot(z.x - building.x, z.y - building.y) < building.range
+                );
+                
                 if (target) {
                     building.lastAction = now;
-                    target.hp -= 12;
-
-                    room.effects.push({
-                        type: 'turretShot',
+                    target.hp -= building.damage;
+                    
+                    server.projectiles.push({
+                        id: 'proj_' + Date.now(),
+                        type: 'bullet',
                         x: building.x,
                         y: building.y,
-                        x2: target.x,
-                        y2: target.y,
-                        life: 10
+                        targetX: target.x,
+                        targetY: target.y,
+                        lifetime: 10
                     });
-
-                    if (target.hp <= 0) {
-                        var owner = room.players[building.owner];
-                        if (owner) {
-                            owner.xp += target.xp;
-                        }
-                    }
+                    
+                    server.effects.push({
+                        type: 'turretShoot',
+                        x: building.x,
+                        y: building.y
+                    });
                 }
             }
-
-            if (building.type === 'healpad' && now - building.lastAction > 2000) {
-                var owner = room.players[building.owner];
-                if (owner) {
-                    var dist = Math.sqrt(
-                        Math.pow(owner.x - building.x, 2) + 
-                        Math.pow(owner.y - building.y, 2)
-                    );
-                    if (dist < 60 && owner.hp < owner.maxHp) {
+            
+            // Espinhos dão dano
+            if (building.type === 'spike') {
+                server.zombies.forEach(zombie => {
+                    const dist = Math.hypot(zombie.x - building.x, zombie.y - building.y);
+                    if (dist < 30 && now - building.lastAction > 500) {
                         building.lastAction = now;
-                        owner.hp = Math.min(owner.maxHp, owner.hp + 10);
+                        zombie.hp -= building.damage;
+                        zombie.stunned = 300;
+                        
+                        server.effects.push({
+                            type: 'spikeDamage',
+                            x: zombie.x,
+                            y: zombie.y,
+                            damage: building.damage
+                        });
                     }
-                }
+                });
             }
-
-            if (building.type === 'spikes') {
-                for (var j = 0; j < room.enemies.length; j++) {
-                    var enemy = room.enemies[j];
-                    var dist = Math.sqrt(
-                        Math.pow(enemy.x - building.x, 2) + 
-                        Math.pow(enemy.y - building.y, 2)
-                    );
-                    if (dist < 40 && now - building.lastAction > 500) {
+            
+            // Fogueira cura
+            if (building.type === 'campfire') {
+                for (const playerId in server.players) {
+                    const player = server.players[playerId];
+                    const dist = Math.hypot(player.x - building.x, player.y - building.y);
+                    
+                    if (dist < 60 && player.hp < player.maxHp && now - building.lastAction > 2000) {
                         building.lastAction = now;
-                        enemy.hp -= 8;
-                        enemy.speed *= 0.7;
-
-                        (function(e) {
-                            setTimeout(function() {
-                                if (e) e.speed /= 0.7;
-                            }, 1000);
-                        })(enemy);
+                        player.hp = Math.min(player.maxHp, player.hp + 5);
+                        
+                        server.effects.push({
+                            type: 'campfireHeal',
+                            x: player.x,
+                            y: player.y,
+                            amount: 5
+                        });
                     }
                 }
             }
-        }
-
+            
+            // Zumbis atacam construções
+            server.zombies.forEach(zombie => {
+                const dist = Math.hypot(zombie.x - building.x, zombie.y - building.y);
+                if (dist < 40 && zombie.attackCooldown <= 0) {
+                    zombie.attackCooldown = 1000;
+                    building.hp -= zombie.damage / 2;
+                    
+                    server.effects.push({
+                        type: 'buildingDamage',
+                        x: building.x,
+                        y: building.y,
+                        damage: zombie.damage / 2
+                    });
+                }
+            });
+            
+            return true;
+        });
+        
         // ===== RESPAWN DE RECURSOS =====
-        for (var i = 0; i < room.resources.length; i++) {
-            var resource = room.resources[i];
+        server.resources.forEach(resource => {
             if (resource.depleted && now > resource.respawnTime) {
                 resource.depleted = false;
                 resource.hp = resource.maxHp;
             }
-        }
-
+        });
+        
+        // ===== LIMPAR ITEMS ANTIGOS =====
+        server.items = server.items.filter(item => {
+            return now - item.lifetime < 30000; // 30 segundos
+        });
+        
+        // ===== LIMPAR PROJÉTEIS =====
+        server.projectiles = server.projectiles.filter(p => {
+            p.lifetime--;
+            return p.lifetime > 0;
+        });
+        
+        // ===== LIMPAR ORBS =====
+        server.orbs = server.orbs.filter(orb => {
+            return now - (orb.createdAt || now) < 30000; // 30 segundos
+        });
+        
         // ===== LIMPAR EFEITOS =====
-        var newEffects = [];
-        for (var i = 0; i < room.effects.length; i++) {
-            room.effects[i].life--;
-            if (room.effects[i].life > 0) {
-                newEffects.push(room.effects[i]);
-            }
-        }
-        room.effects = newEffects;
-
+        server.effects = server.effects.filter(e => {
+            return now - (e.createdAt || now) < 2000; // 2 segundos
+        });
+        
         // ===== ENVIAR ESTADO DO JOGO =====
-        var gameState = {
-            players: room.players,
-            enemies: room.enemies,
-            resources: [],
-            buildings: room.buildings,
-            projectiles: room.projectiles,
-            orbs: room.orbs,
-            effects: room.effects,
-            wave: room.wave,
-            gameTime: room.gameTime
-        };
-
-        for (var i = 0; i < room.resources.length; i++) {
-            var r = room.resources[i];
-            gameState.resources.push({
+        const gameState = {
+            players: server.players,
+            zombies: server.zombies,
+            resources: server.resources.filter(r => !r.depleted).map(r => ({
                 id: r.id,
                 type: r.type,
-                biome: r.biome,
                 x: r.x,
                 y: r.y,
                 hp: r.hp,
-                maxHp: r.maxHp,
-                depleted: r.depleted
-            });
-        }
-
-        io.to(roomCode).emit('gameState', gameState);
+                maxHp: r.maxHp
+            })),
+            buildings: server.buildings,
+            items: server.items,
+            projectiles: server.projectiles,
+            orbs: server.orbs,
+            effects: server.effects,
+            wave: server.wave,
+            gameTime: server.gameTime
+        };
+        
+        io.to(serverId).emit('gameState', gameState);
+        
+        // Limpar efeitos após enviar
+        server.effects = [];
     }
-}, 16);
+}, 16); // ~60 FPS
 
 // ============ INICIAR SERVIDOR ============
-server.listen(PORT, function() {
-    console.log('');
-    console.log('╔════════════════════════════════════════╗');
-    console.log('║   🎮 RPG LEGENDS - MIKU EDITION V9     ║');
-    console.log('║   ✨ Servidor rodando na porta ' + PORT + '    ║');
-    console.log('╚════════════════════════════════════════╝');
-    console.log('');
+server.listen(PORT, () => {
+    console.log(`
+╔═══════════════════════════════════════════╗
+║   🧟 ZOMBIE SURVIVAL - SERVER ONLINE      ║
+║   🌐 Porta: ${PORT}                           ║
+║   ✨ Versão: 2.0.0                       ║
+╚═══════════════════════════════════════════╝
+    `);
 });

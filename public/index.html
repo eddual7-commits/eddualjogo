@@ -3,10 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>⚔️ RPG Legends - Ultimate Edition</title>
+<title>⚔️ RPG Legends V7 - Ultimate</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Russo+One&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-
 * { 
     box-sizing: border-box; 
     touch-action: none; 
@@ -15,402 +14,369 @@
 }
 body { 
     margin: 0; 
-    background: #0a0a1a; 
+    background: #0a0a0a; 
     overflow: hidden; 
     color: white; 
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Russo One', sans-serif;
 }
 
-/* === TELAS === */
+/* === TELA DE MENU === */
 .screen { 
-    position: fixed; 
-    top: 0; left: 0; 
-    width: 100%; height: 100%; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    justify-content: center; 
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    display: flex; flex-direction: column; align-items: center; justify-content: center; 
     z-index: 100; 
+    transition: all 0.5s;
 }
 .hidden { display: none !important; }
 
-/* Estrelas animadas */
-.stars {
+#menu {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+}
+#menu::before {
+    content: '';
     position: absolute;
     width: 100%; height: 100%;
-    background-image: 
-        radial-gradient(2px 2px at 20px 30px, #fff, transparent),
-        radial-gradient(2px 2px at 40px 70px, #fff, transparent),
-        radial-gradient(1px 1px at 90px 40px, #fff, transparent),
-        radial-gradient(2px 2px at 160px 120px, #fff, transparent),
-        radial-gradient(1px 1px at 230px 80px, #fff, transparent),
-        radial-gradient(2px 2px at 300px 150px, #fff, transparent),
-        radial-gradient(1px 1px at 350px 60px, #fff, transparent);
-    background-repeat: repeat;
-    background-size: 400px 200px;
-    animation: twinkle 4s ease-in-out infinite;
-    opacity: 0.5;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="%23ffffff10"/></svg>');
+    background-size: 50px 50px;
+    animation: starsMove 20s linear infinite;
 }
-@keyframes twinkle { 
-    0%, 100% { opacity: 0.3; } 
-    50% { opacity: 0.8; } 
+@keyframes starsMove {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(50px); }
 }
 
-/* Partículas flutuantes */
-.floating-particles {
-    position: absolute;
-    width: 100%; height: 100%;
-    overflow: hidden;
-    pointer-events: none;
-}
-.particle {
-    position: absolute;
-    width: 4px; height: 4px;
-    background: #ffd700;
-    border-radius: 50%;
-    animation: float 8s infinite ease-in-out;
-    box-shadow: 0 0 10px #ffd700, 0 0 20px #ffd700;
-}
-@keyframes float {
-    0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
-}
-
-h1 { 
+.logo {
     font-family: 'Press Start 2P', cursive;
-    color: #ffd700; 
-    font-size: clamp(1.5rem, 5vw, 2.5rem); 
-    text-shadow: 
-        0 0 10px #ff6b00, 
-        0 0 20px #ff6b00, 
-        0 0 40px #ff4500, 
-        4px 4px 0 #8b0000,
-        -2px -2px 0 #ff8c00; 
-    margin-bottom: 10px; 
+    font-size: 2rem;
+    background: linear-gradient(45deg, #f39c12, #e74c3c, #9b59b6, #3498db);
+    background-size: 400% 400%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: rainbow 3s ease infinite;
+    text-shadow: 0 0 30px rgba(243, 156, 18, 0.5);
+    margin-bottom: 10px;
     text-align: center;
-    animation: titleGlow 2s ease-in-out infinite alternate;
-    letter-spacing: 2px;
+    z-index: 1;
 }
-@keyframes titleGlow { 
-    from { text-shadow: 0 0 10px #ff6b00, 0 0 20px #ff6b00, 4px 4px 0 #8b0000; filter: brightness(1); } 
-    to { text-shadow: 0 0 20px #ffd700, 0 0 40px #ff6b00, 0 0 60px #ff4500, 4px 4px 0 #8b0000; filter: brightness(1.2); } 
+.logo-sub {
+    font-size: 1rem;
+    color: #f39c12;
+    text-shadow: 0 0 20px #f39c12;
+    margin-bottom: 30px;
+    z-index: 1;
+}
+@keyframes rainbow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
-.subtitle {
-    font-family: 'Press Start 2P', cursive;
-    font-size: clamp(0.6rem, 2vw, 0.9rem);
-    color: #00ffff;
-    text-shadow: 0 0 15px #00ffff;
-    margin-bottom: 30px;
-    animation: subtitlePulse 3s ease-in-out infinite;
-}
-@keyframes subtitlePulse {
-    0%, 100% { opacity: 0.7; }
-    50% { opacity: 1; }
+.menu-box {
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(10px);
+    border: 2px solid #f39c12;
+    border-radius: 20px;
+    padding: 30px;
+    z-index: 1;
+    box-shadow: 0 0 50px rgba(243, 156, 18, 0.3);
 }
 
 input { 
-    background: linear-gradient(180deg, #2a2a4a 0%, #1a1a3a 100%); 
-    border: 3px solid #6b5b95; 
-    padding: 16px 20px; 
+    background: rgba(255,255,255,0.1); 
+    border: 2px solid #444; 
+    padding: 15px; 
     font-size: 16px; 
-    color: #fff; 
-    border-radius: 12px; 
+    color: white; 
+    border-radius: 10px; 
     text-align: center; 
-    margin: 8px; 
-    width: 85%; 
-    max-width: 320px;
-    box-shadow: 
-        0 0 15px rgba(107, 91, 149, 0.4),
-        inset 0 2px 10px rgba(0,0,0,0.5);
-    transition: all 0.3s ease;
+    margin: 8px 0; 
+    width: 100%;
+    max-width: 280px;
+    transition: all 0.3s;
+    font-family: 'Russo One', sans-serif;
 }
-input:focus { 
-    border-color: #ffd700; 
-    box-shadow: 0 0 25px rgba(255, 215, 0, 0.5), inset 0 2px 10px rgba(0,0,0,0.5); 
-    outline: none; 
+input:focus {
+    border-color: #f39c12;
+    box-shadow: 0 0 20px rgba(243, 156, 18, 0.5);
+    outline: none;
 }
-input::placeholder { color: #888; }
+input::placeholder { color: #666; }
 
-button { 
-    background: linear-gradient(180deg, #4ade80 0%, #22c55e 50%, #16a34a 100%); 
+.btn { 
+    background: linear-gradient(135deg, #27ae60, #2ecc71); 
     color: white; 
     border: none; 
-    padding: 16px 30px; 
+    padding: 15px 30px; 
     font-size: 16px; 
     font-weight: bold; 
-    border-radius: 12px; 
+    border-radius: 10px; 
     margin-top: 10px; 
     cursor: pointer; 
-    box-shadow: 0 6px 0 #15803d, 0 8px 25px rgba(0,0,0,0.4);
-    width: 85%; 
-    max-width: 320px;
+    width: 100%;
+    max-width: 280px;
     text-transform: uppercase;
     letter-spacing: 2px;
-    transition: all 0.1s ease;
-    font-family: 'Press Start 2P', cursive;
-    font-size: 12px;
+    box-shadow: 0 5px 0 #1e8449, 0 0 30px rgba(46, 204, 113, 0.4);
+    transition: all 0.2s;
+    font-family: 'Russo One', sans-serif;
 }
-button:active { 
-    transform: translateY(6px); 
-    box-shadow: 0 0 0 #15803d, 0 2px 10px rgba(0,0,0,0.4); 
+.btn:active { 
+    transform: translateY(5px); 
+    box-shadow: 0 0 0 #1e8449, 0 0 30px rgba(46, 204, 113, 0.4); 
 }
-
-.btn-blue { 
-    background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%); 
-    box-shadow: 0 6px 0 #1d4ed8, 0 8px 25px rgba(0,0,0,0.4); 
+.btn.blue {
+    background: linear-gradient(135deg, #2980b9, #3498db);
+    box-shadow: 0 5px 0 #1a5276, 0 0 30px rgba(52, 152, 219, 0.4);
 }
-.btn-blue:active { box-shadow: 0 0 0 #1d4ed8; }
+.btn.blue:active {
+    box-shadow: 0 0 0 #1a5276, 0 0 30px rgba(52, 152, 219, 0.4);
+}
 
 .divider {
-    color: #6b5b95;
-    margin: 15px;
+    color: #555;
+    margin: 15px 0;
     font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-.divider::before, .divider::after {
-    content: '';
-    width: 50px;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, #6b5b95, transparent);
 }
 
 /* === HUD === */
 #hud { 
-    position: fixed; 
-    top: 0; left: 0; 
-    width: 100%; height: 100%; 
-    pointer-events: none; 
-    display: none; 
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    pointer-events: none; display: none; 
 }
 
-.bars { position: absolute; top: 15px; left: 15px; }
-.bar-container { 
-    width: 200px; 
-    height: 28px; 
-    background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%); 
-    border: 3px solid #333; 
-    border-radius: 14px; 
-    overflow: hidden; 
-    margin-bottom: 10px; 
-    position: relative;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5), inset 0 2px 5px rgba(0,0,0,0.5);
+.hud-bars { 
+    position: absolute; top: 15px; left: 15px; 
 }
+.bar-container { 
+    width: 200px; height: 24px; 
+    background: rgba(0,0,0,0.7); 
+    border: 2px solid; 
+    border-radius: 12px; 
+    overflow: hidden; 
+    margin-bottom: 8px; 
+    position: relative;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+.bar-container.hp { border-color: #e74c3c; }
+.bar-container.xp { border-color: #3498db; }
 .bar-fill { 
     height: 100%; 
-    transition: width 0.3s ease-out; 
-    border-radius: 10px; 
+    transition: width 0.3s ease-out;
     position: relative;
+}
+.bar-fill.hp { 
+    background: linear-gradient(180deg, #e74c3c, #c0392b);
+    box-shadow: inset 0 -2px 10px rgba(0,0,0,0.3);
+}
+.bar-fill.xp { 
+    background: linear-gradient(180deg, #3498db, #2980b9);
+    box-shadow: inset 0 -2px 10px rgba(0,0,0,0.3);
 }
 .bar-fill::after {
     content: '';
     position: absolute;
-    top: 2px;
-    left: 5px;
-    right: 5px;
-    height: 8px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 100%);
-    border-radius: 4px;
-}
-.hp-fill { 
-    background: linear-gradient(180deg, #ff6b6b 0%, #ee5a5a 50%, #c0392b 100%); 
-    box-shadow: 0 0 20px rgba(231, 76, 60, 0.6); 
-}
-.xp-fill { 
-    background: linear-gradient(180deg, #74b9ff 0%, #0984e3 50%, #0652DD 100%); 
-    box-shadow: 0 0 20px rgba(9, 132, 227, 0.6); 
+    top: 2px; left: 5px; right: 5px; height: 6px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.4), transparent);
+    border-radius: 3px;
 }
 .bar-text { 
     position: absolute; 
-    width: 100%; 
-    text-align: center; 
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
     font-size: 12px; 
     font-weight: bold; 
-    line-height: 28px; 
-    text-shadow: 2px 2px 2px #000, -1px -1px 0 #000; 
-    z-index: 1;
+    text-shadow: 1px 1px 2px #000;
+    font-family: 'Press Start 2P', cursive;
 }
 
-.level-badge {
-    background: linear-gradient(180deg, #ffd700 0%, #f39c12 50%, #e67e22 100%);
-    color: #000;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-weight: bold;
-    font-size: 12px;
-    box-shadow: 0 4px 15px rgba(243, 156, 18, 0.5), 0 2px 0 #c45c00;
-    display: inline-block;
-    margin-top: 5px;
+.hud-inv { 
+    position: absolute; top: 15px; right: 15px; 
+    display: flex; gap: 8px; 
 }
-
-.inventory { 
-    position: absolute; 
-    top: 15px; 
-    right: 15px; 
-    display: flex; 
-    gap: 10px; 
-}
-.slot { 
-    background: linear-gradient(180deg, #2a2a4a 0%, #1a1a3a 100%); 
-    padding: 10px 16px; 
-    border-radius: 12px; 
-    border: 3px solid #555; 
+.inv-slot { 
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(5px);
+    padding: 8px 15px; 
+    border-radius: 10px; 
+    border: 2px solid #555; 
     font-size: 14px; 
     display: flex; 
     align-items: center; 
     gap: 8px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.4), inset 0 2px 5px rgba(0,0,0,0.3);
-    font-weight: bold;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
 }
-.slot-wood { border-color: #8B4513; background: linear-gradient(180deg, #3d2817 0%, #2a1a0f 100%); }
-.slot-stone { border-color: #708090; background: linear-gradient(180deg, #3a3a4a 0%, #2a2a3a 100%); }
-
-#craftBtn { 
-    position: absolute; 
-    bottom: 140px; 
-    left: 50%; 
-    transform: translateX(-50%); 
-    background: linear-gradient(180deg, #a855f7 0%, #9333ea 50%, #7e22ce 100%); 
-    box-shadow: 0 6px 0 #581c87, 0 0 40px rgba(168, 85, 247, 0.5);
-    display: none; 
-    pointer-events: auto; 
-    animation: craftPulse 2s infinite;
-    width: auto;
-    padding: 14px 28px;
+.inv-slot span {
+    font-family: 'Press Start 2P', cursive;
     font-size: 11px;
 }
-@keyframes craftPulse { 
-    0%, 100% { box-shadow: 0 6px 0 #581c87, 0 0 30px rgba(168, 85, 247, 0.5); } 
-    50% { box-shadow: 0 6px 0 #581c87, 0 0 60px rgba(168, 85, 247, 0.8); } 
+
+/* WAVE INDICATOR */
+.wave-indicator {
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, rgba(155, 89, 182, 0.8), rgba(142, 68, 173, 0.8));
+    padding: 8px 25px;
+    border-radius: 20px;
+    border: 2px solid #9b59b6;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 12px;
+    box-shadow: 0 0 20px rgba(155, 89, 182, 0.5);
 }
 
-#minimap { 
+/* BOTÃO CRAFTING */
+#craftBtn { 
     position: absolute; 
-    top: 120px; 
-    right: 15px; 
-    border: 4px solid #333; 
-    border-radius: 50%; 
-    background: rgba(0, 0, 0, 0.8); 
-    width: 120px; 
-    height: 120px;
-    box-shadow: 0 0 25px rgba(0,0,0,0.6), inset 0 0 30px rgba(0,0,0,0.5);
+    bottom: 120px; 
+    left: 50%; 
+    transform: translateX(-50%); 
+    background: linear-gradient(135deg, #8e44ad, #9b59b6); 
+    display: none; 
+    pointer-events: auto; 
+    animation: pulse 2s infinite;
+    border: 2px solid #a569bd;
+    box-shadow: 0 5px 0 #6c3483, 0 0 30px rgba(155, 89, 182, 0.5);
+}
+@keyframes pulse { 
+    0%, 100% { transform: translateX(-50%) scale(1); }
+    50% { transform: translateX(-50%) scale(1.05); }
 }
 
-/* === MENUS === */
+/* === POPUPS === */
 #craftMenu, #levelUp, #death { 
     z-index: 200; 
-    background: rgba(10, 10, 30, 0.97); 
+    background: rgba(0,0,0,0.95); 
+    backdrop-filter: blur(10px);
 }
+
+.popup-title {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    text-shadow: 0 0 20px currentColor;
+}
+.popup-title.gold { color: #f1c40f; }
+.popup-title.white { color: #fff; }
+.popup-title.red { color: #e74c3c; }
 
 .craft-grid { 
     display: flex; 
     gap: 15px; 
     flex-wrap: wrap; 
     justify-content: center; 
-    max-width: 700px; 
-    padding: 20px; 
+    max-width: 650px;
+    padding: 10px;
 }
 .craft-item { 
-    background: linear-gradient(180deg, #3a3a5a 0%, #2a2a4a 100%); 
-    border: 3px solid #6b5b95; 
-    padding: 18px 15px; 
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    border: 2px solid #5d6d7e; 
+    padding: 15px; 
     border-radius: 15px; 
     width: 140px; 
     text-align: center; 
     cursor: pointer; 
     pointer-events: auto;
-    transition: all 0.3s ease;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+    transition: all 0.3s;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
-.craft-item:hover, .craft-item:active { 
-    transform: translateY(-5px) scale(1.05); 
-    border-color: #ffd700; 
-    box-shadow: 0 10px 40px rgba(255, 215, 0, 0.3); 
+.craft-item:hover, .craft-item:active {
+    transform: translateY(-5px);
+    border-color: #f1c40f;
+    box-shadow: 0 10px 30px rgba(241, 196, 15, 0.3);
+}
+.craft-item .icon {
+    font-size: 2rem;
+    margin-bottom: 8px;
 }
 .craft-item h3 { 
-    font-size: 14px; 
-    margin: 0 0 10px 0; 
-    color: #ffd700; 
-}
-.craft-cost { 
     font-size: 11px; 
-    color: #aaa; 
-    background: rgba(0,0,0,0.3);
-    padding: 5px 10px;
-    border-radius: 8px;
-    margin-top: 8px;
+    margin: 0 0 8px 0; 
+    color: #f1c40f;
+    font-family: 'Press Start 2P', cursive;
+}
+.craft-item .cost { 
+    font-size: 11px; 
+    color: #95a5a6; 
 }
 
-.cards { 
+/* CARDS DE LEVEL UP */
+.cards-container { 
     display: flex; 
-    gap: 20px; 
+    gap: 15px; 
     flex-wrap: wrap; 
-    justify-content: center; 
-    padding: 20px; 
+    justify-content: center;
+    max-width: 600px;
 }
-.card { 
-    background: linear-gradient(180deg, #3a3a5a 0%, #2a2a4a 100%); 
-    border: 4px solid #ffd700; 
-    padding: 25px 20px; 
-    border-radius: 20px; 
+.upgrade-card { 
+    background: linear-gradient(135deg, #1a1a2e, #2c3e50);
+    border: 3px solid #f1c40f; 
+    padding: 20px; 
+    border-radius: 15px; 
     width: 130px; 
     text-align: center; 
     cursor: pointer; 
     pointer-events: auto;
-    transition: all 0.3s ease;
-    box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+    transition: all 0.3s;
+    box-shadow: 0 0 20px rgba(241, 196, 15, 0.3);
 }
-.card:hover, .card:active { 
-    transform: scale(1.1); 
-    box-shadow: 0 0 50px rgba(255, 215, 0, 0.6); 
+.upgrade-card:hover, .upgrade-card:active {
+    transform: scale(1.1);
+    box-shadow: 0 0 40px rgba(241, 196, 15, 0.6);
 }
-.card h3 { 
-    font-size: 36px; 
-    margin: 0 0 10px 0; 
+.upgrade-card .icon {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
 }
-.card p { 
-    font-size: 13px; 
-    color: #ffd700; 
-    margin: 0 0 5px 0;
-    font-weight: bold;
-}
-.card small {
+.upgrade-card h3 {
     font-size: 10px;
-    color: #888;
-}
-
-#death h1 { 
-    color: #ff0000; 
-    text-shadow: 0 0 30px #ff0000, 0 0 60px #ff0000, 4px 4px 0 #8b0000; 
-    animation: deathPulse 1s infinite;
-}
-@keyframes deathPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-}
-
-.menu-title {
-    color: #ffd700;
-    font-size: 28px;
-    margin-bottom: 25px;
-    text-shadow: 0 0 20px #ffd700;
+    color: #f1c40f;
+    margin: 0 0 5px 0;
     font-family: 'Press Start 2P', cursive;
-    font-size: 18px;
+}
+.upgrade-card p {
+    font-size: 11px;
+    color: #bdc3c7;
+    margin: 0;
 }
 
-.close-btn {
-    background: linear-gradient(180deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%) !important;
-    box-shadow: 0 6px 0 #991b1b, 0 8px 25px rgba(0,0,0,0.4) !important;
+.btn.close {
+    background: linear-gradient(135deg, #c0392b, #e74c3c);
+    box-shadow: 0 5px 0 #922b21, 0 0 20px rgba(231, 76, 60, 0.4);
     margin-top: 25px;
-    width: 180px !important;
+    width: 180px;
 }
-.close-btn:active {
-    box-shadow: 0 0 0 #991b1b !important;
+
+/* MINIMAP */
+#minimap { 
+    position: absolute; 
+    bottom: 15px;
+    right: 15px; 
+    border: 3px solid #f39c12; 
+    border-radius: 10px; 
+    background: rgba(0,0,0,0.7);
+    box-shadow: 0 0 20px rgba(243, 156, 18, 0.3);
+}
+
+/* WAVE ALERT */
+.wave-alert {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Press Start 2P', cursive;
+    font-size: 2rem;
+    color: #e74c3c;
+    text-shadow: 0 0 30px #e74c3c;
+    animation: waveIn 3s forwards;
+    z-index: 300;
+    pointer-events: none;
+}
+@keyframes waveIn {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+    80% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
 }
 
 canvas { display: block; }
@@ -418,258 +384,183 @@ canvas { display: block; }
 </head>
 <body>
 
-<!-- MENU INICIAL -->
 <div id="menu" class="screen">
-    <div class="stars"></div>
-    <div class="floating-particles">
-        <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
-        <div class="particle" style="left: 20%; animation-delay: 1s;"></div>
-        <div class="particle" style="left: 35%; animation-delay: 2s;"></div>
-        <div class="particle" style="left: 50%; animation-delay: 0.5s;"></div>
-        <div class="particle" style="left: 65%; animation-delay: 3s;"></div>
-        <div class="particle" style="left: 80%; animation-delay: 1.5s;"></div>
-        <div class="particle" style="left: 90%; animation-delay: 2.5s;"></div>
+    <div class="logo">⚔️ RPG LEGENDS</div>
+    <div class="logo-sub">✨ VERSÃO ULTIMATE ✨</div>
+    
+    <div class="menu-box">
+        <input id="name" placeholder="🎮 Nome do Herói">
+        <button class="btn" id="btnCreate">🌍 CRIAR MUNDO</button>
+        <div class="divider">— OU —</div>
+        <input id="code" placeholder="🔑 Código da Sala">
+        <button class="btn blue" id="btnJoin">🚪 ENTRAR</button>
     </div>
-    <h1>⚔️ RPG LEGENDS ⚔️</h1>
-    <div class="subtitle">✨ ULTIMATE EDITION ✨</div>
-    <input id="playerName" placeholder="🗡️ Nome do Herói">
-    <button id="btnCreate">⚔️ CRIAR MUNDO</button>
-    <div class="divider">ou entre em uma sala</div>
-    <input id="roomCode" placeholder="🔑 Código da Sala">
-    <button id="btnJoin" class="btn-blue">🚪 ENTRAR</button>
 </div>
 
-<!-- HUD -->
 <div id="hud">
-    <div class="bars">
-        <div class="bar-container">
-            <div id="hpBar" class="bar-fill hp-fill" style="width: 100%"></div>
-            <div id="hpText" class="bar-text">❤️ 100/100</div>
+    <div class="hud-bars">
+        <div class="bar-container hp">
+            <div id="hpBar" class="bar-fill hp" style="width:100%"></div>
+            <div id="hpTxt" class="bar-text">❤️ 100/100</div>
         </div>
-        <div class="bar-container">
-            <div id="xpBar" class="bar-fill xp-fill" style="width: 0%"></div>
-            <div id="xpText" class="bar-text">⭐ 0/100 XP</div>
+        <div class="bar-container xp">
+            <div id="xpBar" class="bar-fill xp" style="width:0%"></div>
+            <div id="xpTxt" class="bar-text">⭐ LVL 1</div>
         </div>
-        <div id="levelBadge" class="level-badge">🏆 LEVEL 1</div>
     </div>
-    <div class="inventory">
-        <div class="slot slot-wood">🪵 <span id="woodCount">0</span></div>
-        <div class="slot slot-stone">🪨 <span id="stoneCount">0</span></div>
+    
+    <div class="wave-indicator" id="waveDisplay">🌊 WAVE 1</div>
+    
+    <div class="hud-inv">
+        <div class="inv-slot">🪵 <span id="wood">0</span></div>
+        <div class="inv-slot">🪨 <span id="stone">0</span></div>
     </div>
-    <button id="craftBtn" onclick="openCraftMenu()">🛠️ CONSTRUIR</button>
-    <canvas id="minimap"></canvas>
+    
+    <button class="btn" id="craftBtn" onclick="openCraft()">🛠️ CRAFTING</button>
+    <canvas id="minimap" width="120" height="120"></canvas>
 </div>
 
-<!-- MENU DE CRAFT -->
 <div id="craftMenu" class="screen hidden">
-    <h2 class="menu-title">🏗️ CONSTRUÇÃO</h2>
+    <div class="popup-title white">🛠️ CONSTRUÇÃO</div>
     <div class="craft-grid">
-        <div class="craft-item" onclick="buildStructure('table')">
-            <h3>📦 BANCADA</h3>
-            <div class="craft-cost">5 Madeira</div>
+        <div class="craft-item" onclick="build('table')">
+            <div class="icon">📦</div>
+            <h3>BANCADA</h3>
+            <p class="cost">🪵 5</p>
         </div>
-        <div class="craft-item" onclick="buildStructure('wall_wood')">
-            <h3>🧱 MURO MADEIRA</h3>
-            <div class="craft-cost">10 Madeira</div>
+        <div class="craft-item" onclick="build('wall_wood')">
+            <div class="icon">🧱</div>
+            <h3>PAREDE</h3>
+            <p class="cost">🪵 10</p>
         </div>
-        <div class="craft-item" onclick="buildStructure('wall_stone')">
-            <h3>🏰 MURO PEDRA</h3>
-            <div class="craft-cost">10 Pedra</div>
+        <div class="craft-item" onclick="build('wall_stone')">
+            <div class="icon">🏰</div>
+            <h3>FORTE</h3>
+            <p class="cost">🪨 10</p>
         </div>
-        <div class="craft-item" onclick="buildStructure('campfire')">
-            <h3>🔥 FOGUEIRA</h3>
-            <div class="craft-cost">15 Mad / 5 Ped</div>
+        <div class="craft-item" onclick="build('campfire')">
+            <div class="icon">🔥</div>
+            <h3>FOGUEIRA</h3>
+            <p class="cost">🪵 15 🪨 5</p>
         </div>
-        <div class="craft-item" onclick="buildStructure('turret')">
-            <h3>🔫 TORRETA</h3>
-            <div class="craft-cost">20 Mad / 10 Ped</div>
+        <div class="craft-item" onclick="build('turret')">
+            <div class="icon">🔫</div>
+            <h3>TORRETA</h3>
+            <p class="cost">🪵 20 🪨 10</p>
+        </div>
+        <div class="craft-item" onclick="build('spike')">
+            <div class="icon">🗡️</div>
+            <h3>ESPINHOS</h3>
+            <p class="cost">🪵 5 🪨 5</p>
         </div>
     </div>
-    <button class="close-btn" onclick="closeCraftMenu()">❌ FECHAR</button>
+    <button class="btn close" onclick="closeCraft()">❌ FECHAR</button>
 </div>
 
-<!-- LEVEL UP -->
 <div id="levelUp" class="screen hidden">
-    <h2 class="menu-title">🎉 LEVEL UP! 🎉</h2>
-    <div class="cards">
-        <div class="card" onclick="selectUpgrade('multi')">
-            <h3>🔫</h3>
-            <p>TRIPLO</p>
-            <small>Atira 3 projéteis</small>
+    <div class="popup-title gold">🎉 LEVEL UP!</div>
+    <div class="cards-container">
+        <div class="upgrade-card" onclick="up('multi')">
+            <div class="icon">🔫</div>
+            <h3>TRIPLO</h3>
+            <p>Atira 3 projéteis</p>
         </div>
-        <div class="card" onclick="selectUpgrade('vamp')">
-            <h3>🩸</h3>
-            <p>VAMPIRO</p>
-            <small>Rouba vida</small>
+        <div class="upgrade-card" onclick="up('vamp')">
+            <div class="icon">🩸</div>
+            <h3>VAMPIRO</h3>
+            <p>Rouba vida</p>
         </div>
-        <div class="card" onclick="selectUpgrade('dmg')">
-            <h3>⚔️</h3>
-            <p>FORÇA</p>
-            <small>+40% Dano</small>
+        <div class="upgrade-card" onclick="up('dmg')">
+            <div class="icon">⚔️</div>
+            <h3>FORÇA</h3>
+            <p>+40% dano</p>
         </div>
-        <div class="card" onclick="selectUpgrade('hp')">
-            <h3>❤️</h3>
-            <p>REGENERAR</p>
-            <small>Cura total</small>
+        <div class="upgrade-card" onclick="up('hp')">
+            <div class="icon">❤️</div>
+            <h3>VIDA</h3>
+            <p>Cura total +20 max</p>
+        </div>
+        <div class="upgrade-card" onclick="up('speed')">
+            <div class="icon">💨</div>
+            <h3>SPEED</h3>
+            <p>+15% velocidade</p>
+        </div>
+        <div class="upgrade-card" onclick="up('range')">
+            <div class="icon">🎯</div>
+            <h3>ALCANCE</h3>
+            <p>+20% range</p>
         </div>
     </div>
 </div>
 
-<!-- TELA DE MORTE -->
 <div id="death" class="screen hidden">
-    <h1>💀 VOCÊ MORREU 💀</h1>
-    <p style="color: #aaa; margin-bottom: 25px; font-size: 16px;">Seus recursos foram perdidos...</p>
-    <button onclick="respawnPlayer()" style="background: linear-gradient(180deg, #ef4444, #dc2626, #b91c1c); box-shadow: 0 6px 0 #991b1b;">⚡ RENASCER</button>
+    <div class="popup-title red">💀 VOCÊ MORREU</div>
+    <p style="color:#aaa; margin: 20px 0;">Seus recursos foram perdidos...</p>
+    <button class="btn" onclick="respawn()">🔄 RENASCER</button>
 </div>
 
-<!-- CANVAS DO JOGO -->
 <canvas id="game"></canvas>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-// ==========================================
-// SISTEMA DE ÁUDIO
-// ==========================================
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+/* ═══════════════════════════════════════════════════════════════
+   🎮 RPG LEGENDS V7 - ENGINE PRINCIPAL
+   ═══════════════════════════════════════════════════════════════ */
 
-function playSound(type) {
-    if (audioContext.state === 'suspended') audioContext.resume();
+// === AUDIO CONTEXT ===
+const ac = new (window.AudioContext || window.webkitAudioContext)();
+
+function sfx(type) {
+    if(ac.state === 'suspended') ac.resume();
+    const o = ac.createOscillator();
+    const g = ac.createGain();
+    o.connect(g);
+    g.connect(ac.destination);
+    const t = ac.currentTime;
     
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
+    const sounds = {
+        hit: () => { o.frequency.setValueAtTime(200, t); o.frequency.exponentialRampToValueAtTime(50, t+0.1); g.gain.setValueAtTime(0.3, t); g.gain.linearRampToValueAtTime(0, t+0.1); o.start(); o.stop(t+0.1); },
+        wood: () => { o.type='square'; o.frequency.setValueAtTime(150, t); o.frequency.linearRampToValueAtTime(80, t+0.08); g.gain.setValueAtTime(0.15, t); g.gain.linearRampToValueAtTime(0, t+0.08); o.start(); o.stop(t+0.08); },
+        shoot: () => { o.type='sawtooth'; o.frequency.setValueAtTime(800, t); o.frequency.exponentialRampToValueAtTime(200, t+0.1); g.gain.setValueAtTime(0.08, t); g.gain.linearRampToValueAtTime(0, t+0.1); o.start(); o.stop(t+0.1); },
+        levelup: () => { o.type='sine'; o.frequency.setValueAtTime(400, t); o.frequency.linearRampToValueAtTime(800, t+0.2); g.gain.setValueAtTime(0.15, t); g.gain.linearRampToValueAtTime(0, t+0.3); o.start(); o.stop(t+0.3); },
+        death: () => { o.type='sawtooth'; o.frequency.setValueAtTime(300, t); o.frequency.linearRampToValueAtTime(50, t+0.5); g.gain.setValueAtTime(0.2, t); g.gain.linearRampToValueAtTime(0, t+0.5); o.start(); o.stop(t+0.5); },
+        wave: () => { o.type='square'; o.frequency.setValueAtTime(200, t); o.frequency.linearRampToValueAtTime(400, t+0.15); o.frequency.linearRampToValueAtTime(200, t+0.3); g.gain.setValueAtTime(0.15, t); g.gain.linearRampToValueAtTime(0, t+0.4); o.start(); o.stop(t+0.4); }
+    };
     
-    const time = audioContext.currentTime;
-    
-    switch(type) {
-        case 'hit':
-            oscillator.type = 'sawtooth';
-            oscillator.frequency.setValueAtTime(200, time);
-            oscillator.frequency.exponentialRampToValueAtTime(50, time + 0.15);
-            gainNode.gain.setValueAtTime(0.2, time);
-            gainNode.gain.linearRampToValueAtTime(0, time + 0.15);
-            oscillator.start(time);
-            oscillator.stop(time + 0.15);
-            break;
-            
-        case 'collect':
-            oscillator.type = 'square';
-            oscillator.frequency.setValueAtTime(150, time);
-            oscillator.frequency.linearRampToValueAtTime(80, time + 0.08);
-            gainNode.gain.setValueAtTime(0.15, time);
-            gainNode.gain.linearRampToValueAtTime(0, time + 0.08);
-            oscillator.start(time);
-            oscillator.stop(time + 0.08);
-            break;
-            
-        case 'shoot':
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(600, time);
-            oscillator.frequency.exponentialRampToValueAtTime(200, time + 0.1);
-            gainNode.gain.setValueAtTime(0.08, time);
-            gainNode.gain.linearRampToValueAtTime(0, time + 0.1);
-            oscillator.start(time);
-            oscillator.stop(time + 0.1);
-            break;
-            
-        case 'levelup':
-            const notes = [523, 659, 784, 1047];
-            notes.forEach((freq, i) => {
-                const osc = audioContext.createOscillator();
-                const gain = audioContext.createGain();
-                osc.connect(gain);
-                gain.connect(audioContext.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(freq, time + i * 0.12);
-                gain.gain.setValueAtTime(0.15, time + i * 0.12);
-                gain.gain.linearRampToValueAtTime(0, time + i * 0.12 + 0.25);
-                osc.start(time + i * 0.12);
-                osc.stop(time + i * 0.12 + 0.25);
-            });
-            break;
-            
-        case 'death':
-            oscillator.type = 'sawtooth';
-            oscillator.frequency.setValueAtTime(200, time);
-            oscillator.frequency.exponentialRampToValueAtTime(30, time + 0.5);
-            gainNode.gain.setValueAtTime(0.3, time);
-            gainNode.gain.linearRampToValueAtTime(0, time + 0.5);
-            oscillator.start(time);
-            oscillator.stop(time + 0.5);
-            break;
-    }
+    if(sounds[type]) sounds[type]();
 }
 
-// ==========================================
-// CONFIGURAÇÃO DO CANVAS
-// ==========================================
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-const minimapCanvas = document.getElementById('minimap');
-const minimapCtx = minimapCanvas.getContext('2d');
-minimapCanvas.width = 120;
-minimapCanvas.height = 120;
+// === CANVAS SETUP ===
+const cvs = document.getElementById('game');
+const ctx = cvs.getContext('2d');
+const mCvs = document.getElementById('minimap');
+const mCtx = mCvs.getContext('2d');
 
-function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+function resize() {
+    cvs.width = window.innerWidth;
+    cvs.height = window.innerHeight;
 }
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
+resize();
+window.addEventListener('resize', resize);
 
-// ==========================================
-// VARIÁVEIS DO JOGO
-// ==========================================
+// === GAME STATE ===
 let socket = io();
-let myId = null;
-let roomId = null;
-let gameTime = 0;
+let myId = null, roomId = null;
+let cam = {x: 0, y: 0};
+let me = {x: 1500, y: 1500, wood: 0, stone: 0, hp: 100, maxHp: 100, level: 1, xp: 0};
+let state = {players: {}, enemies: [], resources: [], buildings: [], orbs: [], wave: 1, time: 0};
+let particles = [], texts = [], shots = [], screenShake = 0;
+let joyL = {on: false, dx: 0, dy: 0}, joyR = {on: false, dx: 0, dy: 0, ang: 0};
 
-const camera = { x: 0, y: 0 };
-const player = { x: 400, y: 400, wood: 0, stone: 0, hp: 100, maxHp: 100, level: 1, xp: 0, nextLevel: 100, dead: false };
-const gameState = { players: {}, enemies: [], resources: [], buildings: [], orbs: [] };
-
-const particles = [];
-const damageTexts = [];
-const projectileTrails = [];
-const ambientParticles = [];
-
-// Partículas ambientes
-for (let i = 0; i < 60; i++) {
-    ambientParticles.push({
-        x: Math.random() * 2400,
-        y: Math.random() * 2400,
-        size: Math.random() * 3 + 1,
-        speed: Math.random() * 0.5 + 0.2,
-        alpha: Math.random() * 0.5 + 0.3,
-        color: Math.random() > 0.5 ? '#ffd700' : '#00ffff'
-    });
-}
-
-// Joysticks virtuais
-const joystickLeft = { active: false, id: null, originX: 0, originY: 0, dx: 0, dy: 0 };
-const joystickRight = { active: false, id: null, originX: 0, originY: 0, dx: 0, dy: 0, angle: 0 };
-
-// Teclas pressionadas
-const keysPressed = {};
-
-// ==========================================
-// CONEXÃO DE REDE
-// ==========================================
-socket.on('connect', () => {
-    myId = socket.id;
-});
-
+// === NETWORKING ===
 document.getElementById('btnCreate').onclick = () => {
-    const name = document.getElementById('playerName').value || 'Herói';
-    socket.emit('createRoom', name);
+    socket.emit('createRoom', document.getElementById('name').value || 'Herói');
 };
-
 document.getElementById('btnJoin').onclick = () => {
-    const code = document.getElementById('roomCode').value.toUpperCase();
-    const name = document.getElementById('playerName').value || 'Herói';
-    socket.emit('joinRoom', { code, name });
+    socket.emit('joinRoom', {
+        code: document.getElementById('code').value.toUpperCase(),
+        name: document.getElementById('name').value || 'Herói'
+    });
 };
 
 function startGame(id) {
@@ -678,375 +569,690 @@ function startGame(id) {
     document.getElementById('hud').style.display = 'block';
 }
 
+socket.on('connect', () => myId = socket.id);
 socket.on('roomCreated', startGame);
 socket.on('joinedRoom', startGame);
 
-socket.on('update', (data) => {
-    Object.assign(gameState, data);
-    
-    if (gameState.players[myId]) {
-        const serverPlayer = gameState.players[myId];
-        player.hp = serverPlayer.hp;
-        player.maxHp = serverPlayer.maxHp;
-        player.xp = serverPlayer.xp;
-        player.level = serverPlayer.level;
-        player.wood = serverPlayer.wood;
-        player.stone = serverPlayer.stone;
-        player.dead = serverPlayer.dead;
-        player.nextLevel = serverPlayer.nextLevel;
+socket.on('update', data => {
+    state = data;
+    if(state.players[myId]) {
+        const s = state.players[myId];
+        me.hp = s.hp;
+        me.maxHp = s.maxHp;
+        me.xp = s.xp;
+        me.level = s.level;
+        me.wood = s.wood;
+        me.stone = s.stone;
+        me.dead = s.dead;
+        me.nextLevel = s.nextLevel;
         updateHUD();
-        
-        if (player.dead && !document.getElementById('death').classList.contains('visible')) {
-            document.getElementById('death').classList.remove('hidden');
-            playSound('death');
-        }
     }
 });
 
-socket.on('resBreak', (data) => {
-    playSound('collect');
-    const color = data.type === 'tree' ? '#4caf50' : '#90a4ae';
-    for (let i = 0; i < 12; i++) {
+socket.on('resBreak', d => {
+    sfx('wood');
+    for(let i = 0; i < 10; i++) {
         particles.push({
-            x: data.x,
-            y: data.y,
+            x: d.x, y: d.y,
             vx: (Math.random() - 0.5) * 12,
             vy: (Math.random() - 0.5) * 12 - 3,
             life: 1,
-            color: color,
-            size: Math.random() * 8 + 4
+            color: d.type === 'tree' ? '#5d4037' : '#7f8c8d',
+            size: 3 + Math.random() * 4
         });
     }
 });
 
-socket.on('dmg', (data) => {
-    playSound('hit');
-    damageTexts.push({
-        x: data.x,
-        y: data.y,
-        value: data.val,
-        life: 1,
-        color: data.crit ? '#ffd700' : '#ff4444',
-        size: data.crit ? 28 : 22
-    });
-    
-    for (let i = 0; i < 8; i++) {
+socket.on('dmg', d => {
+    sfx('hit');
+    texts.push({x: d.x, y: d.y, val: d.val, t: 1, crit: d.crit});
+    screenShake = 5;
+});
+
+socket.on('turretShot', d => {
+    shots.push({x: d.sx, y: d.sy, tx: d.ex, ty: d.ey, t: 1, color: '#00ffff'});
+    sfx('shoot');
+});
+
+socket.on('enemyDeath', d => {
+    for(let i = 0; i < 20; i++) {
         particles.push({
-            x: data.x,
-            y: data.y,
-            vx: (Math.random() - 0.5) * 10,
-            vy: (Math.random() - 0.5) * 10,
+            x: d.x, y: d.y,
+            vx: (Math.random() - 0.5) * 15,
+            vy: (Math.random() - 0.5) * 15,
             life: 1,
-            color: '#ff0000',
+            color: d.isBoss ? '#f1c40f' : '#e74c3c',
+            size: d.isBoss ? 6 : 4
+        });
+    }
+    if(d.isBoss) screenShake = 15;
+});
+
+socket.on('playerHit', d => {
+    if(d.id === myId) screenShake = 8;
+});
+
+socket.on('playerDeath', name => {
+    if(state.players[myId]?.dead) {
+        sfx('death');
+        document.getElementById('death').classList.remove('hidden');
+    }
+});
+
+socket.on('levelUp', () => {
+    sfx('levelup');
+    document.getElementById('levelUp').classList.remove('hidden');
+    
+    // Efeito visual de level up
+    for(let i = 0; i < 30; i++) {
+        particles.push({
+            x: me.x, y: me.y,
+            vx: Math.cos(i / 30 * Math.PI * 2) * 8,
+            vy: Math.sin(i / 30 * Math.PI * 2) * 8,
+            life: 1.5,
+            color: '#f1c40f',
             size: 5
         });
     }
 });
 
-socket.on('turretShot', (data) => {
-    projectileTrails.push({
-        startX: data.sx,
-        startY: data.sy,
-        endX: data.ex,
-        endY: data.ey,
-        life: 1
-    });
-    playSound('shoot');
+socket.on('newWave', wave => {
+    sfx('wave');
+    document.getElementById('waveDisplay').textContent = `🌊 WAVE ${wave}`;
+    
+    // Mostrar alerta de wave
+    const alert = document.createElement('div');
+    alert.className = 'wave-alert';
+    alert.textContent = `WAVE ${wave}`;
+    document.body.appendChild(alert);
+    setTimeout(() => alert.remove(), 3000);
 });
 
-socket.on('levelUp', () => {
-    document.getElementById('levelUp').classList.remove('hidden');
-    playSound('levelup');
-});
+// === INPUT HANDLING ===
+cvs.addEventListener('touchstart', e => {
+    e.preventDefault();
+    for(let touch of e.changedTouches) {
+        if(touch.clientX < window.innerWidth / 2 && !joyL.on) {
+            joyL.on = true;
+            joyL.id = touch.identifier;
+            joyL.ox = touch.clientX;
+            joyL.oy = touch.clientY;
+        } else if(touch.clientX >= window.innerWidth / 2 && !joyR.on) {
+            joyR.on = true;
+            joyR.id = touch.identifier;
+            joyR.ox = touch.clientX;
+            joyR.oy = touch.clientY;
+        }
+    }
+}, {passive: false});
 
-// ==========================================
-// ATUALIZAÇÃO DA HUD
-// ==========================================
+cvs.addEventListener('touchmove', e => {
+    e.preventDefault();
+    for(let touch of e.changedTouches) {
+        if(touch.identifier === joyL.id) {
+            const dx = touch.clientX - joyL.ox;
+            const dy = touch.clientY - joyL.oy;
+            const d = Math.min(Math.hypot(dx, dy), 50);
+            const a = Math.atan2(dy, dx);
+            joyL.dx = Math.cos(a) * (d / 50);
+            joyL.dy = Math.sin(a) * (d / 50);
+        }
+        if(touch.identifier === joyR.id) {
+            joyR.dx = touch.clientX - joyR.ox;
+            joyR.dy = touch.clientY - joyR.oy;
+            joyR.ang = Math.atan2(joyR.dy, joyR.dx);
+        }
+    }
+}, {passive: false});
+
+cvs.addEventListener('touchend', e => {
+    e.preventDefault();
+    for(let touch of e.changedTouches) {
+        if(touch.identifier === joyL.id) {
+            joyL.on = false;
+            joyL.dx = 0;
+            joyL.dy = 0;
+        }
+        if(touch.identifier === joyR.id) {
+            joyR.on = false;
+        }
+    }
+}, {passive: false});
+
+// === HUD UPDATE ===
 function updateHUD() {
-    const hpPercent = (player.hp / player.maxHp) * 100;
+    const hpPercent = (me.hp / me.maxHp) * 100;
+    const xpPercent = (me.xp / me.nextLevel) * 100;
+    
     document.getElementById('hpBar').style.width = hpPercent + '%';
-    document.getElementById('hpText').textContent = `❤️ ${Math.floor(player.hp)}/${player.maxHp}`;
-    
-    const xpPercent = (player.xp / player.nextLevel) * 100;
+    document.getElementById('hpTxt').textContent = `❤️ ${Math.floor(me.hp)}/${me.maxHp}`;
     document.getElementById('xpBar').style.width = xpPercent + '%';
-    document.getElementById('xpText').textContent = `⭐ ${player.xp}/${player.nextLevel} XP`;
+    document.getElementById('xpTxt').textContent = `⭐ LVL ${me.level}`;
+    document.getElementById('wood').textContent = me.wood;
+    document.getElementById('stone').textContent = me.stone;
     
-    document.getElementById('levelBadge').textContent = `🏆 LEVEL ${player.level}`;
-    document.getElementById('woodCount').textContent = player.wood;
-    document.getElementById('stoneCount').textContent = player.stone;
-    
-    const craftBtn = document.getElementById('craftBtn');
-    craftBtn.style.display = (player.wood >= 5 || player.stone >= 5) ? 'block' : 'none';
+    // Mostrar botão de craft se tiver recursos
+    document.getElementById('craftBtn').style.display = (me.wood >= 5 || me.stone >= 5) ? 'block' : 'none';
 }
 
-// ==========================================
-// CONTROLES - TOUCH
-// ==========================================
-canvas.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    for (const touch of e.changedTouches) {
-        if (touch.clientX < window.innerWidth / 2 && !joystickLeft.active) {
-            joystickLeft.active = true;
-            joystickLeft.id = touch.identifier;
-            joystickLeft.originX = touch.clientX;
-            joystickLeft.originY = touch.clientY;
-        } else if (touch.clientX >= window.innerWidth / 2 && !joystickRight.active) {
-            joystickRight.active = true;
-            joystickRight.id = touch.identifier;
-            joystickRight.originX = touch.clientX;
-            joystickRight.originY = touch.clientY;
-        }
-    }
-}, { passive: false });
-
-canvas.addEventListener('touchmove', (e) => {
-    e.preventDefault();
-    for (const touch of e.changedTouches) {
-        if (touch.identifier === joystickLeft.id) {
-            const dx = touch.clientX - joystickLeft.originX;
-            const dy = touch.clientY - joystickLeft.originY;
-            const distance = Math.min(Math.hypot(dx, dy), 50);
-            const angle = Math.atan2(dy, dx);
-            joystickLeft.dx = Math.cos(angle) * (distance / 50);
-            joystickLeft.dy = Math.sin(angle) * (distance / 50);
-        }
-        if (touch.identifier === joystickRight.id) {
-            joystickRight.dx = touch.clientX - joystickRight.originX;
-            joystickRight.dy = touch.clientY - joystickRight.originY;
-            joystickRight.angle = Math.atan2(joystickRight.dy, joystickRight.dx);
-        }
-    }
-}, { passive: false });
-
-canvas.addEventListener('touchend', (e) => {
-    e.preventDefault();
-    for (const touch of e.changedTouches) {
-        if (touch.identifier === joystickLeft.id) {
-            joystickLeft.active = false;
-            joystickLeft.dx = 0;
-            joystickLeft.dy = 0;
-        }
-        if (touch.identifier === joystickRight.id) {
-            joystickRight.active = false;
-        }
-    }
-}, { passive: false });
-
-// ==========================================
-// CONTROLES - TECLADO
-// ==========================================
-window.addEventListener('keydown', (e) => keysPressed[e.key.toLowerCase()] = true);
-window.addEventListener('keyup', (e) => keysPressed[e.key.toLowerCase()] = false);
-
-// ==========================================
-// FUNÇÕES DE MENU
-// ==========================================
-function openCraftMenu() {
-    document.getElementById('craftMenu').classList.remove('hidden');
+// === DRAWING FUNCTIONS ===
+function drawGradientCircle(x, y, r, colors) {
+    const grad = ctx.createRadialGradient(x, y - r * 0.3, 0, x, y, r);
+    colors.forEach((c, i) => grad.addColorStop(i / (colors.length - 1), c));
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
 }
 
-function closeCraftMenu() {
-    document.getElementById('craftMenu').classList.add('hidden');
+function drawShadow(x, y, rx, ry) {
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+    ctx.fill();
 }
 
-function buildStructure(type) {
-    socket.emit('build', { roomId, type });
-    closeCraftMenu();
-}
-
-function selectUpgrade(choice) {
-    socket.emit('levelup', { roomId, choice });
-    document.getElementById('levelUp').classList.add('hidden');
-}
-
-function respawnPlayer() {
-    socket.emit('respawn', roomId);
-    document.getElementById('death').classList.add('hidden');
-}
-
-// ==========================================
-// LOOP PRINCIPAL
-// ==========================================
-let lastShootTime = 0;
-
-function gameLoop() {
-    requestAnimationFrame(gameLoop);
-    gameTime++;
+function drawResource(r) {
+    const wobble = Math.sin(Date.now() / 500 + r.x * 0.1) * 3;
     
-    if (!roomId) return;
+    drawShadow(r.x, r.y + 10, 20, 8);
     
-    // Movimento do jogador
-    let moveX = 0, moveY = 0;
+    if(r.type === 'tree') {
+        // Tronco com gradiente
+        const trunkGrad = ctx.createLinearGradient(r.x - 8, 0, r.x + 8, 0);
+        trunkGrad.addColorStop(0, '#3e2723');
+        trunkGrad.addColorStop(0.5, '#6d4c41');
+        trunkGrad.addColorStop(1, '#3e2723');
+        ctx.fillStyle = trunkGrad;
+        ctx.fillRect(r.x - 8, r.y - 15, 16, 30);
+        
+        // Copa da árvore (múltiplas camadas)
+        const colors = r.variant === 0 ? ['#4caf50', '#2e7d32'] : 
+                       r.variant === 1 ? ['#8bc34a', '#558b2f'] : ['#009688', '#00695c'];
+        
+        drawGradientCircle(r.x + wobble, r.y - 35, 28, colors);
+        drawGradientCircle(r.x - 12 + wobble, r.y - 20, 18, colors);
+        drawGradientCircle(r.x + 12 + wobble, r.y - 20, 18, colors);
+        
+        // Brilho
+        ctx.fillStyle = 'rgba(255,255,255,0.2)';
+        ctx.beginPath();
+        ctx.arc(r.x - 8 + wobble, r.y - 40, 8, 0, Math.PI * 2);
+        ctx.fill();
+    } else {
+        // Pedra com gradiente 3D
+        const stoneGrad = ctx.createRadialGradient(r.x - 5, r.y - 10, 0, r.x, r.y, 25);
+        stoneGrad.addColorStop(0, '#bdc3c7');
+        stoneGrad.addColorStop(0.5, '#7f8c8d');
+        stoneGrad.addColorStop(1, '#5d6d7e');
+        ctx.fillStyle = stoneGrad;
+        
+        ctx.beginPath();
+        ctx.arc(r.x, r.y, 22, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Detalhes
+        ctx.fillStyle = '#95a5a6';
+        ctx.beginPath();
+        ctx.arc(r.x - 8, r.y - 8, 10, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Brilho
+        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        ctx.beginPath();
+        ctx.arc(r.x - 10, r.y - 12, 5, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+function drawEnemy(e) {
+    if(e.dead) return;
     
-    if (joystickLeft.active) {
-        moveX = joystickLeft.dx;
-        moveY = joystickLeft.dy;
+    const bob = Math.sin(Date.now() / 100 + e.x) * 4;
+    const pulse = e.isBoss ? 1 + Math.sin(Date.now() / 200) * 0.1 : 1;
+    
+    drawShadow(e.x, e.y + 5, 20 * pulse, 10);
+    
+    ctx.save();
+    ctx.translate(e.x, e.y);
+    
+    // Aura de boss
+    if(e.isBoss) {
+        ctx.shadowBlur = 30;
+        ctx.shadowColor = e.color;
     }
     
-    if (keysPressed['w'] || keysPressed['arrowup']) moveY = -1;
-    if (keysPressed['s'] || keysPressed['arrowdown']) moveY = 1;
-    if (keysPressed['a'] || keysPressed['arrowleft']) moveX = -1;
-    if (keysPressed['d'] || keysPressed['arrowright']) moveX = 1;
+    // Corpo baseado no tipo
+    const size = (e.isBoss ? 35 : 25) * pulse;
     
-    if (!player.dead && (moveX || moveY)) {
-        const length = Math.hypot(moveX, moveY) || 1;
-        player.x += (moveX / length) * 6;
-        player.y += (moveY / length) * 6;
-        player.x = Math.max(0, Math.min(2400, player.x));
-        player.y = Math.max(0, Math.min(2400, player.y));
-    }
-    
-    // Auto-mira
-    let aimAngle = joystickRight.active ? joystickRight.angle : null;
-    if (!aimAngle) {
-        let minDistance = 350;
-        let target = null;
-        for (const enemy of gameState.enemies) {
-            if (enemy.dead) continue;
-            const dist = Math.hypot(enemy.x - player.x, enemy.y - player.y);
-            if (dist < minDistance) {
-                minDistance = dist;
-                target = enemy;
-            }
+    if(e.type === 'slime') {
+        // Slime gelatinoso
+        const squish = 1 + Math.sin(Date.now() / 150) * 0.2;
+        drawGradientCircle(0, -10 - bob, size * squish, ['#58d68d', '#27ae60', '#1e8449']);
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.beginPath();
+        ctx.ellipse(-size * 0.3, -15 - bob, size * 0.2, size * 0.15, 0, 0, Math.PI * 2);
+        ctx.fill();
+    } else if(e.type === 'goblin') {
+        // Corpo verde
+        drawGradientCircle(0, -15 - bob, size, ['#52be80', '#229954', '#1e8449']);
+        // Orelhas pontudas
+        ctx.fillStyle = '#27ae60';
+        ctx.beginPath();
+        ctx.moveTo(-size, -15 - bob);
+        ctx.lineTo(-size - 10, -35 - bob);
+        ctx.lineTo(-size + 5, -20 - bob);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(size, -15 - bob);
+        ctx.lineTo(size + 10, -35 - bob);
+        ctx.lineTo(size - 5, -20 - bob);
+        ctx.fill();
+    } else if(e.type === 'skeleton') {
+        // Crânio
+        drawGradientCircle(0, -15 - bob, size, ['#fdfefe', '#d5dbdb', '#aeb6bf']);
+        // Olhos vazios
+        ctx.fillStyle = '#1a1a1a';
+        ctx.beginPath();
+        ctx.ellipse(-8, -18 - bob, 6, 8, 0, 0, Math.PI * 2);
+        ctx.ellipse(8, -18 - bob, 6, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+    } else if(e.type === 'demon') {
+        // Corpo vermelho ardente
+        drawGradientCircle(0, -15 - bob, size, ['#f5b041', '#e74c3c', '#922b21']);
+        // Chifres
+        ctx.fillStyle = '#1a1a1a';
+        ctx.beginPath();
+        ctx.moveTo(-12, -30 - bob);
+        ctx.lineTo(-8, -50 - bob);
+        ctx.lineTo(-4, -30 - bob);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(12, -30 - bob);
+        ctx.lineTo(8, -50 - bob);
+        ctx.lineTo(4, -30 - bob);
+        ctx.fill();
+    } else if(e.type === 'ghost') {
+        // Fantasma translúcido
+        ctx.globalAlpha = 0.7 + Math.sin(Date.now() / 200) * 0.2;
+        drawGradientCircle(0, -15 - bob, size, ['#d2b4de', '#9b59b6', '#7d3c98']);
+        // Cauda ondulada
+        ctx.fillStyle = '#9b59b6';
+        ctx.beginPath();
+        for(let i = 0; i < 3; i++) {
+            const wave = Math.sin(Date.now() / 100 + i) * 5;
+            ctx.ellipse(-15 + i * 15, 10 + wave, 8, 15, 0, 0, Math.PI * 2);
         }
-        if (target) {
-            aimAngle = Math.atan2(target.y - player.y, target.x - player.x);
-        }
+        ctx.fill();
+        ctx.globalAlpha = 1;
     }
     
-    // Câmera suave
-    camera.x += (player.x - camera.x - canvas.width / 2) * 0.08;
-    camera.y += (player.y - camera.y - canvas.height / 2) * 0.08;
+    // Olhos (exceto skeleton)
+    if(e.type !== 'skeleton' && e.type !== 'ghost') {
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(-7 + e.facing * 2, -18 - bob, 6, 0, Math.PI * 2);
+        ctx.arc(7 + e.facing * 2, -18 - bob, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#c0392b';
+        ctx.beginPath();
+        ctx.arc(-7 + e.facing * 3, -18 - bob, 3, 0, Math.PI * 2);
+        ctx.arc(7 + e.facing * 3, -18 - bob, 3, 0, Math.PI * 2);
+        ctx.fill();
+    }
     
-    // Enviar dados ao servidor
-    const isMoving = moveX !== 0 || moveY !== 0;
+    ctx.restore();
+    
+    // Barra de HP
+    const barWidth = e.isBoss ? 60 : 40;
+    const hpPercent = e.hp / e.maxHp;
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    ctx.fillRect(e.x - barWidth/2, e.y - 50, barWidth, 8);
+    ctx.fillStyle = hpPercent > 0.5 ? '#2ecc71' : hpPercent > 0.25 ? '#f39c12' : '#e74c3c';
+    ctx.fillRect(e.x - barWidth/2, e.y - 50, barWidth * hpPercent, 8);
+    
+    // Label de boss
+    if(e.isBoss) {
+        ctx.fillStyle = '#f1c40f';
+        ctx.font = 'bold 12px "Press Start 2P"';
+        ctx.textAlign = 'center';
+        ctx.fillText('⭐ BOSS', e.x, e.y - 60);
+    }
+}
+
+function drawPlayer(p, x, y, isMe) {
+    const wobble = p.state === 'run' ? Math.sin(Date.now() / 80) * 4 : 0;
+    const breathe = Math.sin(Date.now() / 400) * 2;
+    
+    drawShadow(x, y + 15, 18, 8);
+    
+    ctx.save();
+    ctx.translate(x, y + wobble);
+    
+    // Aura do jogador (se tiver upgrades)
+    if(isMe && me.level > 1) {
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = '#f1c40f';
+    }
+    
+    // Pés com animação
+    ctx.fillStyle = '#2c3e50';
+    ctx.beginPath();
+    ctx.arc(-10, 15 - wobble, 7, 0, Math.PI * 2);
+    ctx.arc(10, 15 + wobble, 7, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Corpo
+    const bodyGrad = ctx.createLinearGradient(-15, -20, 15, 10);
+    if(p.role === 'warrior') {
+        bodyGrad.addColorStop(0, '#5dade2');
+        bodyGrad.addColorStop(1, '#2874a6');
+    } else {
+        bodyGrad.addColorStop(0, '#af7ac5');
+        bodyGrad.addColorStop(1, '#7d3c98');
+    }
+    ctx.fillStyle = bodyGrad;
+    ctx.beginPath();
+    ctx.roundRect(-15, -18 + breathe, 30, 32, 8);
+    ctx.fill();
+    
+    // Detalhes do corpo
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-10, -10 + breathe);
+    ctx.lineTo(-10, 10 + breathe);
+    ctx.moveTo(10, -10 + breathe);
+    ctx.lineTo(10, 10 + breathe);
+    ctx.stroke();
+    
+    // Cabeça
+    drawGradientCircle(0, -28 + breathe, 16, ['#f5d79e', '#f0b27a', '#dc7633']);
+    
+    // Cabelo/Capacete
+    if(p.role === 'warrior') {
+        ctx.fillStyle = '#7f8c8d';
+        ctx.beginPath();
+        ctx.arc(0, -28 + breathe, 17, Math.PI, 0);
+        ctx.fill();
+        ctx.fillStyle = '#e74c3c';
+        ctx.beginPath();
+        ctx.ellipse(0, -45 + breathe, 4, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+    } else {
+        ctx.fillStyle = '#8e44ad';
+        ctx.beginPath();
+        ctx.moveTo(-18, -28 + breathe);
+        ctx.lineTo(0, -55 + breathe);
+        ctx.lineTo(18, -28 + breathe);
+        ctx.fill();
+        ctx.fillStyle = '#f1c40f';
+        ctx.beginPath();
+        ctx.arc(0, -55 + breathe, 5, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    // Olhos
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.ellipse(-5, -30 + breathe, 4, 5, 0, 0, Math.PI * 2);
+    ctx.ellipse(5, -30 + breathe, 4, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#2c3e50';
+    ctx.beginPath();
+    ctx.arc(-5 + p.facing * 2, -30 + breathe, 2, 0, Math.PI * 2);
+    ctx.arc(5 + p.facing * 2, -30 + breathe, 2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Arma
+    ctx.rotate(p.angle || 0);
+    if(p.role === 'warrior') {
+        // Espada épica
+        const swordGrad = ctx.createLinearGradient(15, 0, 50, 0);
+        swordGrad.addColorStop(0, '#bdc3c7');
+        swordGrad.addColorStop(0.5, '#ecf0f1');
+        swordGrad.addColorStop(1, '#95a5a6');
+        ctx.fillStyle = swordGrad;
+        ctx.fillRect(20, -4, 35, 8);
+        ctx.fillStyle = '#f39c12';
+        ctx.fillRect(15, -8, 8, 16);
+        ctx.fillStyle = '#e74c3c';
+        ctx.beginPath();
+        ctx.arc(19, 0, 3, 0, Math.PI * 2);
+        ctx.fill();
+    } else {
+        // Cajado mágico
+        ctx.fillStyle = '#6c3483';
+        ctx.fillRect(18, -3, 35, 6);
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#e74c3c';
+        ctx.fillStyle = '#e74c3c';
+        ctx.beginPath();
+        ctx.arc(55, 0, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+    
+    ctx.restore();
+    
+    // Nome
+    ctx.fillStyle = isMe ? '#f1c40f' : '#fff';
+    ctx.font = 'bold 12px "Russo One"';
+    ctx.textAlign = 'center';
+    ctx.fillText(p.name, x, y - 55);
+    
+    // Nível
+    ctx.fillStyle = '#3498db';
+    ctx.font = '10px "Press Start 2P"';
+    ctx.fillText(`Lv${p.level}`, x, y - 65);
+}
+
+function drawBuilding(b) {
+    ctx.save();
+    ctx.translate(b.x, b.y);
+    
+    drawShadow(0, 15, 25, 10);
+    
+    if(b.type === 'table') {
+        ctx.fillStyle = '#5d4037';
+        ctx.fillRect(-25, -5, 50, 20);
+        ctx.fillStyle = '#8d6e63';
+        ctx.fillRect(-20, -10, 40, 8);
+        ctx.fillStyle = '#4e342e';
+        ctx.fillRect(-20, 10, 8, 15);
+        ctx.fillRect(12, 10, 8, 15);
+    } else if(b.type === 'campfire') {
+        // Pedras
+        ctx.fillStyle = '#5d6d7e';
+        for(let i = 0; i < 6; i++) {
+            ctx.beginPath();
+            ctx.arc(Math.cos(i / 6 * Math.PI * 2) * 18, Math.sin(i / 6 * Math.PI * 2) * 10, 8, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        // Fogo animado
+        const flicker = Math.random() * 5;
+        ctx.shadowBlur = 30;
+        ctx.shadowColor = '#e67e22';
+        ctx.fillStyle = '#e74c3c';
+        ctx.beginPath();
+        ctx.ellipse(0, -10, 12 + flicker, 20 + flicker, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#f39c12';
+        ctx.beginPath();
+        ctx.ellipse(0, -5, 8 + flicker * 0.5, 15 + flicker * 0.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#f1c40f';
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 4, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    } else if(b.type === 'turret') {
+        ctx.fillStyle = '#5d6d7e';
+        ctx.fillRect(-15, -10, 30, 25);
+        ctx.fillStyle = '#2c3e50';
+        ctx.fillRect(-20, 10, 40, 10);
+        ctx.fillStyle = '#7f8c8d';
+        ctx.fillRect(10, -5, 20, 10);
+    } else if(b.type === 'spike') {
+        ctx.fillStyle = '#7f8c8d';
+        for(let i = 0; i < 5; i++) {
+            ctx.beginPath();
+            ctx.moveTo(-20 + i * 10, 10);
+            ctx.lineTo(-15 + i * 10, -15);
+            ctx.lineTo(-10 + i * 10, 10);
+            ctx.fill();
+        }
+    } else {
+        // Paredes
+        const isStone = b.type === 'wall_stone';
+        const wallGrad = ctx.createLinearGradient(-25, -25, 25, 25);
+        if(isStone) {
+            wallGrad.addColorStop(0, '#95a5a6');
+            wallGrad.addColorStop(1, '#5d6d7e');
+        } else {
+            wallGrad.addColorStop(0, '#a1887f');
+            wallGrad.addColorStop(1, '#6d4c41');
+        }
+        ctx.fillStyle = wallGrad;
+        ctx.fillRect(-25, -25, 50, 50);
+        ctx.strokeStyle = isStone ? '#2c3e50' : '#4e342e';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(-25, -25, 50, 50);
+    }
+    
+    ctx.restore();
+}
+
+function drawOrb(o) {
+    const pulse = 1 + Math.sin(Date.now() / 150 + o.x) * 0.3;
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = '#00ffff';
+    ctx.fillStyle = '#00ffff';
+    ctx.beginPath();
+    ctx.arc(o.x, o.y, 6 * pulse, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+}
+
+// === MAIN GAME LOOP ===
+let lastShot = 0;
+
+function loop() {
+    requestAnimationFrame(loop);
+    if(!roomId) return;
+    
+    const speedMult = 1 + (state.players[myId]?.upgrades?.speed || 0) * 0.15;
+    
+    // Movimento
+    if(joyL.on && !me.dead) {
+        me.x += joyL.dx * 6 * speedMult;
+        me.y += joyL.dy * 6 * speedMult;
+        me.x = Math.max(50, Math.min(2950, me.x));
+        me.y = Math.max(50, Math.min(2950, me.y));
+    }
+    
+    // Auto-aim
+    let aim = joyR.on ? joyR.ang : null;
+    if(!aim) {
+        let minDist = 300, target = null;
+        state.enemies.forEach(e => {
+            if(e.dead) return;
+            const d = Math.hypot(e.x - me.x, e.y - me.y);
+            if(d < minDist) { minDist = d; target = e; }
+        });
+        if(target) aim = Math.atan2(target.y - me.y, target.x - me.x);
+    }
+    
+    // Câmera suave com shake
+    const shakeX = screenShake > 0 ? (Math.random() - 0.5) * screenShake : 0;
+    const shakeY = screenShake > 0 ? (Math.random() - 0.5) * screenShake : 0;
+    cam.x += (me.x - cam.x - cvs.width/2 + shakeX) * 0.08;
+    cam.y += (me.y - cam.y - cvs.height/2 + shakeY) * 0.08;
+    if(screenShake > 0) screenShake -= 0.5;
+    
+    // Enviar dados pro servidor
     socket.emit('move', {
         roomId,
-        x: player.x,
-        y: player.y,
-        state: isMoving ? 'run' : 'idle',
-        facing: moveX > 0 ? 1 : moveX < 0 ? -1 : 0,
-        angle: aimAngle || 0
+        x: me.x,
+        y: me.y,
+        state: joyL.on ? 'run' : 'idle',
+        facing: joyL.dx > 0 ? 1 : -1,
+        angle: aim || 0
     });
     
     // Atirar
-    const canShoot = (joystickRight.active || aimAngle !== null || keysPressed[' ']) && Date.now() - lastShootTime > 280;
-    if (canShoot && !player.dead) {
-        lastShootTime = Date.now();
-        socket.emit('attack', { roomId, angle: aimAngle });
-        if (aimAngle !== null) playSound('shoot');
+    if((joyR.on || aim !== null) && Date.now() - lastShot > 250 && !me.dead) {
+        lastShot = Date.now();
+        socket.emit('attack', {roomId, angle: aim});
+        sfx('shoot');
+        
+        // Efeito de tiro
+        shots.push({
+            x: me.x + Math.cos(aim) * 30,
+            y: me.y + Math.sin(aim) * 30,
+            tx: me.x + Math.cos(aim) * 250,
+            ty: me.y + Math.sin(aim) * 250,
+            t: 1,
+            color: '#f1c40f'
+        });
     }
     
-    // Renderizar
-    render();
-}
-
-// ==========================================
-// RENDERIZAÇÃO
-// ==========================================
-function render() {
-    // Fundo com gradiente
-    const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    skyGradient.addColorStop(0, '#1a1a3e');
-    skyGradient.addColorStop(0.5, '#2d2d5a');
-    skyGradient.addColorStop(1, '#1a2a1a');
-    ctx.fillStyle = skyGradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // === RENDERIZAÇÃO ===
+    
+    // Calcular ciclo dia/noite
+    const dayNight = state.time / 300000; // 0 a 1
+    const brightness = 0.5 + Math.cos(dayNight * Math.PI * 2) * 0.3;
+    
+    // Background com gradiente
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, cvs.height);
+    bgGrad.addColorStop(0, `rgba(30, 39, 46, ${1 - brightness * 0.3})`);
+    bgGrad.addColorStop(1, `rgba(20, 29, 36, 1)`);
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, cvs.width, cvs.height);
     
     ctx.save();
-    ctx.translate(-camera.x, -camera.y);
+    ctx.translate(-cam.x, -cam.y);
     
-    // Chão com grid
-    const tileSize = 80;
-    const startX = Math.floor(camera.x / tileSize) * tileSize;
-    const startY = Math.floor(camera.y / tileSize) * tileSize;
+    // Grid do chão
+    const TILE = 80;
+    const startX = Math.floor(cam.x / TILE) * TILE;
+    const startY = Math.floor(cam.y / TILE) * TILE;
     
-    for (let x = startX; x < camera.x + canvas.width + tileSize; x += tileSize) {
-        for (let y = startY; y < camera.y + canvas.height + tileSize; y += tileSize) {
-            const noise = Math.sin(x * 0.01) * Math.cos(y * 0.01);
-            const r = 34 + noise * 15;
-            const g = 139 + noise * 25;
-            const b = 34 + noise * 15;
-            ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-            ctx.fillRect(x, y, tileSize, tileSize);
+    for(let x = startX; x < cam.x + cvs.width + TILE; x += TILE) {
+        for(let y = startY; y < cam.y + cvs.height + TILE; y += TILE) {
+            const variation = Math.sin(x * 0.01) * Math.cos(y * 0.01);
+            const baseGreen = Math.floor(100 + variation * 30);
+            ctx.fillStyle = `rgb(${baseGreen * 0.4}, ${baseGreen}, ${baseGreen * 0.3})`;
+            ctx.fillRect(x, y, TILE - 1, TILE - 1);
             
-            // Detalhe do tile
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-            ctx.fillRect(x, y, tileSize, 2);
-            ctx.fillRect(x, y, 2, tileSize);
+            // Grama detalhada
+            if(Math.random() > 0.7) {
+                ctx.fillStyle = `rgba(${baseGreen * 0.5}, ${baseGreen + 20}, ${baseGreen * 0.4}, 0.5)`;
+                ctx.fillRect(x + Math.random() * TILE, y + Math.random() * TILE, 3, 8);
+            }
         }
     }
     
-    // Partículas ambientes
-    for (const p of ambientParticles) {
-        p.y -= p.speed;
-        if (p.y < -10) {
-            p.y = 2410;
-            p.x = Math.random() * 2400;
-        }
-        
-        const pulse = Math.sin(gameTime * 0.05 + p.x) * 0.3 + 0.7;
-        ctx.globalAlpha = p.alpha * pulse;
-        ctx.fillStyle = p.color;
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-    }
-    ctx.globalAlpha = 1;
-    
-    // XP Orbs
-    for (const orb of gameState.orbs) {
-        const pulse = Math.sin(gameTime * 0.1 + orb.x) * 0.3 + 1;
-        ctx.shadowBlur = 25;
-        ctx.shadowColor = '#00ffff';
-        ctx.fillStyle = '#00ffff';
-        ctx.beginPath();
-        ctx.arc(orb.x, orb.y, 8 * pulse, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(orb.x - 2, orb.y - 2, 3 * pulse, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-    }
-    
-    // Recursos
-    for (const resource of gameState.resources) {
-        drawResource(resource);
-    }
-    
-    // Construções
-    for (const building of gameState.buildings) {
-        drawBuilding(building);
-    }
-    
-    // Inimigos
-    for (const enemy of gameState.enemies) {
-        if (!enemy.dead) {
-            drawEnemy(enemy);
-        }
-    }
+    // Objetos do jogo
+    state.resources.forEach(r => drawResource(r));
+    state.buildings.forEach(b => drawBuilding(b));
+    state.orbs.forEach(o => drawOrb(o));
+    state.enemies.forEach(e => drawEnemy(e));
     
     // Jogadores
-    for (const id in gameState.players) {
-        const p = gameState.players[id];
-        if (p.dead) continue;
-        
-        const x = id === myId ? player.x : p.x;
-        const y = id === myId ? player.y : p.y;
+    for(const id in state.players) {
+        const p = state.players[id];
+        if(p.dead) continue;
+        const x = id === myId ? me.x : p.x;
+        const y = id === myId ? me.y : p.y;
         drawPlayer(p, x, y, id === myId);
     }
     
     // Partículas
-    for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
+    particles = particles.filter(p => {
         p.x += p.vx;
         p.y += p.vy;
-        p.vy += 0.4;
+        p.vy += 0.3; // Gravidade
         p.life -= 0.03;
         
         ctx.globalAlpha = p.life;
@@ -1054,543 +1260,147 @@ function render() {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
         ctx.fill();
+        ctx.globalAlpha = 1;
         
-        if (p.life <= 0) particles.splice(i, 1);
-    }
-    ctx.globalAlpha = 1;
+        return p.life > 0;
+    });
     
     // Textos de dano
-    for (let i = damageTexts.length - 1; i >= 0; i--) {
-        const t = damageTexts[i];
+    texts = texts.filter(t => {
         t.y -= 2;
-        t.life -= 0.02;
+        t.t -= 0.03;
         
-        ctx.globalAlpha = t.life;
-        ctx.font = `bold ${t.size}px Arial`;
+        ctx.globalAlpha = t.t;
+        ctx.font = t.crit ? 'bold 28px "Press Start 2P"' : 'bold 18px "Russo One"';
+        ctx.fillStyle = t.crit ? '#f1c40f' : '#fff';
         ctx.textAlign = 'center';
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 4;
-        ctx.strokeText('-' + t.value, t.x, t.y);
-        ctx.fillStyle = t.color;
-        ctx.fillText('-' + t.value, t.x, t.y);
+        ctx.fillText((t.crit ? '💥 ' : '') + t.val, t.x, t.y);
+        ctx.globalAlpha = 1;
         
-        if (t.life <= 0) damageTexts.splice(i, 1);
-    }
-    ctx.globalAlpha = 1;
+        return t.t > 0;
+    });
     
-    // Tiros de torreta
-    for (let i = projectileTrails.length - 1; i >= 0; i--) {
-        const trail = projectileTrails[i];
-        trail.life -= 0.08;
+    // Tiros
+    shots = shots.filter(s => {
+        s.t -= 0.08;
         
-        ctx.strokeStyle = `rgba(0, 255, 255, ${trail.life})`;
+        ctx.globalAlpha = s.t;
+        ctx.strokeStyle = s.color;
         ctx.lineWidth = 4;
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = '#00ffff';
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = s.color;
         ctx.beginPath();
-        ctx.moveTo(trail.startX, trail.startY);
-        ctx.lineTo(trail.endX, trail.endY);
+        ctx.moveTo(s.x, s.y);
+        ctx.lineTo(s.tx, s.ty);
         ctx.stroke();
         ctx.shadowBlur = 0;
+        ctx.globalAlpha = 1;
         
-        if (trail.life <= 0) projectileTrails.splice(i, 1);
-    }
+        return s.t > 0;
+    });
     
     ctx.restore();
     
-    // Joysticks
-    drawJoystick(joystickLeft, '#4ade80', 55);
-    drawJoystick(joystickRight, '#ef4444', 55, true);
+    // === UI OVERLAY ===
     
-    // Minimap
-    drawMinimap();
+    // Joystick esquerdo (movimento)
+    if(joyL.on) {
+        ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(joyL.ox, joyL.oy, 50, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        const jGrad = ctx.createRadialGradient(joyL.ox + joyL.dx * 50, joyL.oy + joyL.dy * 50, 0, joyL.ox + joyL.dx * 50, joyL.oy + joyL.dy * 50, 25);
+        jGrad.addColorStop(0, 'rgba(255,255,255,0.8)');
+        jGrad.addColorStop(1, 'rgba(255,255,255,0.3)');
+        ctx.fillStyle = jGrad;
+        ctx.beginPath();
+        ctx.arc(joyL.ox + joyL.dx * 50, joyL.oy + joyL.dy * 50, 25, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    // Joystick direito (mira)
+    if(joyR.on) {
+        ctx.strokeStyle = 'rgba(255,100,100,0.3)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(joyR.ox, joyR.oy, 50, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        const aGrad = ctx.createRadialGradient(joyR.ox + Math.cos(joyR.ang) * 50, joyR.oy + Math.sin(joyR.ang) * 50, 0, joyR.ox + Math.cos(joyR.ang) * 50, joyR.oy + Math.sin(joyR.ang) * 50, 25);
+        aGrad.addColorStop(0, 'rgba(255,100,100,0.8)');
+        aGrad.addColorStop(1, 'rgba(255,100,100,0.3)');
+        ctx.fillStyle = aGrad;
+        ctx.beginPath();
+        ctx.arc(joyR.ox + Math.cos(joyR.ang) * 50, joyR.oy + Math.sin(joyR.ang) * 50, 25, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    // === MINIMAP ===
+    mCtx.fillStyle = 'rgba(0,0,0,0.8)';
+    mCtx.fillRect(0, 0, 120, 120);
+    
+    const scale = 120 / 3000;
+    
+    // Recursos no minimap
+    state.resources.forEach(r => {
+        mCtx.fillStyle = r.type === 'tree' ? '#2ecc71' : '#7f8c8d';
+        mCtx.fillRect(r.x * scale, r.y * scale, 2, 2);
+    });
+    
+    // Inimigos no minimap
+    state.enemies.forEach(e => {
+        if(e.dead) return;
+        mCtx.fillStyle = e.isBoss ? '#f1c40f' : '#e74c3c';
+        mCtx.beginPath();
+        mCtx.arc(e.x * scale, e.y * scale, e.isBoss ? 4 : 2, 0, Math.PI * 2);
+        mCtx.fill();
+    });
+    
+    // Jogadores no minimap
+    for(const id in state.players) {
+        const p = state.players[id];
+        if(p.dead) continue;
+        mCtx.fillStyle = id === myId ? '#f1c40f' : '#3498db';
+        mCtx.beginPath();
+        mCtx.arc(p.x * scale, p.y * scale, 4, 0, Math.PI * 2);
+        mCtx.fill();
+    }
+    
+    // Borda do minimap
+    mCtx.strokeStyle = '#f39c12';
+    mCtx.lineWidth = 2;
+    mCtx.strokeRect(0, 0, 120, 120);
 }
 
-function drawJoystick(joystick, color, radius, isAim = false) {
-    if (!joystick.active) return;
-    
-    ctx.strokeStyle = color + '66';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.arc(joystick.originX, joystick.originY, radius, 0, Math.PI * 2);
-    ctx.stroke();
-    
-    let knobX, knobY;
-    if (isAim) {
-        knobX = joystick.originX + Math.cos(joystick.angle) * 40;
-        knobY = joystick.originY + Math.sin(joystick.angle) * 40;
-    } else {
-        knobX = joystick.originX + joystick.dx * 50;
-        knobY = joystick.originY + joystick.dy * 50;
-    }
-    
-    ctx.fillStyle = color + 'aa';
-    ctx.beginPath();
-    ctx.arc(knobX, knobY, 28, 0, Math.PI * 2);
-    ctx.fill();
-    
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(knobX, knobY, 18, 0, Math.PI * 2);
-    ctx.fill();
+loop();
+
+// === UI FUNCTIONS ===
+function openCraft() {
+    document.getElementById('craftMenu').classList.remove('hidden');
 }
 
-function drawResource(resource) {
-    const bob = Math.sin(gameTime * 0.03 + resource.x * 0.1) * 2;
-    
-    // Sombra
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-    ctx.beginPath();
-    ctx.ellipse(resource.x, resource.y + 12, 22, 10, 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    if (resource.type === 'tree') {
-        // Tronco
-        const trunkGradient = ctx.createLinearGradient(resource.x - 10, 0, resource.x + 10, 0);
-        trunkGradient.addColorStop(0, '#3e2723');
-        trunkGradient.addColorStop(0.5, '#5d4037');
-        trunkGradient.addColorStop(1, '#3e2723');
-        ctx.fillStyle = trunkGradient;
-        ctx.fillRect(resource.x - 10, resource.y - 20, 20, 35);
-        
-        // Detalhe do tronco
-        ctx.fillStyle = '#4e342e';
-        ctx.fillRect(resource.x - 4, resource.y - 15, 4, 25);
-        
-        // Folhas com balanço
-        const sway = Math.sin(gameTime * 0.02 + resource.x) * 4;
-        
-        // Camada de folhas de trás
-        ctx.fillStyle = '#1b5e20';
-        ctx.beginPath();
-        ctx.arc(resource.x + sway, resource.y - 50 + bob, 32, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Camadas laterais
-        ctx.fillStyle = '#2e7d32';
-        ctx.beginPath();
-        ctx.arc(resource.x - 15 + sway, resource.y - 30 + bob, 22, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(resource.x + 15 + sway, resource.y - 30 + bob, 22, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Camada frontal
-        ctx.fillStyle = '#4caf50';
-        ctx.beginPath();
-        ctx.arc(resource.x + sway, resource.y - 38 + bob, 20, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Brilho
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
-        ctx.beginPath();
-        ctx.arc(resource.x - 10 + sway, resource.y - 55 + bob, 12, 0, Math.PI * 2);
-        ctx.fill();
-    } else {
-        // Pedras com múltiplas camadas
-        const stoneGradient = ctx.createRadialGradient(resource.x, resource.y, 0, resource.x, resource.y, 25);
-        stoneGradient.addColorStop(0, '#78909c');
-        stoneGradient.addColorStop(1, '#455a64');
-        ctx.fillStyle = stoneGradient;
-        ctx.beginPath();
-        ctx.arc(resource.x, resource.y, 24, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.fillStyle = '#90a4ae';
-        ctx.beginPath();
-        ctx.arc(resource.x - 10, resource.y - 10, 15, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.fillStyle = '#b0bec5';
-        ctx.beginPath();
-        ctx.arc(resource.x + 12, resource.y - 6, 11, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Brilho
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-        ctx.beginPath();
-        ctx.arc(resource.x - 12, resource.y - 15, 6, 0, Math.PI * 2);
-        ctx.fill();
-    }
+function closeCraft() {
+    document.getElementById('craftMenu').classList.add('hidden');
 }
 
-function drawEnemy(enemy) {
-    const bob = Math.sin(gameTime * 0.1 + enemy.x) * 4;
-    const pulse = Math.sin(gameTime * 0.08) * 0.08 + 1;
-    
-    // Sombra
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
-    ctx.beginPath();
-    ctx.ellipse(enemy.x, enemy.y + 8, 22 * pulse, 12, 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Glow para inimigos perigosos
-    if (enemy.hp > 50 || enemy.type === 'boss') {
-        ctx.shadowBlur = 25;
-        ctx.shadowColor = '#ff0000';
-    }
-    
-    // Corpo
-    const bodyGradient = ctx.createRadialGradient(enemy.x, enemy.y - 15 + bob, 0, enemy.x, enemy.y - 15 + bob, 28);
-    if (enemy.type === 'boss') {
-        bodyGradient.addColorStop(0, '#9b59b6');
-        bodyGradient.addColorStop(1, '#6c3483');
-    } else {
-        bodyGradient.addColorStop(0, '#e74c3c');
-        bodyGradient.addColorStop(1, '#922b21');
-    }
-    ctx.fillStyle = bodyGradient;
-    ctx.beginPath();
-    ctx.arc(enemy.x, enemy.y - 15 + bob, 24 * pulse, 0, Math.PI * 2);
-    ctx.fill();
-    
-    ctx.shadowBlur = 0;
-    
-    // Olhos que seguem o jogador
-    const dx = player.x - enemy.x;
-    const dy = player.y - enemy.y;
-    const eyeAngle = Math.atan2(dy, dx);
-    const eyeOffset = 2.5;
-    
-    // Olhos brancos
-    ctx.fillStyle = '#fff';
-    ctx.beginPath();
-    ctx.arc(enemy.x - 9, enemy.y - 20 + bob, 7, 0, Math.PI * 2);
-    ctx.arc(enemy.x + 9, enemy.y - 20 + bob, 7, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Pupilas
-    ctx.fillStyle = '#ff0000';
-    ctx.beginPath();
-    ctx.arc(enemy.x - 9 + Math.cos(eyeAngle) * eyeOffset, enemy.y - 20 + bob + Math.sin(eyeAngle) * eyeOffset, 3.5, 0, Math.PI * 2);
-    ctx.arc(enemy.x + 9 + Math.cos(eyeAngle) * eyeOffset, enemy.y - 20 + bob + Math.sin(eyeAngle) * eyeOffset, 3.5, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Sobrancelhas irritadas
-    ctx.strokeStyle = '#4a0000';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(enemy.x - 16, enemy.y - 30 + bob);
-    ctx.lineTo(enemy.x - 4, enemy.y - 25 + bob);
-    ctx.moveTo(enemy.x + 16, enemy.y - 30 + bob);
-    ctx.lineTo(enemy.x + 4, enemy.y - 25 + bob);
-    ctx.stroke();
-    
-    // Barra de vida - fundo
-    ctx.fillStyle = '#1a1a2e';
-    ctx.fillRect(enemy.x - 28, enemy.y - 52 + bob, 56, 10);
-    
-    // Barra de vida - preenchimento
-    const hpPercent = enemy.hp / enemy.maxHp;
-    let hpColor;
-    if (hpPercent > 0.6) {
-        hpColor = ctx.createLinearGradient(enemy.x - 28, 0, enemy.x + 28, 0);
-        hpColor.addColorStop(0, '#2ecc71');
-        hpColor.addColorStop(1, '#27ae60');
-    } else if (hpPercent > 0.3) {
-        hpColor = ctx.createLinearGradient(enemy.x - 28, 0, enemy.x + 28, 0);
-        hpColor.addColorStop(0, '#f39c12');
-        hpColor.addColorStop(1, '#e67e22');
-    } else {
-        hpColor = ctx.createLinearGradient(enemy.x - 28, 0, enemy.x + 28, 0);
-        hpColor.addColorStop(0, '#e74c3c');
-        hpColor.addColorStop(1, '#c0392b');
-    }
-    ctx.fillStyle = hpColor;
-    ctx.fillRect(enemy.x - 26, enemy.y - 50 + bob, 52 * hpPercent, 6);
-    
-    // Borda da barra
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(enemy.x - 28, enemy.y - 52 + bob, 56, 10);
+function build(type) {
+    socket.emit('build', {roomId, type});
+    closeCraft();
 }
 
-function drawPlayer(p, x, y, isMe) {
-    const walkCycle = p.state === 'run' ? Math.sin(gameTime * 0.3) * 5 : 0;
-    const breathe = Math.sin(gameTime * 0.05) * 2;
-    
-    // Sombra
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-    ctx.beginPath();
-    ctx.ellipse(x, y + 18, 20, 10, 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Glow para o próprio jogador
-    if (isMe) {
-        ctx.shadowBlur = 20;
-        ctx.shadowColor = '#ffd700';
-    }
-    
-    ctx.save();
-    ctx.translate(x, y + walkCycle);
-    
-    // Pés
-    ctx.fillStyle = '#2c3e50';
-    ctx.beginPath();
-    ctx.arc(-12, 18 - walkCycle, 8, 0, Math.PI * 2);
-    ctx.arc(12, 18 + walkCycle, 8, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Corpo
-    const bodyGradient = ctx.createLinearGradient(-18, -20, 18, 15);
-    if (p.role === 'warrior') {
-        bodyGradient.addColorStop(0, '#3498db');
-        bodyGradient.addColorStop(1, '#2471a3');
-    } else {
-        bodyGradient.addColorStop(0, '#9b59b6');
-        bodyGradient.addColorStop(1, '#7d3c98');
-    }
-    ctx.fillStyle = bodyGradient;
-    ctx.beginPath();
-    ctx.roundRect(-18, -20 + breathe, 36, 38, 6);
-    ctx.fill();
-    
-    // Detalhe da armadura
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-    ctx.fillRect(-12, -10 + breathe, 24, 6);
-    
-    // Cabeça
-    const headGradient = ctx.createRadialGradient(0, -32 + breathe, 0, 0, -32 + breathe, 16);
-    headGradient.addColorStop(0, '#ffeaa7');
-    headGradient.addColorStop(1, '#fdcb6e');
-    ctx.fillStyle = headGradient;
-    ctx.beginPath();
-    ctx.arc(0, -32 + breathe, 16, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Capacete/Chapéu
-    if (p.role === 'warrior') {
-        ctx.fillStyle = '#7f8c8d';
-        ctx.beginPath();
-        ctx.arc(0, -32 + breathe, 17, Math.PI, 0);
-        ctx.fill();
-        ctx.fillStyle = '#bdc3c7';
-        ctx.beginPath();
-        ctx.arc(0, -40 + breathe, 6, 0, Math.PI * 2);
-        ctx.fill();
-    } else {
-        ctx.fillStyle = '#8e44ad';
-        ctx.beginPath();
-        ctx.moveTo(-20, -32 + breathe);
-        ctx.lineTo(0, -60 + breathe);
-        ctx.lineTo(20, -32 + breathe);
-        ctx.closePath();
-        ctx.fill();
-        ctx.fillStyle = '#f1c40f';
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = '#f1c40f';
-        ctx.beginPath();
-        ctx.arc(0, -60 + breathe, 5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-    }
-    
-    // Olhos
-    const eyeX = (p.facing || 0) * 2.5;
-    ctx.fillStyle = '#fff';
-    ctx.beginPath();
-    ctx.arc(-6 + eyeX, -32 + breathe, 5, 0, Math.PI * 2);
-    ctx.arc(6 + eyeX, -32 + breathe, 5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#2c3e50';
-    ctx.beginPath();
-    ctx.arc(-6 + eyeX + 1.5, -32 + breathe, 2.5, 0, Math.PI * 2);
-    ctx.arc(6 + eyeX + 1.5, -32 + breathe, 2.5, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Arma
-    ctx.rotate(p.angle || 0);
-    if (p.role === 'warrior') {
-        ctx.fillStyle = '#7f8c8d';
-        ctx.fillRect(20, -5, 35, 10);
-        ctx.fillStyle = '#bdc3c7';
-        ctx.fillRect(22, -3, 30, 6);
-        ctx.fillStyle = '#e67e22';
-        ctx.fillRect(16, -9, 10, 18);
-    } else {
-        ctx.fillStyle = '#6c3483';
-        ctx.fillRect(20, -4, 40, 8);
-        ctx.shadowBlur = 20;
-        ctx.shadowColor = '#e74c3c';
-        ctx.fillStyle = '#e74c3c';
-        ctx.beginPath();
-        ctx.arc(62, 0, 10, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#f39c12';
-        ctx.beginPath();
-        ctx.arc(62, 0, 5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-    }
-    
-    ctx.restore();
-    ctx.shadowBlur = 0;
-    
-    // Nome
-    ctx.fillStyle = isMe ? '#ffd700' : '#fff';
-    ctx.font = 'bold 13px Arial';
-    ctx.textAlign = 'center';
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 4;
-    ctx.strokeText(p.name, x, y - 60);
-    ctx.fillText(p.name, x, y - 60);
+function up(choice) {
+    socket.emit('levelup', {roomId, choice});
+    document.getElementById('levelUp').classList.add('hidden');
 }
 
-function drawBuilding(building) {
-    const pulse = Math.sin(gameTime * 0.05) * 0.05 + 1;
-    
-    switch (building.type) {
-        case 'table':
-            ctx.fillStyle = '#5d4037';
-            ctx.fillRect(building.x - 28, building.y - 5, 56, 22);
-            ctx.fillStyle = '#8d6e63';
-            ctx.fillRect(building.x - 25, building.y - 18, 50, 15);
-            ctx.fillStyle = '#ffd700';
-            ctx.fillRect(building.x - 20, building.y - 15, 40, 8);
-            ctx.fillStyle = '#90a4ae';
-            ctx.fillRect(building.x - 12, building.y - 22, 24, 4);
-            break;
-            
-        case 'campfire':
-            ctx.fillStyle = '#424242';
-            ctx.beginPath();
-            ctx.arc(building.x, building.y, 22, 0, Math.PI * 2);
-            ctx.fill();
-            
-            for (let i = 0; i < 8; i++) {
-                const angle = (i / 8) * Math.PI * 2;
-                ctx.fillStyle = '#616161';
-                ctx.beginPath();
-                ctx.arc(building.x + Math.cos(angle) * 20, building.y + Math.sin(angle) * 20, 7, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            
-            ctx.shadowBlur = 40;
-            ctx.shadowColor = '#ff6600';
-            const fireHeight = 18 + Math.random() * 12;
-            ctx.fillStyle = '#ff9800';
-            ctx.beginPath();
-            ctx.arc(building.x, building.y - 5, 14 * pulse, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#ff5722';
-            ctx.beginPath();
-            ctx.arc(building.x - 6, building.y - fireHeight, 8, 0, Math.PI * 2);
-            ctx.arc(building.x + 6, building.y - fireHeight - 6, 6, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#ffeb3b';
-            ctx.beginPath();
-            ctx.arc(building.x, building.y - 3, 7, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-            break;
-            
-        case 'turret':
-            ctx.fillStyle = '#455a64';
-            ctx.beginPath();
-            ctx.arc(building.x, building.y, 28, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#37474f';
-            ctx.beginPath();
-            ctx.arc(building.x, building.y, 20, 0, Math.PI * 2);
-            ctx.fill();
-            
-            const gunAngle = gameTime * 0.03;
-            ctx.save();
-            ctx.translate(building.x, building.y);
-            ctx.rotate(gunAngle);
-            ctx.fillStyle = '#263238';
-            ctx.fillRect(0, -6, 35, 12);
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = '#00bcd4';
-            ctx.fillStyle = '#00bcd4';
-            ctx.beginPath();
-            ctx.arc(35, 0, 6, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-            ctx.restore();
-            break;
-            
-        default:
-            const isWood = building.type === 'wall_wood';
-            ctx.fillStyle = isWood ? '#6d4c41' : '#546e7a';
-            ctx.fillRect(building.x - 28, building.y - 28, 56, 56);
-            ctx.fillStyle = isWood ? '#8d6e63' : '#78909c';
-            ctx.fillRect(building.x - 24, building.y - 24, 48, 48);
-            
-            if (isWood) {
-                ctx.strokeStyle = '#5d4037';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(building.x - 22, building.y - 10);
-                ctx.lineTo(building.x + 22, building.y - 10);
-                ctx.moveTo(building.x - 22, building.y + 10);
-                ctx.lineTo(building.x + 22, building.y + 10);
-                ctx.stroke();
-            } else {
-                ctx.strokeStyle = '#455a64';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(building.x - 18, building.y - 18);
-                ctx.lineTo(building.x, building.y);
-                ctx.lineTo(building.x + 12, building.y - 12);
-                ctx.stroke();
-            }
-            
-            ctx.strokeStyle = '#263238';
-            ctx.lineWidth = 4;
-            ctx.strokeRect(building.x - 28, building.y - 28, 56, 56);
-            break;
-    }
+function respawn() {
+    socket.emit('respawn', roomId);
+    document.getElementById('death').classList.add('hidden');
+    me.x = 1500;
+    me.y = 1500;
 }
-
-function drawMinimap() {
-    minimapCtx.fillStyle = '#0a0a1a';
-    minimapCtx.fillRect(0, 0, 120, 120);
-    
-    const scale = 120 / 2400;
-    
-    // Recursos
-    for (const resource of gameState.resources) {
-        minimapCtx.fillStyle = resource.type === 'tree' ? '#4caf50' : '#78909c';
-        minimapCtx.fillRect(resource.x * scale, resource.y * scale, 3, 3);
-    }
-    
-    // Construções
-    for (const building of gameState.buildings) {
-        minimapCtx.fillStyle = '#ffd700';
-        minimapCtx.fillRect(building.x * scale - 2, building.y * scale - 2, 5, 5);
-    }
-    
-    // Inimigos
-    for (const enemy of gameState.enemies) {
-        if (!enemy.dead) {
-            minimapCtx.fillStyle = '#ff0000';
-            minimapCtx.beginPath();
-            minimapCtx.arc(enemy.x * scale, enemy.y * scale, 3, 0, Math.PI * 2);
-            minimapCtx.fill();
-        }
-    }
-    
-    // Jogadores
-    for (const id in gameState.players) {
-        const p = gameState.players[id];
-        if (p.dead) continue;
-        minimapCtx.fillStyle = id === myId ? '#00ff00' : '#00aaff';
-        minimapCtx.beginPath();
-        minimapCtx.arc(p.x * scale, p.y * scale, id === myId ? 5 : 4, 0, Math.PI * 2);
-        minimapCtx.fill();
-    }
-    
-    // Borda
-    minimapCtx.strokeStyle = '#444';
-    minimapCtx.lineWidth = 4;
-    minimapCtx.beginPath();
-    minimapCtx.arc(60, 60, 56, 0, Math.PI * 2);
-    minimapCtx.stroke();
-}
-
-// Iniciar o loop do jogo
-gameLoop();
 </script>
 </body>
-            </html>
+    </html>

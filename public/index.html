@@ -12,9 +12,6 @@
     touch-action: none;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
-    image-rendering: pixelated;
-    image-rendering: -moz-crisp-edges;
-    image-rendering: crisp-edges;
 }
 
 :root {
@@ -24,111 +21,114 @@
     --warning: #FFC107;
     --dark: #1a1a1a;
     --darker: #0d0d0d;
-    --zombie: #4A5F4A;
 }
 
 body {
-    background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 100%);
+    background: #0d0d0d;
     color: white;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
     overflow: hidden;
     width: 100vw;
     height: 100vh;
 }
 
-/* ==================== MENU PRINCIPAL ==================== */
+.hidden { display: none !important; }
+
+/* LOADING */
+#loadingScreen {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: radial-gradient(circle, #1a1a1a, #0d0d0d);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.loader {
+    width: 60px; height: 60px;
+    border: 4px solid rgba(76,175,80,0.2);
+    border-top-color: #4CAF50;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-text {
+    margin-top: 20px;
+    color: #4CAF50;
+    font-size: 1.2rem;
+}
+
+/* MENU PRINCIPAL */
 #mainMenu {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
     background: linear-gradient(135deg, #0f1419 0%, #1a2332 50%, #0f1419 100%);
     z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: opacity 0.5s ease;
     overflow-y: auto;
-}
-
-.menu-container {
-    width: 90%;
-    max-width: 1200px;
-    animation: menuAppear 0.5s ease;
     padding: 20px;
 }
 
-@keyframes menuAppear {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.menu-container {
+    width: 100%;
+    max-width: 900px;
 }
 
 .game-logo {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 30px;
 }
 
 .game-title {
-    font-size: clamp(2.5rem, 7vw, 4rem);
+    font-size: clamp(2rem, 8vw, 4rem);
     font-weight: 900;
-    background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 50%, #CDDC39 100%);
+    background: linear-gradient(135deg, #4CAF50, #8BC34A, #CDDC39);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    text-shadow: 0 0 40px rgba(76, 175, 80, 0.5);
     animation: titlePulse 2s ease-in-out infinite;
-    margin-bottom: 10px;
 }
 
 @keyframes titlePulse {
     0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+    50% { transform: scale(1.03); }
 }
 
 .game-subtitle {
-    font-size: 1.2rem;
     color: #8BC34A;
-    opacity: 0.9;
+    font-size: 1rem;
+    margin-top: 10px;
 }
 
-.menu-content {
+.menu-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 30px;
-    margin-bottom: 30px;
+    gap: 20px;
 }
 
-@media (max-width: 768px) {
-    .menu-content {
-        grid-template-columns: 1fr;
-    }
+@media (max-width: 700px) {
+    .menu-grid { grid-template-columns: 1fr; }
 }
 
 .menu-section {
-    background: rgba(0, 0, 0, 0.5);
-    border: 2px solid rgba(76, 175, 80, 0.3);
+    background: rgba(0,0,0,0.6);
+    border: 2px solid rgba(76,175,80,0.3);
     border-radius: 15px;
-    padding: 25px;
-    backdrop-filter: blur(10px);
-    transition: all 0.3s ease;
-}
-
-.menu-section:hover {
-    border-color: rgba(76, 175, 80, 0.6);
-    box-shadow: 0 0 30px rgba(76, 175, 80, 0.2);
+    padding: 20px;
 }
 
 .section-title {
-    font-size: 1.5rem;
     color: #4CAF50;
-    margin-bottom: 20px;
+    font-size: 1.3rem;
+    margin-bottom: 15px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -140,117 +140,66 @@ body {
 
 .input-group label {
     display: block;
-    margin-bottom: 5px;
     color: #8BC34A;
     font-size: 0.9rem;
+    margin-bottom: 5px;
 }
 
-.input-group input {
+.input-group input, .input-group select {
     width: 100%;
-    padding: 12px 15px;
-    background: rgba(0, 0, 0, 0.7);
-    border: 2px solid rgba(76, 175, 80, 0.3);
+    padding: 12px;
+    background: rgba(0,0,0,0.7);
+    border: 2px solid rgba(76,175,80,0.3);
     border-radius: 8px;
     color: white;
     font-size: 16px;
-    transition: all 0.3s ease;
 }
 
-.input-group input:focus {
+.input-group input:focus, .input-group select:focus {
     outline: none;
     border-color: #4CAF50;
-    box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
 }
 
 .color-picker {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    display: flex;
     gap: 10px;
-    margin-top: 10px;
+    flex-wrap: wrap;
 }
 
 .color-option {
-    width: 40px;
-    height: 40px;
+    width: 40px; height: 40px;
     border-radius: 50%;
     border: 3px solid transparent;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform 0.2s, border-color 0.2s;
 }
 
-.color-option:hover {
-    transform: scale(1.1);
-    border-color: white;
-}
-
+.color-option:hover { transform: scale(1.1); }
 .color-option.selected {
-    border-color: #4CAF50;
-    box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
-}
-
-.server-list {
-    max-height: 300px;
-    overflow-y: auto;
-    margin-top: 15px;
-}
-
-.server-item {
-    background: rgba(0, 0, 0, 0.6);
-    border: 2px solid rgba(76, 175, 80, 0.2);
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.server-item:hover {
-    background: rgba(76, 175, 80, 0.1);
-    border-color: #4CAF50;
-    transform: translateX(5px);
-}
-
-.server-name {
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: #4CAF50;
-}
-
-.server-info {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 5px;
-    color: #8BC34A;
-    font-size: 0.9rem;
+    border-color: #fff;
+    box-shadow: 0 0 15px rgba(76,175,80,0.5);
 }
 
 .btn {
-    padding: 12px 30px;
+    width: 100%;
+    padding: 14px;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    transition: all 0.2s;
+    margin-top: 10px;
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%);
+    background: linear-gradient(135deg, #4CAF50, #8BC34A);
     color: white;
-    box-shadow: 0 5px 0 #2E7D32, 0 10px 20px rgba(76, 175, 80, 0.3);
+    box-shadow: 0 4px 0 #2E7D32;
 }
 
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 7px 0 #2E7D32, 0 15px 30px rgba(76, 175, 80, 0.4);
-}
-
-.btn-primary:active {
-    transform: translateY(2px);
-    box-shadow: 0 3px 0 #2E7D32, 0 5px 10px rgba(76, 175, 80, 0.3);
-}
+.btn-primary:hover { transform: translateY(-2px); }
+.btn-primary:active { transform: translateY(2px); box-shadow: 0 2px 0 #2E7D32; }
 
 .btn-secondary {
     background: transparent;
@@ -258,34 +207,61 @@ body {
     border: 2px solid #4CAF50;
 }
 
-.btn-secondary:hover {
-    background: rgba(76, 175, 80, 0.1);
-    box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+.btn-secondary:hover { background: rgba(76,175,80,0.1); }
+
+.server-list {
+    max-height: 250px;
+    overflow-y: auto;
 }
 
-/* ==================== SETTINGS MODAL ==================== */
+.server-item {
+    background: rgba(0,0,0,0.5);
+    border: 2px solid rgba(76,175,80,0.2);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.server-item:hover {
+    border-color: #4CAF50;
+    background: rgba(76,175,80,0.1);
+}
+
+.server-name {
+    color: #4CAF50;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.server-info {
+    display: flex;
+    justify-content: space-between;
+    color: #8BC34A;
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+
+/* SETTINGS MODAL */
 #settingsModal {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
     display: none;
     align-items: center;
     justify-content: center;
     z-index: 2000;
 }
 
-.modal-content {
+.modal-box {
     background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
     border: 2px solid #4CAF50;
     border-radius: 15px;
-    padding: 30px;
+    padding: 25px;
     width: 90%;
-    max-width: 500px;
-    max-height: 80vh;
-    overflow-y: auto;
+    max-width: 400px;
 }
 
 .modal-header {
@@ -296,286 +272,232 @@ body {
 }
 
 .modal-title {
-    font-size: 1.5rem;
     color: #4CAF50;
+    font-size: 1.4rem;
 }
 
-.close-modal {
+.close-btn {
     font-size: 1.5rem;
     cursor: pointer;
     color: #F44336;
-    transition: transform 0.3s ease;
 }
 
-.close-modal:hover {
-    transform: rotate(90deg);
-}
-
-.setting-item {
+.setting-row {
     margin-bottom: 20px;
 }
 
 .setting-label {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 5px;
     color: #8BC34A;
+    margin-bottom: 8px;
 }
 
 .slider {
     width: 100%;
-    -webkit-appearance: none;
-    appearance: none;
     height: 8px;
-    background: rgba(76, 175, 80, 0.2);
+    -webkit-appearance: none;
+    background: rgba(76,175,80,0.2);
     border-radius: 5px;
     outline: none;
 }
 
 .slider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    appearance: none;
-    width: 20px;
-    height: 20px;
+    width: 20px; height: 20px;
     background: #4CAF50;
     border-radius: 50%;
     cursor: pointer;
 }
 
-.toggle-switch {
-    position: relative;
-    width: 50px;
-    height: 25px;
-    background: rgba(76, 175, 80, 0.2);
-    border-radius: 25px;
+.toggle {
+    width: 50px; height: 26px;
+    background: rgba(76,175,80,0.2);
+    border-radius: 13px;
     cursor: pointer;
-    transition: background 0.3s ease;
+    position: relative;
+    transition: background 0.3s;
 }
 
-.toggle-switch.active {
-    background: #4CAF50;
-}
+.toggle.active { background: #4CAF50; }
 
-.toggle-slider {
+.toggle::after {
+    content: '';
     position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 21px;
-    height: 21px;
+    top: 3px; left: 3px;
+    width: 20px; height: 20px;
     background: white;
     border-radius: 50%;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s;
 }
 
-.toggle-switch.active .toggle-slider {
-    transform: translateX(25px);
-}
+.toggle.active::after { transform: translateX(24px); }
 
-/* ==================== HUD DO JOGO ==================== */
-.hidden {
-    display: none !important;
-}
-
+/* GAME HUD */
 #gameHUD {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
     pointer-events: none;
     z-index: 100;
 }
 
-.top-bar {
+.hud-top {
     position: absolute;
-    top: 10px;
-    left: 10px;
-    right: 10px;
+    top: 10px; left: 10px; right: 10px;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .player-stats {
-    background: rgba(0, 0, 0, 0.7);
-    border: 2px solid rgba(76, 175, 80, 0.5);
+    background: rgba(0,0,0,0.75);
+    border: 2px solid rgba(76,175,80,0.4);
     border-radius: 10px;
     padding: 10px 15px;
-    backdrop-filter: blur(10px);
     pointer-events: auto;
 }
 
-.stat-bar {
+.stat-row {
     display: flex;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
-.stat-bar:last-child {
-    margin-bottom: 0;
-}
+.stat-row:last-child { margin-bottom: 0; }
 
-.stat-icon {
-    width: 30px;
-    font-size: 20px;
-}
+.stat-icon { width: 25px; font-size: 16px; }
 
-.stat-progress {
-    flex: 1;
-    height: 20px;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 10px;
+.stat-bar-bg {
+    width: 120px;
+    height: 16px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 8px;
     overflow: hidden;
-    margin: 0 10px;
-    min-width: 150px;
+    margin: 0 8px;
 }
 
-.stat-fill {
+.stat-bar-fill {
     height: 100%;
-    transition: width 0.3s ease;
-    position: relative;
-    overflow: hidden;
+    transition: width 0.3s;
 }
 
-.hp-fill {
-    background: linear-gradient(90deg, #D32F2F, #F44336);
-    box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.3);
-}
-
-.xp-fill {
-    background: linear-gradient(90deg, #1976D2, #2196F3);
-    box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.3);
-}
+.hp-bar { background: linear-gradient(90deg, #C62828, #F44336); }
+.xp-bar { background: linear-gradient(90deg, #1565C0, #2196F3); }
 
 .stat-text {
-    color: white;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: bold;
-    min-width: 60px;
-    text-align: right;
+    min-width: 55px;
 }
 
-.resources {
+.resources-bar {
     display: flex;
-    gap: 15px;
-    background: rgba(0, 0, 0, 0.7);
-    border: 2px solid rgba(76, 175, 80, 0.5);
+    gap: 12px;
+    background: rgba(0,0,0,0.75);
+    border: 2px solid rgba(76,175,80,0.4);
     border-radius: 10px;
-    padding: 10px 15px;
-    backdrop-filter: blur(10px);
+    padding: 8px 15px;
+    pointer-events: auto;
 }
 
-.resource-item {
+.resource {
     display: flex;
     align-items: center;
     gap: 5px;
 }
 
-.resource-icon {
-    font-size: 20px;
-}
+.resource-icon { font-size: 18px; }
+.resource-count { font-weight: bold; color: #8BC34A; }
 
-.resource-count {
-    color: #8BC34A;
-    font-weight: bold;
-    font-size: 16px;
-}
-
-.wave-indicator {
+.wave-display {
     position: absolute;
     top: 10px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0,0,0,0.8);
     border: 2px solid #F44336;
     border-radius: 10px;
-    padding: 10px 20px;
+    padding: 8px 20px;
     color: #F44336;
-    font-size: 18px;
     font-weight: bold;
+    font-size: 16px;
 }
 
-.minimap-container {
+.minimap-box {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 150px;
-    height: 150px;
-    background: rgba(0, 0, 0, 0.8);
-    border: 3px solid #4CAF50;
+    top: 10px; right: 10px;
+    width: 140px; height: 140px;
+    background: rgba(0,0,0,0.8);
+    border: 2px solid #4CAF50;
     border-radius: 10px;
     overflow: hidden;
     pointer-events: auto;
 }
 
-#minimap {
-    width: 100%;
-    height: 100%;
-    image-rendering: pixelated;
+#minimapCanvas {
+    width: 100%; height: 100%;
 }
 
+/* HOTBAR */
 .hotbar {
     position: absolute;
-    bottom: 20px;
+    bottom: 15px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     gap: 4px;
-    background: rgba(0, 0, 0, 0.8);
-    border: 2px solid rgba(76, 175, 80, 0.5);
+    background: rgba(0,0,0,0.8);
+    border: 2px solid rgba(76,175,80,0.4);
     border-radius: 8px;
-    padding: 8px;
+    padding: 6px;
     pointer-events: auto;
 }
 
 .hotbar-slot {
-    width: 45px;
-    height: 45px;
-    background: linear-gradient(135deg, rgba(40, 40, 40, 0.9), rgba(20, 20, 20, 0.9));
-    border: 2px solid #555;
-    border-radius: 4px;
+    width: 44px; height: 44px;
+    background: rgba(40,40,40,0.9);
+    border: 2px solid #444;
+    border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.15s;
 }
 
 .hotbar-slot.selected {
     border-color: #4CAF50;
-    box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
-    transform: scale(1.1);
-    background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(20, 20, 20, 0.9));
+    box-shadow: 0 0 12px rgba(76,175,80,0.5);
+    transform: scale(1.08);
 }
 
-.slot-icon {
-    font-size: 20px;
-}
+.hotbar-slot:active { transform: scale(0.95); }
+
+.slot-icon { font-size: 20px; }
 
 .slot-count {
     position: absolute;
-    bottom: 2px;
-    right: 4px;
+    bottom: 1px; right: 3px;
     font-size: 10px;
-    color: white;
-    text-shadow: 1px 1px 2px black;
     font-weight: bold;
+    text-shadow: 1px 1px 1px #000;
 }
 
 .slot-key {
     position: absolute;
-    top: 2px;
-    left: 4px;
+    top: 1px; left: 3px;
     font-size: 9px;
-    color: #999;
+    color: #888;
 }
 
+/* ACTION BUTTONS */
 .action-buttons {
     position: absolute;
-    bottom: 90px;
-    right: 10px;
+    bottom: 80px; right: 15px;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -583,51 +505,52 @@ body {
 }
 
 .action-btn {
-    width: 50px;
-    height: 50px;
-    background: rgba(0, 0, 0, 0.8);
-    border: 3px solid #4CAF50;
+    width: 50px; height: 50px;
+    background: rgba(0,0,0,0.8);
+    border: 2px solid #4CAF50;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 20px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s;
 }
 
-.action-btn:active {
-    transform: scale(0.9);
-}
-
+.action-btn:active { transform: scale(0.9); }
 .action-btn.active {
-    background: rgba(76, 175, 80, 0.4);
-    box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+    background: rgba(76,175,80,0.4);
+    box-shadow: 0 0 15px rgba(76,175,80,0.5);
 }
 
+/* BUILD MENU */
 #buildMenu {
     position: fixed;
-    bottom: 90px;
+    bottom: 80px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(0,0,0,0.9);
     border: 2px solid #4CAF50;
-    border-radius: 10px;
+    border-radius: 12px;
     padding: 15px;
     display: none;
+    z-index: 150;
     pointer-events: auto;
 }
 
 .build-grid {
     display: grid;
-    grid-template-columns: repeat(5, 60px);
-    gap: 10px;
+    grid-template-columns: repeat(5, 55px);
+    gap: 8px;
+}
+
+@media (max-width: 400px) {
+    .build-grid { grid-template-columns: repeat(3, 55px); }
 }
 
 .build-item {
-    width: 60px;
-    height: 60px;
-    background: rgba(40, 40, 40, 0.9);
+    width: 55px; height: 60px;
+    background: rgba(50,50,50,0.9);
     border: 2px solid #555;
     border-radius: 8px;
     display: flex;
@@ -635,24 +558,28 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s;
 }
 
-.build-icon {
-    font-size: 24px;
+.build-item:hover, .build-item:active {
+    border-color: #4CAF50;
+    background: rgba(76,175,80,0.2);
 }
 
-.build-cost {
-    font-size: 9px;
-    color: #8BC34A;
+.build-item.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 
+.build-icon { font-size: 22px; }
+.build-cost { font-size: 8px; color: #8BC34A; margin-top: 3px; }
+
+/* INVENTORY */
 #inventoryModal {
     position: fixed;
-    top: 50%;
-    left: 50%;
+    top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    background: linear-gradient(135deg, rgba(20, 20, 20, 0.98), rgba(40, 40, 40, 0.98));
+    background: rgba(20,20,20,0.95);
     border: 3px solid #4CAF50;
     border-radius: 15px;
     padding: 20px;
@@ -663,339 +590,320 @@ body {
 
 .inventory-title {
     color: #4CAF50;
-    font-size: 1.5rem;
-    margin-bottom: 15px;
+    font-size: 1.3rem;
     text-align: center;
+    margin-bottom: 15px;
 }
 
-.chat-container {
+/* MOBILE JOYSTICKS */
+.joystick-zone {
+    position: fixed;
+    width: 120px; height: 120px;
+    pointer-events: auto;
+    z-index: 80;
+}
+
+.joystick-left { bottom: 20px; left: 20px; }
+.joystick-right { bottom: 20px; right: 20px; }
+
+/* CHAT */
+.chat-box {
     position: absolute;
-    bottom: 20px;
-    left: 20px;
-    width: 250px;
+    bottom: 80px; left: 15px;
+    width: 220px;
     pointer-events: auto;
 }
 
-@media (max-width: 768px) {
-    .chat-container {
-        display: none;
-    }
-    
-    .minimap-container {
-        width: 100px;
-        height: 100px;
-    }
-    
-    .hotbar-slot {
-        width: 35px;
-        height: 35px;
-    }
-    
-    .slot-icon {
-        font-size: 16px;
-    }
-}
+@media (max-width: 600px) { .chat-box { display: none; } }
 
 .chat-messages {
-    max-height: 150px;
+    max-height: 120px;
     overflow-y: auto;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0,0,0,0.6);
     border-radius: 8px;
-    padding: 10px;
+    padding: 8px;
     margin-bottom: 5px;
+    font-size: 12px;
 }
 
 .chat-input {
     width: 100%;
     padding: 8px;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0,0,0,0.8);
     border: 2px solid #4CAF50;
-    border-radius: 5px;
+    border-radius: 6px;
     color: white;
     font-size: 12px;
 }
 
+/* NOTIFICATIONS */
 .notification {
     position: fixed;
-    top: 50%;
-    left: 50%;
+    top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(0,0,0,0.9);
     border: 3px solid #4CAF50;
-    border-radius: 10px;
+    border-radius: 12px;
     padding: 20px 40px;
     color: white;
     font-size: 20px;
     font-weight: bold;
-    z-index: 250;
+    z-index: 300;
+    animation: notifPop 0.4s ease;
     pointer-events: none;
 }
 
-.damage-number {
+@keyframes notifPop {
+    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+    70% { transform: translate(-50%, -50%) scale(1.1); }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+.notification.danger { border-color: #F44336; color: #F44336; }
+.notification.warning { border-color: #FFC107; color: #FFC107; }
+
+.float-text {
     position: fixed;
     font-weight: bold;
-    font-size: 18px;
     pointer-events: none;
-    z-index: 150;
-    animation: damageFloat 1s ease-out forwards;
+    z-index: 200;
+    animation: floatUp 1s ease-out forwards;
+    text-shadow: 2px 2px 2px rgba(0,0,0,0.8);
 }
 
-@keyframes damageFloat {
-    0% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    100% {
-        opacity: 0;
-        transform: translateY(-40px);
-    }
+@keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-50px); }
 }
 
-#gameCanvas {
+/* DEATH SCREEN */
+#deathScreen {
     position: fixed;
-    top: 0;
-    left: 0;
-    image-rendering: pixelated;
-}
-
-#loadingScreen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle, #1a1a1a 0%, #0d0d0d 100%);
-    display: flex;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
+    display: none;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    z-index: 3000;
+    z-index: 500;
 }
 
-.loader {
-    width: 80px;
-    height: 80px;
-    border: 4px solid rgba(76, 175, 80, 0.2);
-    border-top-color: #4CAF50;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+.death-title {
+    font-size: 3rem;
+    color: #F44336;
+    margin-bottom: 20px;
 }
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
+.death-stats {
+    color: #888;
+    margin-bottom: 30px;
+    text-align: center;
 }
 
-.loading-text {
-    margin-top: 20px;
-    color: #4CAF50;
-    font-size: 1.2rem;
+/* GAME CANVAS */
+#gameCanvas {
+    position: fixed;
+    top: 0; left: 0;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
 }
 </style>
 </head>
 <body>
-
-<!-- ==================== LOADING SCREEN ==================== -->
+    <!-- LOADING -->
 <div id="loadingScreen" class="hidden">
     <div class="loader"></div>
-    <div class="loading-text">Carregando...</div>
+    <div class="loading-text">Conectando ao servidor...</div>
 </div>
 
-<!-- ==================== MAIN MENU ==================== -->
+<!-- MAIN MENU -->
 <div id="mainMenu">
     <div class="menu-container">
         <div class="game-logo">
             <h1 class="game-title">🧟 ZOMBIE SURVIVAL</h1>
-            <p class="game-subtitle">Sobreviva às hordas infinitas!</p>
+            <p class="game-subtitle">Sobreviva às hordas de zumbis com seus amigos!</p>
         </div>
         
-        <div class="menu-content">
-            <!-- Player Setup -->
+        <div class="menu-grid">
+            <!-- Player Config -->
             <div class="menu-section">
-                <h2 class="section-title">
-                    <span>👤</span>
-                    <span>Configurar Jogador</span>
-                </h2>
+                <h2 class="section-title">👤 Jogador</h2>
                 
                 <div class="input-group">
-                    <label>Nome do Sobrevivente</label>
-                    <input type="text" id="playerName" placeholder="Digite seu nome..." maxlength="16">
+                    <label>Seu Nome</label>
+                    <input type="text" id="playerName" placeholder="Digite seu nome..." maxlength="16" value="Sobrevivente">
                 </div>
                 
                 <div class="input-group">
-                    <label>Escolha sua Cor</label>
+                    <label>Cor do Personagem</label>
                     <div class="color-picker" id="colorPicker">
-                        <div class="color-option selected" data-color="100,150,200" style="background: rgb(100,150,200)"></div>
-                        <div class="color-option" data-color="200,100,100" style="background: rgb(200,100,100)"></div>
-                        <div class="color-option" data-color="100,200,100" style="background: rgb(100,200,100)"></div>
-                        <div class="color-option" data-color="200,200,100" style="background: rgb(200,200,100)"></div>
-                        <div class="color-option" data-color="200,100,200" style="background: rgb(200,100,200)"></div>
-                        <div class="color-option" data-color="100,200,200" style="background: rgb(100,200,200)"></div>
+                        <div class="color-option selected" data-color="100,150,200" style="background:#6496c8"></div>
+                        <div class="color-option" data-color="200,100,100" style="background:#c86464"></div>
+                        <div class="color-option" data-color="100,200,100" style="background:#64c864"></div>
+                        <div class="color-option" data-color="200,180,80" style="background:#c8b450"></div>
+                        <div class="color-option" data-color="180,100,200" style="background:#b464c8"></div>
+                        <div class="color-option" data-color="100,200,200" style="background:#64c8c8"></div>
+                        <div class="color-option" data-color="200,150,100" style="background:#c89664"></div>
+                        <div class="color-option" data-color="150,150,200" style="background:#9696c8"></div>
                     </div>
                 </div>
                 
-                <button class="btn btn-primary" id="btnCreateServer" style="width: 100%; margin-top: 20px;">
-                    🌍 CRIAR NOVO SERVIDOR
-                </button>
-                
-                <button class="btn btn-secondary" id="btnSettings" style="width: 100%; margin-top: 10px;">
-                    ⚙️ CONFIGURAÇÕES
-                </button>
+                <button class="btn btn-primary" id="btnCreate">🌍 CRIAR SERVIDOR</button>
+                <button class="btn btn-secondary" id="btnSettings">⚙️ CONFIGURAÇÕES</button>
             </div>
             
             <!-- Server List -->
             <div class="menu-section">
-                <h2 class="section-title">
-                    <span>🌐</span>
-                    <span>Servidores Disponíveis</span>
-                </h2>
-                
-                <button class="btn btn-secondary" id="btnRefreshServers" style="width: 100%; margin-bottom: 15px;">
-                    🔄 ATUALIZAR LISTA
-                </button>
-                
+                <h2 class="section-title">🌐 Servidores Online</h2>
+                <button class="btn btn-secondary" id="btnRefresh">🔄 ATUALIZAR</button>
                 <div class="server-list" id="serverList">
-                    <div style="text-align: center; color: #666;">Clique em "Atualizar Lista" para buscar servidores</div>
+                    <div style="text-align:center;color:#666;padding:20px;">
+                        Clique em "Atualizar" para buscar servidores
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ==================== SETTINGS MODAL ==================== -->
+<!-- SETTINGS MODAL -->
 <div id="settingsModal">
-    <div class="modal-content">
+    <div class="modal-box">
         <div class="modal-header">
             <h2 class="modal-title">⚙️ Configurações</h2>
-            <span class="close-modal" id="btnCloseSettings">✖</span>
+            <span class="close-btn" id="closeSettings">✖</span>
         </div>
         
-        <div class="setting-item">
+        <div class="setting-row">
             <div class="setting-label">
-                <span>🔊 Volume Geral</span>
-                <span id="volumeValue">50%</span>
+                <span>🔊 Volume</span>
+                <span id="volumeVal">50%</span>
             </div>
             <input type="range" class="slider" id="volumeSlider" min="0" max="100" value="50">
         </div>
         
-        <div class="setting-item">
-            <div class="setting-label">
-                <span>🎮 Sensibilidade</span>
-                <span id="sensitivityValue">50%</span>
-            </div>
-            <input type="range" class="slider" id="sensitivitySlider" min="0" max="100" value="50">
-        </div>
-        
-        <div class="setting-item">
+        <div class="setting-row">
             <div class="setting-label">
                 <span>📊 Mostrar FPS</span>
-                <div class="toggle-switch" id="fpsToggle">
-                    <div class="toggle-slider"></div>
-                </div>
+                <div class="toggle" id="fpsToggle"></div>
             </div>
         </div>
         
-        <button class="btn btn-primary" id="btnFullscreen" style="width: 100%; margin-top: 20px;">
-            📺 TELA CHEIA
-        </button>
+        <div class="setting-row">
+            <div class="setting-label">
+                <span>🎨 Qualidade</span>
+            </div>
+            <select id="qualitySelect" style="width:100%;padding:10px;background:#222;color:white;border:1px solid #4CAF50;border-radius:5px;">
+                <option value="low">Baixa</option>
+                <option value="medium" selected>Média</option>
+                <option value="high">Alta</option>
+            </select>
+        </div>
+        
+        <button class="btn btn-primary" id="btnFullscreen">📺 TELA CHEIA</button>
     </div>
 </div>
 
-<!-- ==================== GAME HUD ==================== -->
+<!-- GAME HUD -->
 <div id="gameHUD" class="hidden">
-    <div class="top-bar">
+    <div class="hud-top">
         <!-- Player Stats -->
         <div class="player-stats">
-            <div class="stat-bar">
+            <div class="stat-row">
                 <span class="stat-icon">❤️</span>
-                <div class="stat-progress">
-                    <div class="stat-fill hp-fill" id="hpBar" style="width: 100%"></div>
+                <div class="stat-bar-bg">
+                    <div class="stat-bar-fill hp-bar" id="hpBar" style="width:100%"></div>
                 </div>
                 <span class="stat-text" id="hpText">100/100</span>
             </div>
-            <div class="stat-bar">
+            <div class="stat-row">
                 <span class="stat-icon">⭐</span>
-                <div class="stat-progress">
-                    <div class="stat-fill xp-fill" id="xpBar" style="width: 0%"></div>
+                <div class="stat-bar-bg">
+                    <div class="stat-bar-fill xp-bar" id="xpBar" style="width:0%"></div>
                 </div>
                 <span class="stat-text" id="xpText">0/100</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-icon">🎖️</span>
+                <span class="stat-text" id="levelText">Nível 1</span>
             </div>
         </div>
         
         <!-- Resources -->
-        <div class="resources">
-            <div class="resource-item">
+        <div class="resources-bar">
+            <div class="resource">
                 <span class="resource-icon">🪵</span>
-                <span class="resource-count" id="woodCount">0</span>
+                <span class="resource-count" id="woodCount">20</span>
             </div>
-            <div class="resource-item">
+            <div class="resource">
                 <span class="resource-icon">🪨</span>
-                <span class="resource-count" id="stoneCount">0</span>
+                <span class="resource-count" id="stoneCount">10</span>
             </div>
-            <div class="resource-item">
+            <div class="resource">
                 <span class="resource-icon">🪙</span>
-                <span class="resource-count" id="coinCount">0</span>
+                <span class="resource-count" id="coinCount">10</span>
             </div>
-            <div class="resource-item">
+            <div class="resource">
                 <span class="resource-icon">🍖</span>
                 <span class="resource-count" id="foodCount">5</span>
             </div>
         </div>
     </div>
     
-    <!-- Wave Indicator -->
-    <div class="wave-indicator">
-        🧟 WAVE <span id="waveNumber">1</span>
+    <!-- Wave Display -->
+    <div class="wave-display">
+        🧟 WAVE <span id="waveNum">1</span>
     </div>
     
     <!-- Minimap -->
-    <div class="minimap-container">
-        <canvas id="minimap"></canvas>
+    <div class="minimap-box">
+        <canvas id="minimapCanvas"></canvas>
     </div>
     
     <!-- Hotbar -->
     <div class="hotbar">
-        <div class="hotbar-slot selected" data-slot="0">
+        <div class="hotbar-slot selected" data-slot="0" data-action="attack">
             <span class="slot-icon">🗡️</span>
             <span class="slot-key">1</span>
         </div>
-        <div class="hotbar-slot" data-slot="1">
+        <div class="hotbar-slot" data-slot="1" data-action="wall">
             <span class="slot-icon">🧱</span>
-            <span class="slot-count" id="wallCount">0</span>
+            <span class="slot-count" id="slotWall">0</span>
             <span class="slot-key">2</span>
         </div>
-        <div class="hotbar-slot" data-slot="2">
+        <div class="hotbar-slot" data-slot="2" data-action="spike">
             <span class="slot-icon">🛡️</span>
-            <span class="slot-count" id="spikeCount">0</span>
+            <span class="slot-count" id="slotSpike">0</span>
             <span class="slot-key">3</span>
         </div>
-        <div class="hotbar-slot" data-slot="3">
+        <div class="hotbar-slot" data-slot="3" data-action="turret">
             <span class="slot-icon">🔫</span>
-            <span class="slot-count" id="turretCount">0</span>
+            <span class="slot-count" id="slotTurret">0</span>
             <span class="slot-key">4</span>
         </div>
-        <div class="hotbar-slot" data-slot="4">
+        <div class="hotbar-slot" data-slot="4" data-action="campfire">
             <span class="slot-icon">🔥</span>
-            <span class="slot-count" id="campfireCount">0</span>
+            <span class="slot-count" id="slotCampfire">0</span>
             <span class="slot-key">5</span>
         </div>
-        <div class="hotbar-slot" data-slot="5">
+        <div class="hotbar-slot" data-slot="5" data-action="banana">
             <span class="slot-icon">🍌</span>
-            <span class="slot-count" id="bananaCount">0</span>
+            <span class="slot-count" id="slotBanana">0</span>
             <span class="slot-key">6</span>
         </div>
-        <div class="hotbar-slot" data-slot="6">
+        <div class="hotbar-slot" data-slot="6" data-action="food">
             <span class="slot-icon">🍖</span>
-            <span class="slot-count" id="foodHotbarCount">5</span>
+            <span class="slot-count" id="slotFood">5</span>
             <span class="slot-key">7</span>
         </div>
     </div>
     
     <!-- Action Buttons -->
     <div class="action-buttons">
-        <div class="action-btn" id="btnBuildMenu">🛠️</div>
-        <div class="action-btn" id="btnInventory">🎒</div>
-        <div class="action-btn" id="autoFireBtn">🎯</div>
-        <div class="action-btn" id="btnFullscreenGame">📺</div>
+        <div class="action-btn" id="btnBuild">🛠️</div>
+        <div class="action-btn" id="btnAutoFire">🎯</div>
+        <div class="action-btn" id="btnGameSettings">⚙️</div>
     </div>
     
     <!-- Build Menu -->
@@ -1011,7 +919,7 @@ body {
             </div>
             <div class="build-item" data-type="turret">
                 <span class="build-icon">🔫</span>
-                <span class="build-cost">10🪵 8🪨 10🪙</span>
+                <span class="build-cost">10🪵 8🪨</span>
             </div>
             <div class="build-item" data-type="campfire">
                 <span class="build-icon">🔥</span>
@@ -1024,334 +932,1362 @@ body {
         </div>
     </div>
     
-    <!-- Inventory Modal -->
-    <div id="inventoryModal">
-        <h2 class="inventory-title">🎒 Inventário</h2>
-        <button class="btn btn-secondary" id="btnCloseInventory" style="width: 100%;">Fechar</button>
+    <!-- Chat -->
+    <div class="chat-box">
+        <div class="chat-messages" id="chatMessages"></div>
+        <input type="text" class="chat-input" id="chatInput" placeholder="Pressione Enter..." maxlength="100">
     </div>
     
-    <!-- Chat -->
-    <div class="chat-container">
-        <div class="chat-messages" id="chatMessages"></div>
-        <input type="text" class="chat-input" id="chatInput" placeholder="Digite para conversar..." maxlength="100">
-    </div>
+    <!-- Mobile Joysticks -->
+    <div class="joystick-zone joystick-left" id="joystickLeft"></div>
+    <div class="joystick-zone joystick-right" id="joystickRight"></div>
 </div>
 
-<!-- ==================== GAME CANVAS ==================== -->
+<!-- INVENTORY -->
+<div id="inventoryModal">
+    <h2 class="inventory-title">🎒 Inventário</h2>
+    <p style="text-align:center;color:#888;margin-bottom:15px;">Em desenvolvimento...</p>
+    <button class="btn btn-secondary" id="closeInventory">Fechar</button>
+</div>
+
+<!-- DEATH SCREEN -->
+<div id="deathScreen">
+    <h1 class="death-title">💀 VOCÊ MORREU</h1>
+    <div class="death-stats">
+        <p>Zumbis eliminados: <span id="deathKills">0</span></p>
+        <p>Wave alcançada: <span id="deathWave">1</span></p>
+    </div>
+    <button class="btn btn-primary" id="btnRespawn">🔄 RENASCER</button>
+</div>
+
+<!-- GAME CANVAS -->
 <canvas id="gameCanvas"></canvas>
 
 <script src="/socket.io/socket.io.js"></script>
-<script>
-// ==================== GAME ENGINE ====================
+    <script>
+// ========================================
+// ZOMBIE SURVIVAL - GAME ENGINE COMPLETO
+// ========================================
+
 'use strict';
 
-// Canvas setup
+// === CANVAS ===
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-ctx.imageSmoothingEnabled = false;
+const minimapCanvas = document.getElementById('minimapCanvas');
+const miniCtx = minimapCanvas.getContext('2d');
 
-const minimap = document.getElementById('minimap');
-const miniCtx = minimap.getContext('2d');
-miniCtx.imageSmoothingEnabled = false;
-
-function resizeCanvas() {
+function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    minimap.width = 150;
-    minimap.height = 150;
+    minimapCanvas.width = 140;
+    minimapCanvas.height = 140;
 }
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
+resize();
+window.addEventListener('resize', resize);
 
-// Game variables
+// === CONSTANTES ===
+const MAP_SIZE = 2400;
+const TILE_SIZE = 50;
+
+// === ESTADO DO JOGO ===
 let socket = null;
 let myId = null;
-let serverId = null;
+let inGame = false;
+
 let gameState = {
     players: {},
     zombies: [],
     resources: [],
     buildings: [],
     items: [],
-    projectiles: [],
     orbs: [],
-    effects: [],
     wave: 1
 };
 
-let localPlayer = {
-    x: 1200,
-    y: 1200,
+let player = {
+    x: MAP_SIZE / 2,
+    y: MAP_SIZE / 2,
     hp: 100,
     maxHp: 100,
     xp: 0,
     nextXp: 100,
     level: 1,
-    wood: 0,
-    stone: 0,
+    wood: 20,
+    stone: 10,
     coins: 10,
     food: 5,
     speed: 4,
+    damage: 10,
+    state: 'idle',
+    facing: 1,
     selectedSlot: 0,
     autoFire: false,
-    facing: 1,
-    state: 'idle',
-    animFrame: 0
+    kills: 0
 };
 
 let camera = { x: 0, y: 0 };
-let controls = {
-    keys: {},
-    mouse: { x: 0, y: 0 },
-    joystickLeft: { active: false, x: 0, y: 0, dx: 0, dy: 0 },
-    joystickRight: { active: false, x: 0, y: 0, angle: 0 }
-};
+let animTime = 0;
+let lastAttack = 0;
+let buildMode = null;
 
+// === CONTROLES ===
+let keys = {};
+let mouse = { x: 0, y: 0, down: false };
+let joystickL = { active: false, startX: 0, startY: 0, dx: 0, dy: 0 };
+let joystickR = { active: false, startX: 0, startY: 0, angle: 0, dist: 0 };
+
+// === CONFIGURAÇÕES ===
 let settings = {
     volume: 50,
-    sensitivity: 50,
-    showFPS: false
+    showFPS: false,
+    quality: 'medium',
+    selectedColor: { r: 100, g: 150, b: 200 }
 };
 
-let selectedColor = { r: 100, g: 150, b: 200 };
-let buildMode = null;
-let animationTime = 0;
+// === CUSTOS ===
+const COSTS = {
+    wall: { wood: 5, stone: 2, coins: 0 },
+    spike: { wood: 3, stone: 5, coins: 0 },
+    turret: { wood: 10, stone: 8, coins: 10 },
+    campfire: { wood: 8, stone: 3, coins: 0 },
+    banana: { wood: 0, stone: 0, coins: 3 }
+};
 
-// Functions
-function showLoading() {
-    document.getElementById('loadingScreen').classList.remove('hidden');
+// ========================================
+// FUNÇÕES DE UI
+// ========================================
+
+function showLoading(show) {
+    document.getElementById('loadingScreen').classList.toggle('hidden', !show);
 }
 
-function hideLoading() {
-    document.getElementById('loadingScreen').classList.add('hidden');
+function showNotification(text, type = 'normal') {
+    const notif = document.createElement('div');
+    notif.className = 'notification' + (type !== 'normal' ? ' ' + type : '');
+    notif.textContent = text;
+    document.body.appendChild(notif);
+    setTimeout(() => notif.remove(), 2500);
 }
 
-function showNotification(text, type) {
-    const notification = document.createElement('div');
-    notification.className = 'notification';
-    notification.textContent = text;
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.remove();
-    }, 3000);
+function showFloatText(text, x, y, color = '#fff') {
+    const el = document.createElement('div');
+    el.className = 'float-text';
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    el.style.color = color;
+    el.textContent = text;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1000);
 }
 
-function createNewServer() {
-    const name = document.getElementById('playerName').value.trim() || 'Sobrevivente';
+function updateHUD() {
+    // HP
+    const hpPct = (player.hp / player.maxHp) * 100;
+    document.getElementById('hpBar').style.width = hpPct + '%';
+    document.getElementById('hpText').textContent = Math.floor(player.hp) + '/' + player.maxHp;
     
-    if (socket) socket.disconnect();
+    // XP
+    const xpPct = (player.xp / player.nextXp) * 100;
+    document.getElementById('xpBar').style.width = xpPct + '%';
+    document.getElementById('xpText').textContent = player.xp + '/' + player.nextXp;
     
-    showLoading();
-    socket = io();
+    // Level
+    document.getElementById('levelText').textContent = 'Nível ' + player.level;
     
-    socket.on('connect', () => {
-        myId = socket.id;
-        socket.emit('createServer', {
-            name: name + "'s Server",
-            maxPlayers: 8,
-            playerName: name,
-            color: selectedColor
-        });
+    // Resources
+    document.getElementById('woodCount').textContent = player.wood;
+    document.getElementById('stoneCount').textContent = player.stone;
+    document.getElementById('coinCount').textContent = player.coins;
+    document.getElementById('foodCount').textContent = player.food;
+    
+    // Hotbar counts
+    document.getElementById('slotWall').textContent = Math.floor(Math.min(player.wood/5, player.stone/2));
+    document.getElementById('slotSpike').textContent = Math.floor(Math.min(player.wood/3, player.stone/5));
+    document.getElementById('slotTurret').textContent = Math.floor(Math.min(player.wood/10, player.stone/8, player.coins/10));
+    document.getElementById('slotCampfire').textContent = Math.floor(Math.min(player.wood/8, player.stone/3));
+    document.getElementById('slotBanana').textContent = Math.floor(player.coins/3);
+    document.getElementById('slotFood').textContent = player.food;
+    
+    // Wave
+    document.getElementById('waveNum').textContent = gameState.wave;
+}
+
+function selectSlot(index) {
+    player.selectedSlot = index;
+    document.querySelectorAll('.hotbar-slot').forEach((el, i) => {
+        el.classList.toggle('selected', i === index);
     });
     
-    setupSocketEvents();
-}
-
-function joinServer(id) {
-    const name = document.getElementById('playerName').value.trim() || 'Sobrevivente';
+    // Atualizar modo de construção
+    const slot = document.querySelector(`.hotbar-slot[data-slot="${index}"]`);
+    const action = slot ? slot.dataset.action : 'attack';
     
-    if (socket) socket.disconnect();
-    
-    showLoading();
-    socket = io();
-    
-    socket.on('connect', () => {
-        myId = socket.id;
-        socket.emit('joinServer', {
-            serverId: id,
-            playerName: name,
-            color: selectedColor
-        });
-    });
-    
-    setupSocketEvents();
-}
-
-function refreshServers() {
-    console.log('Buscando servidores...');
-    
-    if (!socket || !socket.connected) {
-        socket = io();
-    }
-    
-    socket.emit('getServers');
-    socket.once('serverList', (servers) => {
-        console.log('Servidores encontrados:', servers);
-        const serverList = document.getElementById('serverList');
-        serverList.innerHTML = '';
-        
-        if (!servers || servers.length === 0) {
-            serverList.innerHTML = '<div style="text-align: center; color: #666;">Nenhum servidor encontrado. Crie um novo!</div>';
-            return;
-        }
-        
-        servers.forEach(server => {
-            const serverItem = document.createElement('div');
-            serverItem.className = 'server-item';
-            serverItem.innerHTML = `
-                <div class="server-name">${server.name}</div>
-                <div class="server-info">
-                    <span>👥 ${server.players}/${server.maxPlayers}</span>
-                    <span>🌊 Wave ${server.wave}</span>
-                </div>
-            `;
-            serverItem.onclick = () => joinServer(server.id);
-            serverList.appendChild(serverItem);
-        });
-    });
-}
-
-function openSettings() {
-    document.getElementById('settingsModal').style.display = 'flex';
-}
-
-function closeSettings() {
-    document.getElementById('settingsModal').style.display = 'none';
-}
-
-function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(err => {
-            console.log('Fullscreen error:', err);
-        });
+    if (['wall', 'spike', 'turret', 'campfire', 'banana'].includes(action)) {
+        buildMode = action;
     } else {
-        document.exitFullscreen();
+        buildMode = null;
     }
 }
 
-function toggleBuildMenu() {
-    const menu = document.getElementById('buildMenu');
-    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+function canBuild(type) {
+    const cost = COSTS[type];
+    if (!cost) return false;
+    return player.wood >= cost.wood && player.stone >= cost.stone && player.coins >= cost.coins;
 }
 
-function toggleInventory() {
-    const inv = document.getElementById('inventoryModal');
-    inv.style.display = inv.style.display === 'none' ? 'block' : 'none';
-}
+// ========================================
+// CONEXÃO E SERVIDOR
+// ========================================
 
-function toggleAutoFire() {
-    localPlayer.autoFire = !localPlayer.autoFire;
-    const btn = document.getElementById('autoFireBtn');
-    btn.classList.toggle('active');
-    showNotification(localPlayer.autoFire ? 'Auto-fire ativado!' : 'Auto-fire desativado', 'info');
-}
-
-function setupSocketEvents() {
+function connectSocket() {
+    if (socket && socket.connected) return;
+    
+    socket = io();
+    
+    socket.on('connect', () => {
+        console.log('Conectado ao servidor!');
+    });
+    
+    socket.on('disconnect', () => {
+        console.log('Desconectado do servidor');
+        if (inGame) {
+            showNotification('Conexão perdida!', 'danger');
+        }
+    });
+    
+    socket.on('serverList', (list) => {
+        renderServerList(list);
+    });
+    
     socket.on('joinedServer', (data) => {
-        serverId = data.serverId;
-        hideLoading();
+        myId = data.playerId;
+        showLoading(false);
         startGame();
     });
     
     socket.on('error', (data) => {
-        hideLoading();
-        showNotification(data.message, 'error');
+        showLoading(false);
+        showNotification(data.message, 'danger');
     });
     
     socket.on('gameState', (state) => {
         gameState = state;
         
-        if (gameState.players[myId]) {
-            const p = gameState.players[myId];
-            localPlayer.hp = p.hp;
-            localPlayer.maxHp = p.maxHp;
-            localPlayer.level = p.level;
-            localPlayer.xp = p.xp;
-            localPlayer.nextXp = p.nextXp;
-            localPlayer.wood = p.wood;
-            localPlayer.stone = p.stone;
-            localPlayer.coins = p.coins;
-            localPlayer.food = p.food;
+        // Atualizar dados do player local
+        if (state.players && state.players[myId]) {
+            const p = state.players[myId];
+            player.hp = p.hp;
+            player.maxHp = p.maxHp;
+            player.xp = p.xp;
+            player.nextXp = p.nextXp;
+            player.level = p.level;
+            player.wood = p.wood;
+            player.stone = p.stone;
+            player.coins = p.coins;
+            player.food = p.food;
+            player.damage = p.damage;
+            player.kills = p.kills;
             
             updateHUD();
         }
     });
+    
+    socket.on('newWave', (data) => {
+        showNotification('🧟 WAVE ' + data.wave + ' COMEÇOU!', 'warning');
+    });
+    
+    socket.on('levelUp', (data) => {
+        showNotification('🎉 LEVEL UP! Nível ' + data.level, 'warning');
+    });
+    
+    socket.on('playerDied', () => {
+        showDeathScreen();
+    });
+    
+    socket.on('buildSuccess', (data) => {
+        showNotification('✅ ' + data.type + ' construído!');
+    });
 }
 
+function renderServerList(list) {
+    const container = document.getElementById('serverList');
+    
+    if (!list || list.length === 0) {
+        container.innerHTML = '<div style="text-align:center;color:#666;padding:20px;">Nenhum servidor encontrado.<br>Crie um novo!</div>';
+        return;
+    }
+    
+    container.innerHTML = '';
+    list.forEach(srv => {
+        const el = document.createElement('div');
+        el.className = 'server-item';
+        el.innerHTML = `
+            <div class="server-name">${srv.name}</div>
+            <div class="server-info">
+                <span>👥 ${srv.players}/${srv.maxPlayers}</span>
+                <span>🌊 Wave ${srv.wave}</span>
+            </div>
+        `;
+        el.addEventListener('click', () => joinServer(srv.id));
+        container.appendChild(el);
+    });
+}
+
+function refreshServers() {
+    connectSocket();
+    socket.emit('getServers');
+}
+
+function createServer() {
+    const name = document.getElementById('playerName').value.trim() || 'Sobrevivente';
+    
+    showLoading(true);
+    connectSocket();
+    
+    socket.emit('createServer', {
+        name: name + "'s Server",
+        maxPlayers: 8,
+        playerName: name,
+        color: settings.selectedColor
+    });
+}
+
+function joinServer(serverId) {
+    const name = document.getElementById('playerName').value.trim() || 'Sobrevivente';
+    
+    showLoading(true);
+    connectSocket();
+    
+    socket.emit('joinServer', {
+        serverId: serverId,
+        playerName: name,
+        color: settings.selectedColor
+    });
+}
+
+// ========================================
+// INÍCIO DO JOGO
+// ========================================
+
 function startGame() {
+    inGame = true;
     document.getElementById('mainMenu').classList.add('hidden');
     document.getElementById('gameHUD').classList.remove('hidden');
     
+    player.x = MAP_SIZE / 2;
+    player.y = MAP_SIZE / 2;
+    
+    updateHUD();
     gameLoop();
 }
 
-function updateHUD() {
-    document.getElementById('hpBar').style.width = (localPlayer.hp / localPlayer.maxHp * 100) + '%';
-    document.getElementById('hpText').textContent = Math.floor(localPlayer.hp) + '/' + localPlayer.maxHp;
-    
-    document.getElementById('xpBar').style.width = (localPlayer.xp / localPlayer.nextXp * 100) + '%';
-    document.getElementById('xpText').textContent = localPlayer.xp + '/' + localPlayer.nextXp;
-    
-    document.getElementById('woodCount').textContent = localPlayer.wood;
-    document.getElementById('stoneCount').textContent = localPlayer.stone;
-    document.getElementById('coinCount').textContent = localPlayer.coins;
-    document.getElementById('foodCount').textContent = localPlayer.food;
+function showDeathScreen() {
+    document.getElementById('deathKills').textContent = player.kills;
+    document.getElementById('deathWave').textContent = gameState.wave;
+    document.getElementById('deathScreen').style.display = 'flex';
 }
 
-function gameLoop() {
-    animationTime++;
+function respawn() {
+    document.getElementById('deathScreen').style.display = 'none';
+    socket.emit('respawn');
+}
+
+// ========================================
+// CONTROLES
+// ========================================
+
+// Teclado
+window.addEventListener('keydown', (e) => {
+    keys[e.key.toLowerCase()] = true;
     
-    // Update
-    let moveX = 0, moveY = 0;
-    if (controls.keys['w']) moveY = -1;
-    if (controls.keys['s']) moveY = 1;
-    if (controls.keys['a']) moveX = -1;
-    if (controls.keys['d']) moveX = 1;
+    // Números para hotbar
+    if (e.key >= '1' && e.key <= '9') {
+        selectSlot(parseInt(e.key) - 1);
+    }
     
-    if (moveX !== 0 || moveY !== 0) {
-        localPlayer.x += moveX * localPlayer.speed;
-        localPlayer.y += moveY * localPlayer.speed;
-        
-        if (socket && socket.connected) {
-            socket.emit('playerUpdate', {
-                x: localPlayer.x,
-                y: localPlayer.y,
-                state: 'walk'
+    // Enter para chat
+    if (e.key === 'Enter') {
+        const chat = document.getElementById('chatInput');
+        if (document.activeElement === chat) {
+            if (chat.value.trim()) {
+                socket.emit('chat', chat.value);
+                chat.value = '';
+            }
+            chat.blur();
+        } else {
+            chat.focus();
+        }
+        e.preventDefault();
+    }
+    
+    // Escape fecha menus
+    if (e.key === 'Escape') {
+        document.getElementById('buildMenu').style.display = 'none';
+        document.getElementById('inventoryModal').style.display = 'none';
+        document.getElementById('settingsModal').style.display = 'none';
+        buildMode = null;
+    }
+    
+    // R para renascer
+    if (e.key.toLowerCase() === 'r' && player.hp <= 0) {
+        respawn();
+    }
+    
+    // F para usar comida
+    if (e.key.toLowerCase() === 'f' && player.food > 0 && player.hp < player.maxHp) {
+        socket.emit('useFood');
+    }
+    
+    // B para build menu
+    if (e.key.toLowerCase() === 'b') {
+        toggleBuildMenu();
+    }
+});
+
+window.addEventListener('keyup', (e) => {
+    keys[e.key.toLowerCase()] = false;
+});
+
+// Mouse
+canvas.addEventListener('mousemove', (e) => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+});
+
+canvas.addEventListener('mousedown', (e) => {
+    if (e.button === 0) {
+        mouse.down = true;
+        handleAction();
+    }
+});
+
+canvas.addEventListener('mouseup', (e) => {
+    if (e.button === 0) mouse.down = false;
+});
+
+canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+// Touch - Joysticks
+document.getElementById('joystickLeft').addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    joystickL.active = true;
+    joystickL.startX = touch.clientX;
+    joystickL.startY = touch.clientY;
+    joystickL.dx = 0;
+    joystickL.dy = 0;
+});
+
+document.getElementById('joystickLeft').addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (!joystickL.active) return;
+    const touch = e.touches[0];
+    const dx = touch.clientX - joystickL.startX;
+    const dy = touch.clientY - joystickL.startY;
+    const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 50);
+    const angle = Math.atan2(dy, dx);
+    joystickL.dx = Math.cos(angle) * (dist / 50);
+    joystickL.dy = Math.sin(angle) * (dist / 50);
+});
+
+document.getElementById('joystickLeft').addEventListener('touchend', (e) => {
+    e.preventDefault();
+    joystickL.active = false;
+    joystickL.dx = 0;
+    joystickL.dy = 0;
+});
+
+document.getElementById('joystickRight').addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    joystickR.active = true;
+    joystickR.startX = touch.clientX;
+    joystickR.startY = touch.clientY;
+});
+
+document.getElementById('joystickRight').addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (!joystickR.active) return;
+    const touch = e.touches[0];
+    const dx = touch.clientX - joystickR.startX;
+    const dy = touch.clientY - joystickR.startY;
+    joystickR.angle = Math.atan2(dy, dx);
+    joystickR.dist = Math.sqrt(dx*dx + dy*dy);
+});
+
+document.getElementById('joystickRight').addEventListener('touchend', (e) => {
+    e.preventDefault();
+    if (joystickR.active && joystickR.dist > 20) {
+        handleAction();
+    }
+    joystickR.active = false;
+    joystickR.dist = 0;
+});
+
+// ========================================
+// AÇÕES DO JOGADOR
+// ========================================
+
+function handleAction() {
+    const now = Date.now();
+    
+    // Calcular ângulo
+    let angle;
+    if (joystickR.active) {
+        angle = joystickR.angle;
+    } else {
+        angle = Math.atan2(
+            mouse.y - canvas.height / 2,
+            mouse.x - canvas.width / 2
+        );
+    }
+    
+    // Atualizar facing
+    player.facing = Math.cos(angle) >= 0 ? 1 : -1;
+    
+    // Modo construção
+    if (buildMode) {
+        if (canBuild(buildMode)) {
+            const dist = 70;
+            const bx = player.x + Math.cos(angle) * dist;
+            const by = player.y + Math.sin(angle) * dist;
+            
+            socket.emit('build', {
+                type: buildMode,
+                x: bx,
+                y: by
             });
+        } else {
+            showNotification('Recursos insuficientes!', 'danger');
+        }
+        return;
+    }
+    
+    // Usar comida
+    if (player.selectedSlot === 6) {
+        if (player.food > 0 && player.hp < player.maxHp) {
+            socket.emit('useFood');
+        }
+        return;
+    }
+    
+    // Ataque
+    if (now - lastAttack < 300) return;
+    lastAttack = now;
+    
+    player.state = 'attack';
+    socket.emit('playerAttack', { angle: angle });
+}
+
+function findNearestZombie() {
+    let nearest = null;
+    let minDist = Infinity;
+    
+    if (!gameState.zombies) return null;
+    
+    for (const z of gameState.zombies) {
+        const dist = Math.hypot(z.x - player.x, z.y - player.y);
+        if (dist < minDist && dist < 200) {
+            minDist = dist;
+            nearest = z;
         }
     }
     
-    camera.x = localPlayer.x - canvas.width / 2;
-    camera.y = localPlayer.y - canvas.height / 2;
+    return nearest;
+}
+
+// ========================================
+// RENDERIZAÇÃO - PIXEL ART
+// ========================================
+
+function drawPixelRect(x, y, w, h, color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(Math.floor(x), Math.floor(y), w, h);
+}
+
+function drawTree(x, y, hp, maxHp) {
+    const sx = x - camera.x;
+    const sy = y - camera.y;
     
-    // Render
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Tronco
+    drawPixelRect(sx - 6, sy - 5, 12, 25, '#5D4037');
+    drawPixelRect(sx - 4, sy - 5, 8, 25, '#6D4C41');
     
-    // Background
-    ctx.fillStyle = '#2A4A2A';
+    // Copa
+    drawPixelRect(sx - 20, sy - 35, 40, 20, '#2E7D32');
+    drawPixelRect(sx - 16, sy - 45, 32, 15, '#388E3C');
+    drawPixelRect(sx - 12, sy - 52, 24, 10, '#43A047');
+    
+    // Detalhes
+    drawPixelRect(sx - 14, sy - 40, 6, 6, '#4CAF50');
+    drawPixelRect(sx + 8, sy - 48, 5, 5, '#66BB6A');
+    
+    // Sombra
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath();
+    ctx.ellipse(sx, sy + 18, 15, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Barra de HP se danificado
+    if (hp < maxHp) {
+        drawPixelRect(sx - 15, sy - 60, 30, 4, '#333');
+        drawPixelRect(sx - 15, sy - 60, 30 * (hp / maxHp), 4, '#4CAF50');
+    }
+}
+
+function drawStone(x, y, hp, maxHp) {
+    const sx = x - camera.x;
+    const sy = y - camera.y;
+    
+    // Pedra principal
+    drawPixelRect(sx - 14, sy - 8, 28, 16, '#616161');
+    drawPixelRect(sx - 12, sy - 12, 24, 8, '#757575');
+    drawPixelRect(sx - 10, sy + 8, 20, 5, '#546E7A');
+    
+    // Detalhes
+    drawPixelRect(sx - 8, sy - 6, 6, 6, '#78909C');
+    drawPixelRect(sx + 4, sy - 4, 5, 5, '#90A4AE');
+    drawPixelRect(sx - 4, sy + 2, 3, 3, '#455A64');
+    
+    // Sombra
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.beginPath();
+    ctx.ellipse(sx, sy + 12, 12, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    if (hp < maxHp) {
+        drawPixelRect(sx - 15, sy - 20, 30, 4, '#333');
+        drawPixelRect(sx - 15, sy - 20, 30 * (hp / maxHp), 4, '#78909C');
+    }
+}
+
+function drawBush(x, y, hp, maxHp) {
+    const sx = x - camera.x;
+    const sy = y - camera.y;
+    
+    // Arbusto
+    drawPixelRect(sx - 12, sy - 8, 24, 16, '#388E3C');
+    drawPixelRect(sx - 10, sy - 12, 20, 8, '#43A047');
+    drawPixelRect(sx - 8, sy + 8, 16, 4, '#2E7D32');
+    
+    // Frutas
+    drawPixelRect(sx - 6, sy - 4, 4, 4, '#E53935');
+    drawPixelRect(sx + 3, sy - 2, 4, 4, '#E53935');
+    drawPixelRect(sx - 2, sy + 2, 4, 4, '#EF5350');
+    
+    // Sombra
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath();
+    ctx.ellipse(sx, sy + 10, 10, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    if (hp < maxHp) {
+        drawPixelRect(sx - 12, sy - 20, 24, 4, '#333');
+        drawPixelRect(sx - 12, sy - 20, 24 * (hp / maxHp), 4, '#4CAF50');
+    }
+}
+
+function drawWall(x, y, hp, maxHp) {
+    const sx = x - camera.x;
+    const sy = y - camera.y;
+    
+    // Base
+    drawPixelRect(sx - 18, sy - 18, 36, 36, '#8D6E63');
+    
+    // Tijolos
+    drawPixelRect(sx - 16, sy - 16, 14, 8, '#795548');
+    drawPixelRect(sx + 2, sy - 16, 14, 8, '#795548');
+    drawPixelRect(sx - 9, sy - 6, 14, 8, '#795548');
+    drawPixelRect(sx - 16, sy + 4, 14, 8, '#795548');
+    drawPixelRect(sx + 2, sy + 4, 14, 8, '#795548');
+    
+    // Contorno
+    ctx.strokeStyle = '#5D4037';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(sx - 18, sy - 18, 36, 36);
+    
+    // Sombra
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillRect(sx - 16, sy + 16, 32, 6);
+    
+    // HP
+    if (hp < maxHp) {
+        drawPixelRect(sx - 18, sy - 26, 36, 5, '#333');
+        drawPixelRect(sx - 18, sy - 26, 36 * (hp / maxHp), 5, '#4CAF50');
+    }
+}
+
+function drawSpike(x, y, hp, maxHp) {
+    const sx = x - camera.x;
+    const sy = y - camera.y;
+    
+    // Base
+    drawPixelRect(sx - 16, sy + 8, 32, 8, '#455A64');
+    
+    // Espinhos
+    for (let i = 0; i < 5; i++) {
+        const spx = sx - 12 + i * 6;
+        ctx.fillStyle = '#78909C';
+        ctx.beginPath();
+        ctx.moveTo(spx, sy + 8);
+        ctx.lineTo(spx + 3, sy - 12);
+        ctx.lineTo(spx + 6, sy + 8);
+        ctx.fill();
+        
+        // Ponta brilhante
+        ctx.fillStyle = '#B0BEC5';
+        ctx.fillRect(spx + 2, sy - 10, 2, 4);
+    }
+    
+    // HP
+    if (hp < maxHp) {
+        drawPixelRect(sx - 16, sy - 20, 32, 4, '#333');
+        drawPixelRect(sx - 16, sy - 20, 32 * (hp / maxHp), 4, '#78909C');
+    }
+}
+
+function drawTurret(x, y, hp, maxHp) {
+    const sx = x - camera.x;
+    const sy = y - camera.y;
+    const rotAngle = animTime * 0.02;
+    
+    // Base
+    drawPixelRect(sx - 14, sy + 4, 28, 12, '#37474F');
+    drawPixelRect(sx - 12, sy + 2, 24, 4, '#455A64');
+    
+    // Topo rotativo
+    ctx.save();
+    ctx.translate(sx, sy - 4);
+    ctx.rotate(rotAngle);
+    
+    drawPixelRect(-10, -10, 20, 20, '#546E7A');
+    drawPixelRect(-14, -3, 18, 6, '#263238');
+    drawPixelRect(-16, -2, 4, 4, '#FFC107');
+    
+    ctx.restore();
+    
+    // HP
+    if (hp < maxHp) {
+        drawPixelRect(sx - 14, sy - 22, 28, 4, '#333');
+        drawPixelRect(sx - 14, sy - 22, 28 * (hp / maxHp), 4, '#2196F3');
+    }
+}
+
+function drawCampfire(x, y) {
+    const sx = x - camera.x;
+    const sy = y - camera.y;
+    const flicker = Math.sin(animTime * 0.15) * 3;
+    
+    // Troncos
+    drawPixelRect(sx - 12, sy + 8, 8, 6, '#5D4037');
+    drawPixelRect(sx + 4, sy + 8, 8, 6, '#5D4037');
+    drawPixelRect(sx - 4, sy + 6, 8, 6, '#6D4C41');
+    
+    // Fogo
+    drawPixelRect(sx - 6, sy - 6 + flicker, 12, 14, '#FF5722');
+    drawPixelRect(sx - 4, sy - 12 + flicker, 8, 8, '#FF9800');
+    drawPixelRect(sx - 2, sy - 4 + flicker, 4, 8, '#FFEB3B');
+    
+    // Brilho
+    ctx.fillStyle = 'rgba(255, 152, 0, 0.15)';
+    ctx.beginPath();
+    ctx.arc(sx, sy, 50, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function drawBanana(x, y) {
+    const sx = x - camera.x;
+    const sy = y - camera.y;
+    
+    // Banana
+    drawPixelRect(sx - 8, sy - 3, 16, 6, '#FDD835');
+    drawPixelRect(sx - 10, sy - 1, 4, 3, '#FFEB3B');
+    drawPixelRect(sx + 6, sy - 1, 4, 3, '#FFEB3B');
+    
+    // Pontas
+    drawPixelRect(sx - 10, sy, 2, 2, '#8D6E63');
+    drawPixelRect(sx + 9, sy, 2, 2, '#8D6E63');
+    
+    // Manchas
+    drawPixelRect(sx - 2, sy - 1, 2, 2, '#A1887F');
+    drawPixelRect(sx + 3, sy, 1, 1, '#A1887F');
+}
+
+function drawOrb(x, y, type) {
+    const sx = x - camera.x;
+    const sy = y - camera.y;
+    const pulse = Math.sin(animTime * 0.1) * 2;
+    
+    if (type === 'xp') {
+        ctx.fillStyle = '#4FC3F7';
+        ctx.beginPath();
+        ctx.arc(sx, sy, 6 + pulse, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = '#B3E5FC';
+        ctx.beginPath();
+        ctx.arc(sx, sy, 3 + pulse, 0, Math.PI * 2);
+        ctx.fill();
+    } else {
+        ctx.fillStyle = '#FFD54F';
+        ctx.beginPath();
+        ctx.arc(sx, sy, 5 + pulse, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = '#FFF59D';
+        ctx.beginPath();
+        ctx.arc(sx, sy, 3 + pulse, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+function drawPlayer(p, isLocal) {
+    const sx = p.x - camera.x;
+    const sy = p.y - camera.y;
+    
+    const walkAnim = p.state === 'walk' ? Math.sin(animTime * 0.2) * 3 : 0;
+    const attackAnim = p.state === 'attack' ? Math.sin(animTime * 0.4) * 8 : 0;
+    const breathe = Math.sin(animTime * 0.05) * 1;
+    
+    const facing = p.facing || 1;
+    
+    // Cor do jogador
+    const color = p.color || { r: 100, g: 150, b: 200 };
+    const mainColor = `rgb(${color.r}, ${color.g}, ${color.b})`;
+    const darkColor = `rgb(${Math.floor(color.r*0.7)}, ${Math.floor(color.g*0.7)}, ${Math.floor(color.b*0.7)})`;
+    
+    ctx.save();
+    ctx.translate(sx, sy);
+    ctx.scale(facing, 1);
+    
+    // Sombra
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.beginPath();
+    ctx.ellipse(0, 22, 12, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Pernas
+    ctx.fillStyle = '#37474F';
+    drawPixelRect(-5 + walkAnim, 10, 5, 12, '#37474F');
+    drawPixelRect(0 - walkAnim, 10, 5, 12, '#455A64');
+    
+    // Corpo
+    drawPixelRect(-7, -2 + breathe, 14, 14, mainColor);
+    drawPixelRect(-6, 0 + breathe, 12, 10, darkColor);
+    
+    // Braço traseiro
+    ctx.save();
+    ctx.translate(-7, 2);
+    ctx.rotate((-walkAnim * 0.05) + (attackAnim * 0.02));
+    drawPixelRect(-2, 0, 4, 10, '#FFCCBC');
+    ctx.restore();
+    
+    // Braço frontal + arma
+    ctx.save();
+    ctx.translate(7, 2);
+    ctx.rotate((walkAnim * 0.05) - (attackAnim * 0.05));
+    drawPixelRect(-2, 0, 4, 10, '#FFCCBC');
+    
+    // Espada
+    if (isLocal && player.selectedSlot === 0) {
+        drawPixelRect(0, 8, 3, 14, '#90A4AE');
+        drawPixelRect(-1, 8, 5, 3, '#795548');
+        drawPixelRect(0, 20, 3, 2, '#B0BEC5');
+    }
+    ctx.restore();
+    
+    // Cabeça
+    drawPixelRect(-6, -14 + breathe, 12, 12, '#FFCCBC');
+    
+    // Cabelo
+    drawPixelRect(-6, -14 + breathe, 12, 5, mainColor);
+    drawPixelRect(-7, -12 + breathe, 3, 8, mainColor);
+    
+    // Olhos
+    drawPixelRect(-4, -8 + breathe, 2, 3, '#263238');
+    drawPixelRect(2, -8 + breathe, 2, 3, '#263238');
+    
+    // Brilho dos olhos
+    drawPixelRect(-4, -8 + breathe, 1, 1, '#FFF');
+    drawPixelRect(2, -8 + breathe, 1, 1, '#FFF');
+    
+    // Boca
+    drawPixelRect(-1, -4 + breathe, 2, 1, '#E57373');
+    
+    ctx.restore();
+    
+    // Nome
+    if (!isLocal) {
+        ctx.fillStyle = '#FFF';
+        ctx.font = 'bold 11px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(p.name || 'Player', sx, sy - 28);
+        
+        // HP bar
+        if (p.hp < p.maxHp) {
+            drawPixelRect(sx - 16, sy - 38, 32, 4, '#333');
+            drawPixelRect(sx - 16, sy - 38, 32 * (p.hp / p.maxHp), 4, '#4CAF50');
+        }
+    }
+}
+
+function drawZombie(z) {
+    const sx = z.x - camera.x;
+    const sy = z.y - camera.y;
+    
+    const walkAnim = Math.sin(animTime * 0.15 + z.x) * 2;
+    const bobAnim = Math.abs(Math.sin(animTime * 0.1 + z.y)) * 2;
+    const isBoss = z.type === 'boss';
+    const isTank = z.type === 'tank';
+    const scale = isBoss ? 1.6 : (isTank ? 1.3 : 1);
+    
+    // Se escorregando
+    if (z.slipping) {
+        ctx.save();
+        ctx.translate(sx, sy);
+        ctx.rotate(animTime * 0.3);
+        ctx.translate(-sx, -sy);
+    }
+    
+    ctx.save();
+    ctx.translate(sx, sy);
+    ctx.scale(scale, scale);
+    
+    // Sombra
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(0, 18 / scale, 10, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Pernas
+    ctx.fillStyle = '#3E5240';
+    drawPixelRect(-4 + walkAnim, 8, 4, 10, '#3E5240');
+    drawPixelRect(0 - walkAnim, 8, 4, 10, '#4A5F4A');
+    
+    // Corpo
+    drawPixelRect(-6, -4 - bobAnim, 12, 14, z.color || '#4A5F4A');
+    
+    // Rasgos na roupa
+    drawPixelRect(-4, 2 - bobAnim, 2, 4, '#2C3E2C');
+    drawPixelRect(3, -2 - bobAnim, 2, 3, '#2C3E2C');
+    
+    // Braços estendidos
+    ctx.save();
+    ctx.translate(-6, 0);
+    ctx.rotate(Math.sin(animTime * 0.1) * 0.1 - 0.3);
+    drawPixelRect(-2, -2, 4, 12, '#5D6D5D');
+    ctx.restore();
+    
+    ctx.save();
+    ctx.translate(6, 0);
+    ctx.rotate(-Math.sin(animTime * 0.1) * 0.1 + 0.3);
+    drawPixelRect(-2, -2, 4, 12, '#5D6D5D');
+    ctx.restore();
+    
+    // Cabeça
+    drawPixelRect(-5, -14 - bobAnim, 10, 10, '#5D6D5D');
+    
+    // Olhos vermelhos brilhantes
+    drawPixelRect(-3, -10 - bobAnim, 2, 2, '#FF1744');
+    drawPixelRect(1, -10 - bobAnim, 2, 2, '#FF1744');
+    
+    // Brilho dos olhos
+    ctx.fillStyle = 'rgba(255, 23, 68, 0.3)';
+    ctx.beginPath();
+    ctx.arc(-2, -9 - bobAnim, 4, 0, Math.PI * 2);
+    ctx.arc(2, -9 - bobAnim, 4, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Boca
+    drawPixelRect(-2, -6 - bobAnim, 4, 2, '#1B2E1B');
+    
+    // Coroa do boss
+    if (isBoss) {
+        drawPixelRect(-5, -20 - bobAnim, 10, 3, '#FFD700');
+        drawPixelRect(-4, -23 - bobAnim, 2, 4, '#FFD700');
+        drawPixelRect(-1, -23 - bobAnim, 2, 4, '#FFD700');
+        drawPixelRect(2, -23 - bobAnim, 2, 4, '#FFD700');
+    }
+    
+    ctx.restore();
+    
+    if (z.slipping) {
+        ctx.restore();
+        
+        // Texto SLIP!
+        ctx.fillStyle = '#FFEB3B';
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('SLIP!', sx, sy - 30 * scale);
+    }
+    
+    // HP Bar
+    const barWidth = 30 * scale;
+    drawPixelRect(sx - barWidth/2, sy - 25 * scale, barWidth, 4, '#333');
+    drawPixelRect(sx - barWidth/2, sy - 25 * scale, barWidth * (z.hp / z.maxHp), 4, isBoss ? '#9C27B0' : '#F44336');
+}
+
+function drawBackground() {
+    // Cor base
+    ctx.fillStyle = '#2E5A2E';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Placeholder text
-    ctx.fillStyle = '#FFF';
-    ctx.font = '20px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('Jogo em desenvolvimento...', canvas.width/2, canvas.height/2);
+    // Grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+    ctx.lineWidth = 1;
+    
+    const startX = -(camera.x % TILE_SIZE);
+    const startY = -(camera.y % TILE_SIZE);
+    
+    for (let x = startX; x < canvas.width; x += TILE_SIZE) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+    }
+    
+    for (let y = startY; y < canvas.height; y += TILE_SIZE) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+    }
+    
+    // Detalhes de grama
+    ctx.fillStyle = 'rgba(67, 160, 71, 0.3)';
+    for (let i = 0; i < 100; i++) {
+        const gx = ((i * 97 + Math.floor(camera.x / 3)) % canvas.width);
+        const gy = ((i * 131 + Math.floor(camera.y / 3)) % canvas.height);
+        ctx.fillRect(gx, gy, 2, 4);
+        ctx.fillRect(gx - 1, gy + 1, 1, 3);
+        ctx.fillRect(gx + 2, gy + 1, 1, 3);
+    }
+    
+    // Borda do mapa
+    ctx.strokeStyle = '#F44336';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(-camera.x, -camera.y, MAP_SIZE, MAP_SIZE);
+}
+
+function drawMinimap() {
+    miniCtx.fillStyle = '#1B3A1B';
+    miniCtx.fillRect(0, 0, 140, 140);
+    
+    const scale = 140 / MAP_SIZE;
+    
+    // Grid
+    miniCtx.strokeStyle = 'rgba(255,255,255,0.1)';
+    miniCtx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+        const p = i * 35;
+        miniCtx.beginPath();
+        miniCtx.moveTo(p, 0);
+        miniCtx.lineTo(p, 140);
+        miniCtx.stroke();
+        miniCtx.beginPath();
+        miniCtx.moveTo(0, p);
+        miniCtx.lineTo(140, p);
+        miniCtx.stroke();
+    }
+    
+    // Recursos
+    miniCtx.fillStyle = '#4CAF50';
+    if (gameState.resources) {
+        for (const r of gameState.resources) {
+            if (r.hp > 0) {
+                miniCtx.fillRect(r.x * scale - 1, r.y * scale - 1, 2, 2);
+            }
+        }
+    }
+    
+    // Construções
+    miniCtx.fillStyle = '#795548';
+    if (gameState.buildings) {
+        for (const b of gameState.buildings) {
+            miniCtx.fillRect(b.x * scale - 2, b.y * scale - 2, 4, 4);
+        }
+    }
+    
+    // Zumbis
+    miniCtx.fillStyle = '#F44336';
+    if (gameState.zombies) {
+        for (const z of gameState.zombies) {
+            const size = z.type === 'boss' ? 4 : 2;
+            miniCtx.fillRect(z.x * scale - size/2, z.y * scale - size/2, size, size);
+        }
+    }
+    
+    // Outros jogadores
+    miniCtx.fillStyle = '#2196F3';
+    if (gameState.players) {
+        for (const id in gameState.players) {
+            if (id !== myId) {
+                const p = gameState.players[id];
+                miniCtx.fillRect(p.x * scale - 2, p.y * scale - 2, 4, 4);
+            }
+        }
+    }
+    
+    // Jogador local
+    miniCtx.fillStyle = '#4CAF50';
+    miniCtx.fillRect(player.x * scale - 3, player.y * scale - 3, 6, 6);
+    
+    // Borda
+    miniCtx.strokeStyle = '#4CAF50';
+    miniCtx.lineWidth = 2;
+    miniCtx.strokeRect(0, 0, 140, 140);
+}
+
+function drawJoysticks() {
+    // Joystick esquerdo
+    if (joystickL.active) {
+        ctx.globalAlpha = 0.4;
+        ctx.fillStyle = '#333';
+        ctx.beginPath();
+        ctx.arc(joystickL.startX, joystickL.startY, 50, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = '#4CAF50';
+        ctx.beginPath();
+        ctx.arc(
+            joystickL.startX + joystickL.dx * 40,
+            joystickL.startY + joystickL.dy * 40,
+            20, 0, Math.PI * 2
+        );
+        ctx.fill();
+        ctx.globalAlpha = 1;
+    }
+    
+    // Joystick direito
+    if (joystickR.active) {
+        ctx.globalAlpha = 0.4;
+        ctx.fillStyle = '#333';
+        ctx.beginPath();
+        ctx.arc(joystickR.startX, joystickR.startY, 50, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.strokeStyle = '#F44336';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(joystickR.startX, joystickR.startY);
+        ctx.lineTo(
+            joystickR.startX + Math.cos(joystickR.angle) * 40,
+            joystickR.startY + Math.sin(joystickR.angle) * 40
+        );
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+    }
+}
+
+// ========================================
+// GAME LOOP
+// ========================================
+
+function update() {
+    // Movimento
+    let moveX = 0, moveY = 0;
+    
+    // Teclado
+    if (keys['w'] || keys['arrowup']) moveY -= 1;
+    if (keys['s'] || keys['arrowdown']) moveY += 1;
+    if (keys['a'] || keys['arrowleft']) moveX -= 1;
+    if (keys['d'] || keys['arrowright']) moveX += 1;
+    
+    // Joystick
+    if (joystickL.active) {
+        moveX = joystickL.dx;
+        moveY = joystickL.dy;
+    }
+    
+    // Aplicar movimento
+    if (moveX !== 0 || moveY !== 0) {
+        const mag = Math.sqrt(moveX * moveX + moveY * moveY);
+        moveX = (moveX / mag) * player.speed;
+        moveY = (moveY / mag) * player.speed;
+        
+        player.x += moveX;
+        player.y += moveY;
+        player.x = Math.max(20, Math.min(MAP_SIZE - 20, player.x));
+        player.y = Math.max(20, Math.min(MAP_SIZE - 20, player.y));
+        
+        player.state = 'walk';
+        if (moveX !== 0) player.facing = moveX > 0 ? 1 : -1;
+    } else {
+        player.state = 'idle';
+    }
+    
+    // Enviar posição
+    if (socket && socket.connected) {
+        socket.emit('playerUpdate', {
+            x: player.x,
+            y: player.y,
+            state: player.state,
+            facing: player.facing
+        });
+    }
+    
+    // Auto-fire
+    if (player.autoFire && Date.now() - lastAttack > 350) {
+        const nearest = findNearestZombie();
+        if (nearest) {
+            const angle = Math.atan2(nearest.y - player.y, nearest.x - player.x);
+            socket.emit('playerAttack', { angle: angle });
+            lastAttack = Date.now();
+            player.state = 'attack';
+            player.facing = Math.cos(angle) >= 0 ? 1 : -1;
+        }
+    }
+    
+    // Câmera
+    camera.x = player.x - canvas.width / 2;
+    camera.y = player.y - canvas.height / 2;
+    camera.x = Math.max(0, Math.min(MAP_SIZE - canvas.width, camera.x));
+    camera.y = Math.max(0, Math.min(MAP_SIZE - canvas.height, camera.y));
+}
+
+function render() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    drawBackground();
+    
+    // Recursos
+    if (gameState.resources) {
+        for (const r of gameState.resources) {
+            if (r.hp <= 0) continue;
+            
+            const sx = r.x - camera.x;
+            const sy = r.y - camera.y;
+            if (sx < -50 || sx > canvas.width + 50 || sy < -50 || sy > canvas.height + 50) continue;
+            
+            if (r.type === 'tree') drawTree(r.x, r.y, r.hp, r.maxHp);
+            else if (r.type === 'stone') drawStone(r.x, r.y, r.hp, r.maxHp);
+            else if (r.type === 'bush') drawBush(r.x, r.y, r.hp, r.maxHp);
+        }
+    }
+    
+    // Items (bananas)
+    if (gameState.items) {
+        for (const item of gameState.items) {
+            if (item.type === 'banana') {
+                drawBanana(item.x, item.y);
+            }
+        }
+    }
+    
+    // Construções
+    if (gameState.buildings) {
+        for (const b of gameState.buildings) {
+            const sx = b.x - camera.x;
+            const sy = b.y - camera.y;
+            if (sx < -50 || sx > canvas.width + 50 || sy < -50 || sy > canvas.height + 50) continue;
+            
+            if (b.type === 'wall') drawWall(b.x, b.y, b.hp, b.maxHp);
+            else if (b.type === 'spike') drawSpike(b.x, b.y, b.hp, b.maxHp);
+            else if (b.type === 'turret') drawTurret(b.x, b.y, b.hp, b.maxHp);
+            else if (b.type === 'campfire') drawCampfire(b.x, b.y);
+        }
+    }
+    
+    // Orbs
+    if (gameState.orbs) {
+        for (const orb of gameState.orbs) {
+            drawOrb(orb.x, orb.y, orb.type);
+        }
+    }
+    
+    // Zumbis
+    if (gameState.zombies) {
+        for (const z of gameState.zombies) {
+            const sx = z.x - camera.x;
+            const sy = z.y - camera.y;
+            if (sx < -60 || sx > canvas.width + 60 || sy < -60 || sy > canvas.height + 60) continue;
+            
+            drawZombie(z);
+        }
+    }
+    
+    // Jogadores
+    if (gameState.players) {
+        for (const id in gameState.players) {
+            const p = gameState.players[id];
+            if (p.hp <= 0) continue;
+            
+            const sx = p.x - camera.x;
+            const sy = p.y - camera.y;
+            if (sx < -50 || sx > canvas.width + 50 || sy < -50 || sy > canvas.height + 50) continue;
+            
+            drawPlayer(p, id === myId);
+        }
+    }
+    
+    // Joysticks mobile
+    drawJoysticks();
+    
+    // Minimap
+    drawMinimap();
+    
+    // FPS
+    if (settings.showFPS) {
+        ctx.fillStyle = '#0F0';
+        ctx.font = 'bold 14px monospace';
+        ctx.fillText('FPS: ' + Math.round(fps), 10, canvas.height - 10);
+    }
+}
+
+let lastTime = 0;
+let fps = 60;
+
+function gameLoop(time) {
+    if (!inGame) return;
+    
+    // FPS
+    if (lastTime) {
+        fps = 1000 / (time - lastTime);
+    }
+    lastTime = time;
+    
+    animTime++;
+    
+    update();
+    render();
     
     requestAnimationFrame(gameLoop);
 }
 
-// Event Listeners
-document.getElementById('btnCreateServer').addEventListener('click', createNewServer);
-document.getElementById('btnRefreshServers').addEventListener('click', refreshServers);
-document.getElementById('btnSettings').addEventListener('click', openSettings);
-document.getElementById('btnCloseSettings').addEventListener('click', closeSettings);
-document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
-document.getElementById('btnFullscreenGame').addEventListener('click', toggleFullscreen);
-document.getElementById('btnBuildMenu').addEventListener('click', toggleBuildMenu);
-document.getElementById('btnInventory').addEventListener('click', toggleInventory);
-document.getElementById('btnCloseInventory').addEventListener('click', toggleInventory);
-document.getElementById('autoFireBtn').addEventListener('click', toggleAutoFire);
+// ========================================
+// EVENT LISTENERS - BOTÕES
+// ========================================
+
+// Menu
+document.getElementById('btnCreate').addEventListener('click', createServer);
+document.getElementById('btnRefresh').addEventListener('click', refreshServers);
+document.getElementById('btnSettings').addEventListener('click', () => {
+    document.getElementById('settingsModal').style.display = 'flex';
+});
+
+// Settings Modal
+document.getElementById('closeSettings').addEventListener('click', () => {
+    document.getElementById('settingsModal').style.display = 'none';
+});
+
+document.getElementById('volumeSlider').addEventListener('input', (e) => {
+    settings.volume = e.target.value;
+    document.getElementById('volumeVal').textContent = settings.volume + '%';
+});
+
+document.getElementById('fpsToggle').addEventListener('click', () => {
+    settings.showFPS = !settings.showFPS;
+    document.getElementById('fpsToggle').classList.toggle('active');
+});
+
+document.getElementById('btnFullscreen').addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+    } else {
+        document.exitFullscreen();
+    }
+});
 
 // Color picker
 document.querySelectorAll('.color-option').forEach(el => {
@@ -1359,32 +2295,75 @@ document.querySelectorAll('.color-option').forEach(el => {
         document.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
         el.classList.add('selected');
         const colors = el.dataset.color.split(',');
-        selectedColor = { r: parseInt(colors[0]), g: parseInt(colors[1]), b: parseInt(colors[2]) };
+        settings.selectedColor = {
+            r: parseInt(colors[0]),
+            g: parseInt(colors[1]),
+            b: parseInt(colors[2])
+        };
     });
 });
 
-// Build items
+// Hotbar
+document.querySelectorAll('.hotbar-slot').forEach((el, i) => {
+    el.addEventListener('click', () => selectSlot(i));
+});
+
+// Action buttons
+document.getElementById('btnBuild').addEventListener('click', toggleBuildMenu);
+
+document.getElementById('btnAutoFire').addEventListener('click', () => {
+    player.autoFire = !player.autoFire;
+    document.getElementById('btnAutoFire').classList.toggle('active');
+    showNotification(player.autoFire ? '🎯 Auto-fire ATIVADO' : '🎯 Auto-fire desativado');
+});
+
+document.getElementById('btnGameSettings').addEventListener('click', () => {
+    document.getElementById('settingsModal').style.display = 'flex';
+});
+
+// Build menu
+function toggleBuildMenu() {
+    const menu = document.getElementById('buildMenu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
 document.querySelectorAll('.build-item').forEach(el => {
     el.addEventListener('click', () => {
-        buildMode = el.dataset.type;
-        document.getElementById('buildMenu').style.display = 'none';
-        showNotification('Clique para construir ' + buildMode, 'info');
+        const type = el.dataset.type;
+        if (canBuild(type)) {
+            buildMode = type;
+            document.getElementById('buildMenu').style.display = 'none';
+            showNotification('🛠️ Clique para construir ' + type);
+        } else {
+            showNotification('❌ Recursos insuficientes!', 'danger');
+        }
     });
 });
 
-// Keyboard
-window.addEventListener('keydown', (e) => {
-    controls.keys[e.key.toLowerCase()] = true;
+// Inventory
+document.getElementById('closeInventory').addEventListener('click', () => {
+    document.getElementById('inventoryModal').style.display = 'none';
 });
 
-window.addEventListener('keyup', (e) => {
-    controls.keys[e.key.toLowerCase()] = false;
+// Death screen
+document.getElementById('btnRespawn').addEventListener('click', respawn);
+
+// Chat
+document.getElementById('chatInput').addEventListener('keydown', (e) => {
+    e.stopPropagation();
 });
 
-// Initialize
+// ========================================
+// INICIALIZAÇÃO
+// ========================================
+
 window.addEventListener('load', () => {
-    console.log('Jogo carregado!');
-    refreshServers();
+    console.log('🧟 Zombie Survival carregado!');
+    
+    // Conectar e buscar servidores
+    setTimeout(() => {
+        refreshServers();
+    }, 500);
 });
 
 </script>

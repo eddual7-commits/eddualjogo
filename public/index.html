@@ -3,43 +3,46 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RPG Legends V5</title>
+<title>RPG Legends V6</title>
 <style>
-/* ESTILO GERAL */
-* { box-sizing: border-box; touch-action: none; user-select: none; font-family: 'Segoe UI', sans-serif; }
-body { margin: 0; background: #0f1810; overflow: hidden; color: white; }
+* { box-sizing: border-box; touch-action: none; user-select: none; font-family: 'Verdana', sans-serif; }
+body { margin: 0; background: #121212; overflow: hidden; color: white; }
 
 /* TELAS */
-.screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(10,20,10,0.95); z-index: 100; transition: 0.3s; }
+.screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); z-index: 100; transition: 0.3s; }
 .hidden { opacity: 0; pointer-events: none; }
 
-h1 { color: #f1c40f; text-shadow: 0 4px 0 #d35400; font-size: 3rem; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
-input { background: #222; border: 2px solid #555; color: #fff; padding: 15px; font-size: 18px; border-radius: 10px; text-align: center; margin: 5px; width: 250px; }
-button { background: #27ae60; color: white; border: none; padding: 15px 40px; font-size: 18px; font-weight: bold; border-radius: 10px; margin-top: 10px; cursor: pointer; box-shadow: 0 5px 0 #1e8449; transition: transform 0.1s; }
+h1 { color: #f39c12; font-size: 3rem; text-shadow: 0 5px 0 #d35400; margin-bottom: 20px; }
+input { background: #333; border: 2px solid #555; padding: 15px; font-size: 18px; color: white; border-radius: 8px; text-align: center; margin: 5px; }
+button { background: #27ae60; color: white; border: none; padding: 15px 30px; font-size: 18px; font-weight: bold; border-radius: 8px; margin-top: 10px; cursor: pointer; box-shadow: 0 4px 0 #1e8449; }
 button:active { transform: translateY(4px); box-shadow: none; }
 
 /* HUD */
 #hud { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: none; }
-.room-code { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-family: monospace; font-size: 16px; border: 1px solid #fff; }
+.bars { position: absolute; top: 10px; left: 10px; }
+.bar-con { width: 200px; height: 20px; background: #222; border: 2px solid #fff; border-radius: 10px; overflow: hidden; margin-bottom: 5px; position: relative; }
+.fill { height: 100%; transition: width 0.2s; }
+.txt { position: absolute; width: 100%; text-align: center; font-size: 12px; font-weight: bold; line-height: 20px; text-shadow: 1px 1px 0 #000; }
 
-.stats-box { position: absolute; top: 10px; left: 10px; display: flex; flex-direction: column; gap: 5px; }
-.bar { width: 180px; height: 18px; background: #222; border: 2px solid #444; border-radius: 6px; overflow: hidden; position: relative; }
-.fill { height: 100%; transition: width 0.3s; }
-.hp-color { background: #e74c3c; } .xp-color { background: #3498db; }
-.bar-txt { position: absolute; width: 100%; text-align: center; font-size: 10px; line-height: 18px; font-weight: bold; text-shadow: 1px 1px 0 #000; }
+.inv { position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; }
+.slot { background: rgba(0,0,0,0.7); padding: 8px; border-radius: 6px; border: 1px solid #777; font-size: 14px; display: flex; align-items: center; gap: 5px; }
 
-.tools { position: absolute; top: 10px; right: 10px; display: flex; gap: 8px; }
-.tool-slot { background: rgba(0,0,0,0.7); padding: 8px; border-radius: 8px; border: 1px solid #666; display: flex; align-items: center; gap: 5px; }
+/* BOTÃO DE CRAFTING */
+#craftBtn { position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%); background: #8e44ad; display: none; pointer-events: auto; animation: pop 0.3s; }
+@keyframes pop { from{transform:translateX(-50%) scale(0);} to{transform:translateX(-50%) scale(1);} }
 
-#buildBtn { position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%); background: #e67e22; pointer-events: auto; display: none; }
-#minimap { position: absolute; top: 60px; right: 10px; background: rgba(0,0,0,0.5); border: 2px solid #fff; border-radius: 50%; width: 110px; height: 110px; }
-#fps { position: absolute; bottom: 5px; left: 5px; color: #0f0; font-size: 10px; }
+/* MENU DE CRAFTING */
+#craftMenu { background: rgba(0,0,0,0.95); z-index: 150; }
+.craft-grid { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+.craft-item { background: #34495e; border: 2px solid #95a5a6; padding: 15px; border-radius: 8px; width: 140px; text-align: center; cursor: pointer; pointer-events: auto; }
+.craft-item h3 { font-size: 14px; margin: 0 0 5px 0; color: #f1c40f; }
+.cost { font-size: 12px; color: #aaa; }
 
-/* POPUPS */
-#levelUp { background: rgba(0,0,0,0.9); z-index: 200; }
-.cards { display: flex; gap: 15px; }
-.card { background: #2c3e50; border: 2px solid #f1c40f; padding: 20px; border-radius: 10px; width: 120px; text-align: center; cursor: pointer; pointer-events: auto; }
-#death { background: rgba(50,0,0,0.95); z-index: 200; }
+/* LEVEL UP */
+#levelUp { background: rgba(0,0,0,0.95); z-index: 200; }
+.card { background: #2c3e50; border: 2px solid #f1c40f; padding: 20px; border-radius: 10px; width: 130px; text-align: center; cursor: pointer; pointer-events: auto; }
+
+#minimap { position: absolute; top: 60px; right: 10px; border: 2px solid #fff; border-radius: 50%; background: rgba(0,0,0,0.5); width: 120px; height: 120px; }
 
 canvas { display: block; }
 </style>
@@ -47,344 +50,292 @@ canvas { display: block; }
 <body>
 
 <div id="menu" class="screen">
-    <h1>RPG LEGENDS</h1>
+    <h1>RPG LEGENDS V6</h1>
     <input id="name" placeholder="Seu Nome">
     <button id="btnCreate">CRIAR MUNDO</button>
-    <div style="margin:10px; color:#aaa">ou</div>
-    <input id="code" placeholder="CÓDIGO DA SALA">
+    <div style="color:#aaa; margin:5px">ou</div>
+    <input id="code" placeholder="CÓDIGO">
     <button id="btnJoin" style="background:#2980b9">ENTRAR</button>
 </div>
 
 <div id="hud">
-    <div class="room-code" id="roomDisplay">???</div>
-    <div class="stats-box">
-        <div class="bar"><div id="hpBar" class="fill hp-color" style="width:100%"></div><div class="bar-txt" id="hpTxt">100/100</div></div>
-        <div class="bar"><div id="xpBar" class="fill xp-color" style="width:0%"></div><div class="bar-txt" id="xpTxt">LVL 1</div></div>
+    <div class="bars">
+        <div class="bar-con"><div id="hpBar" class="fill" style="background:#e74c3c; width:100%"></div><div id="hpTxt" class="txt">100/100</div></div>
+        <div class="bar-con"><div id="xpBar" class="fill" style="background:#3498db; width:0%"></div><div id="xpTxt" class="txt">LVL 1</div></div>
     </div>
-    <div class="tools">
-        <div class="tool-slot"><span style="font-size:20px">🪓</span> <span id="wood">0</span></div>
-        <div class="tool-slot"><span style="font-size:20px">⛏️</span> <span id="stone">0</span></div>
+    <div class="inv">
+        <div class="slot">🪵 <span id="wood">0</span></div>
+        <div class="slot">🪨 <span id="stone">0</span></div>
     </div>
-    <button id="buildBtn" onclick="build()">🔨 Construir (20 Mad)</button>
+    <button id="craftBtn" onclick="openCraft()">🛠️ CRAFTING</button>
     <canvas id="minimap"></canvas>
-    <div id="fps">60 FPS</div>
+</div>
+
+<div id="craftMenu" class="screen hidden">
+    <h2>CONSTRUÇÃO</h2>
+    <div class="craft-grid">
+        <div class="craft-item" onclick="build('table')"><h3>BANCADA</h3><p class="cost">5 Mad</p></div>
+        <div class="craft-item" onclick="build('wall_wood')"><h3>PAREDE MAD.</h3><p class="cost">10 Mad</p></div>
+        <div class="craft-item" onclick="build('wall_stone')"><h3>PAREDE PEDRA</h3><p class="cost">10 Ped</p></div>
+        <div class="craft-item" onclick="build('campfire')"><h3>FOGUEIRA (Cura)</h3><p class="cost">15 Mad / 5 Ped</p></div>
+        <div class="craft-item" onclick="build('turret')"><h3>TORRETA</h3><p class="cost">20 Mad / 10 Ped</p></div>
+    </div>
+    <button onclick="closeCraft()" style="background:#c0392b; margin-top:20px">FECHAR</button>
 </div>
 
 <div id="levelUp" class="screen hidden">
     <h2 style="color:#f1c40f">LEVEL UP! ESCOLHA:</h2>
-    <div class="cards">
-        <div class="card" onclick="up('dmg')">⚔️<br>+DANO</div>
-        <div class="card" onclick="up('hp')">❤️<br>+VIDA</div>
-        <div class="card" onclick="up('spd')">⚡<br>+SPEED</div>
+    <div class="craft-grid">
+        <div class="card" onclick="up('multi')"><h3>🔫 TRIPLO</h3><p>Atira 3x</p></div>
+        <div class="card" onclick="up('vamp')"><h3>🩸 VAMPIRO</h3><p>Rouba Vida</p></div>
+        <div class="card" onclick="up('dmg')"><h3>⚔️ DANO</h3><p>+40% Força</p></div>
     </div>
-</div>
-
-<div id="death" class="screen hidden">
-    <h1 style="color:red">VOCÊ MORREU</h1>
-    <button onclick="respawn()">RENASCER</button>
 </div>
 
 <canvas id="game"></canvas>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
+/* === AUDIO SYSTEM (SINTETIZADO) === */
+const ac = new (window.AudioContext||window.webkitAudioContext)();
+function sfx(type) {
+    if(ac.state==='suspended') ac.resume();
+    const o = ac.createOscillator(); const g = ac.createGain();
+    o.connect(g); g.connect(ac.destination);
+    const t = ac.currentTime;
+    if(type==='hit'){ o.frequency.setValueAtTime(150,t); o.frequency.exponentialRampToValueAtTime(0.01,t+0.1); g.gain.setValueAtTime(0.5,t); g.gain.linearRampToValueAtTime(0,t+0.1); o.start(); o.stop(t+0.1); }
+    if(type==='wood'){ o.type='square'; o.frequency.setValueAtTime(100,t); o.frequency.linearRampToValueAtTime(50,t+0.1); g.gain.setValueAtTime(0.3,t); g.gain.linearRampToValueAtTime(0,t+0.1); o.start(); o.stop(t+0.1); }
+    if(type==='shoot'){ o.type='triangle'; o.frequency.setValueAtTime(600,t); o.frequency.exponentialRampToValueAtTime(100,t+0.2); g.gain.setValueAtTime(0.2,t); g.gain.linearRampToValueAtTime(0,t+0.2); o.start(); o.stop(t+0.2); }
+}
+
+/* === ENGINE VISUAL === */
 const cvs = document.getElementById('game');
 const ctx = cvs.getContext('2d');
 const mCvs = document.getElementById('minimap');
 const mCtx = mCvs.getContext('2d');
-mCvs.width=110; mCvs.height=110;
+mCvs.width=120; mCvs.height=120;
 
 let socket = io();
 let myId = null, roomId = null;
-let cam = { x:0, y:0 };
-let me = { x:1200, y:1200, hp:100, maxHp:100, xp:0, level:1, wood:0, stone:0 };
-let state = { players:{}, enemies:[], resources:[], buildings:[], orbs:[] };
-let shots = []; // Tiros do Pet
-let dmgPopups = [];
+let cam = {x:0, y:0}, me = {x:0,y:0,wood:0,stone:0,hp:100,maxHp:100};
+let state = {players:{}, enemies:[], resources:[], buildings:[], orbs:[]};
+let particles = [], texts = [], shots = [];
+let joyL = {on:false, dx:0, dy:0}, joyR = {on:false, dx:0, dy:0, ang:0};
 
-// Ajuste tela
-function resize() { cvs.width = window.innerWidth; cvs.height = window.innerHeight; }
-resize(); window.addEventListener('resize', resize);
+function resize(){ cvs.width=window.innerWidth; cvs.height=window.innerHeight; }
+resize(); window.onresize=resize;
 
-/* === REDE === */
+/* REDE */
 document.getElementById('btnCreate').onclick = () => socket.emit('createRoom', document.getElementById('name').value);
-document.getElementById('btnJoin').onclick = () => socket.emit('joinRoom', { code:document.getElementById('code').value.toUpperCase(), name:document.getElementById('name').value });
+document.getElementById('btnJoin').onclick = () => socket.emit('joinRoom', {code:document.getElementById('code').value.toUpperCase(), name:document.getElementById('name').value});
 
-const start = (id) => {
-    roomId = id;
-    document.getElementById('menu').classList.add('hidden');
-    document.getElementById('hud').style.display = 'block';
-    document.getElementById('roomDisplay').innerText = "SALA: " + id;
-};
+const start = (id) => { roomId=id; document.getElementById('menu').classList.add('hidden'); document.getElementById('hud').style.display='block'; };
+socket.on('roomCreated', start); socket.on('joinedRoom', start); socket.on('connect', ()=>myId=socket.id);
 
-socket.on('roomCreated', start);
-socket.on('joinedRoom', start);
-socket.on('connect', () => myId = socket.id);
-
-socket.on('update', (data) => {
-    state = data;
+socket.on('update', d => {
+    state = d;
     if(state.players[myId]) {
         const s = state.players[myId];
-        // Sincroniza dados vitais
-        me.hp = s.hp; me.maxHp = s.maxHp; me.xp = s.xp; me.level = s.level;
-        me.wood = s.wood; me.stone = s.stone; me.dead = s.dead; me.nextLevel = s.nextLevel;
-        // Posição para o HUD, mas movimento visual usa predição
+        me.hp=s.hp; me.maxHp=s.maxHp; me.xp=s.xp; me.level=s.level; me.wood=s.wood; me.stone=s.stone; me.dead=s.dead; me.nextLevel=s.nextLevel;
         updateHUD();
     }
 });
-
-socket.on('petShot', (d) => shots.push({x:d.x, y:d.y, tx:d.tx, ty:d.ty, t:1}));
-socket.on('damage', (d) => dmgPopups.push({x:d.x, y:d.y, val:d.val, t:1}));
-socket.on('shake', (id) => { /* Efeito visual opcional */ });
+socket.on('shake', id => { /* Shake logic if needed */ });
+socket.on('resBreak', d => {
+    sfx('wood');
+    for(let i=0; i<8; i++) particles.push({x:d.x, y:d.y, vx:(Math.random()-0.5)*10, vy:(Math.random()-0.5)*10, life:1, color: d.type==='tree'?'#795548':'#7f8c8d'});
+});
+socket.on('dmg', d => {
+    sfx('hit');
+    texts.push({x:d.x, y:d.y, val:d.val, t:1});
+});
+socket.on('turretShot', d => {
+    shots.push({x:d.sx, y:d.sy, tx:d.ex, ty:d.ey, t:1});
+    sfx('shoot');
+});
 socket.on('levelUp', () => document.getElementById('levelUp').classList.remove('hidden'));
 
-/* === CONTROLES === */
-let joyL = { on:false, id:null, dx:0, dy:0, ox:0, oy:0 };
-let joyR = { on:false, id:null, dx:0, dy:0, ox:0, oy:0, ang:0 };
-
+/* INPUT */
 cvs.addEventListener('touchstart', e => {
     e.preventDefault();
     for(let i=0; i<e.changedTouches.length; i++) {
         const t = e.changedTouches[i];
-        if(t.clientX < window.innerWidth/2 && !joyL.on) {
-            joyL.on = true; joyL.id = t.identifier; joyL.ox = t.clientX; joyL.oy = t.clientY;
-        } else if(t.clientX > window.innerWidth/2 && !joyR.on) {
-            joyR.on = true; joyR.id = t.identifier; joyR.ox = t.clientX; joyR.oy = t.clientY;
-        }
+        if(t.clientX < window.innerWidth/2 && !joyL.on) { joyL.on=true; joyL.id=t.identifier; joyL.ox=t.clientX; joyL.oy=t.clientY; }
+        else if(t.clientX > window.innerWidth/2 && !joyR.on) { joyR.on=true; joyR.id=t.identifier; joyR.ox=t.clientX; joyR.oy=t.clientY; }
     }
 }, {passive:false});
-
 cvs.addEventListener('touchmove', e => {
     e.preventDefault();
     for(let i=0; i<e.changedTouches.length; i++) {
         const t = e.changedTouches[i];
-        if(t.identifier === joyL.id) {
-            const dx = t.clientX - joyL.ox; const dy = t.clientY - joyL.oy;
-            const d = Math.min(Math.hypot(dx,dy), 40); const a = Math.atan2(dy, dx);
+        if(t.identifier===joyL.id) {
+            const dx = t.clientX-joyL.ox; const dy = t.clientY-joyL.oy;
+            const d = Math.min(Math.hypot(dx,dy), 40); const a = Math.atan2(dy,dx);
             joyL.dx = Math.cos(a)*(d/40); joyL.dy = Math.sin(a)*(d/40);
         }
-        if(t.identifier === joyR.id) {
-            joyR.dx = t.clientX - joyR.ox; joyR.dy = t.clientY - joyR.oy;
-            joyR.ang = Math.atan2(joyR.dy, joyR.dx);
+        if(t.identifier===joyR.id) {
+            joyR.dx = t.clientX-joyR.ox; joyR.dy = t.clientY-joyR.oy; joyR.ang = Math.atan2(joyR.dy, joyR.dx);
         }
     }
 }, {passive:false});
-
 cvs.addEventListener('touchend', e => {
     e.preventDefault();
     for(let i=0; i<e.changedTouches.length; i++) {
         const t = e.changedTouches[i];
-        if(t.identifier === joyL.id) { joyL.on=false; joyL.dx=0; joyL.dy=0; }
-        if(t.identifier === joyR.id) joyR.on=false;
+        if(t.identifier===joyL.id) { joyL.on=false; joyL.dx=0; joyL.dy=0; }
+        if(t.identifier===joyR.id) joyR.on=false;
     }
 }, {passive:false});
 
-/* === LOOP VISUAL === */
+/* LOOP */
 let lastShot = 0;
-
 function loop() {
     requestAnimationFrame(loop);
     if(!roomId) return;
 
-    // 1. MOVIMENTO & CÂMERA SUAVE
-    if(joyL.on && !me.dead) {
-        me.x += joyL.dx * 6; me.y += joyL.dy * 6;
-        // Limites
-        me.x = Math.max(0, Math.min(2400, me.x));
-        me.y = Math.max(0, Math.min(2400, me.y));
-    }
-
-    // Micro delay na camera (LERP)
-    cam.x += (me.x - cam.x - cvs.width/2) * 0.08;
-    cam.y += (me.y - cam.y - cvs.height/2) * 0.08;
-
-    // Lógica de Tiro
+    // Movimento
+    if(joyL.on && !me.dead) { me.x += joyL.dx*6; me.y += joyL.dy*6; me.x=Math.max(0,Math.min(2400,me.x)); me.y=Math.max(0,Math.min(2400,me.y)); }
+    
+    // Auto-Aim Limitado (Só atira se Perto)
     let aim = joyR.on ? joyR.ang : null;
     if(!aim) {
-        // Auto Aim
-        let min=500, t=null;
-        state.enemies.forEach(e => {
-            const d = Math.hypot(e.x - me.x, e.y - me.y);
-            if(d < min) { min=d; t=e; }
-        });
+        let min=200, t=null; // Range reduzido do auto-fire
+        state.enemies.forEach(e => { const d=Math.hypot(e.x-me.x, e.y-me.y); if(d<min){min=d; t=e;} });
         if(t) aim = Math.atan2(t.y-me.y, t.x-me.x);
     }
-
-    // Envio pro Server
-    socket.emit('move', { roomId, x:me.x, y:me.y, state: joyL.on?'run':'idle', facing: joyL.dx>0?1:-1, angle:aim });
     
-    if((joyR.on || aim!==null) && Date.now() - lastShot > 300) {
-        lastShot = Date.now();
-        socket.emit('attack', { roomId, angle: aim });
+    // Cam
+    cam.x += (me.x - cam.x - cvs.width/2)*0.1; cam.y += (me.y - cam.y - cvs.height/2)*0.1;
+
+    // Send
+    socket.emit('move', {roomId, x:me.x, y:me.y, state:joyL.on?'run':'idle', facing:joyL.dx>0?1:-1, angle:aim||0});
+    if((joyR.on || aim!==null) && Date.now()-lastShot > 300) { lastShot=Date.now(); socket.emit('attack', {roomId, angle:aim}); if(aim!==null) sfx('shoot'); }
+
+    // RENDER
+    ctx.fillStyle = "#1e272e"; ctx.fillRect(0,0,cvs.width, cvs.height);
+    ctx.save(); ctx.translate(-cam.x, -cam.y);
+    
+    // Grid chão
+    const T=100;
+    const sx=Math.floor(cam.x/T)*T; const sy=Math.floor(cam.y/T)*T;
+    for(let i=sx; i<cam.x+cvs.width; i+=T) for(let j=sy; j<cam.y+cvs.height; j+=T) {
+        const r = Math.sin(i*j); ctx.fillStyle = r>0?"#27ae60":"#2ecc71"; ctx.fillRect(i,j,T,T);
     }
 
-    // 2. DESENHAR (ARTE PROCEDURAL)
-    // Fundo Grama
-    ctx.fillStyle = "#1e2f23"; ctx.fillRect(0,0,cvs.width, cvs.height);
-    
-    ctx.save();
-    ctx.translate(-cam.x, -cam.y);
-    
-    drawGround(); // Tiles de grama
-
-    // Elementos
-    state.buildings.forEach(b => {
-        ctx.fillStyle="#e67e22"; ctx.fillRect(b.x-20, b.y-20, 40, 40);
-        ctx.fillStyle="#d35400"; ctx.fillRect(b.x-15, b.y-15, 30, 30); // Detalhe tijolo
-    });
-
+    // Objetos
     state.resources.forEach(r => drawRes(r));
-    state.orbs.forEach(o => { 
-        ctx.shadowBlur=10; ctx.shadowColor="#0af"; 
-        ctx.fillStyle="#0af"; ctx.beginPath(); ctx.arc(o.x, o.y, 5, 0, 7); ctx.fill(); 
-        ctx.shadowBlur=0;
-    });
+    state.buildings.forEach(b => drawBuild(b));
+    state.orbs.forEach(o => { ctx.shadowBlur=10; ctx.shadowColor="#0ff"; ctx.fillStyle="#0ff"; ctx.beginPath(); ctx.arc(o.x, o.y, 4, 0, 7); ctx.fill(); ctx.shadowBlur=0; });
 
     // Inimigos
     state.enemies.forEach(e => {
         if(e.dead) return;
         const bob = Math.sin(Date.now()/100)*3;
-        ctx.fillStyle="#c0392b"; ctx.beginPath(); ctx.arc(e.x, e.y-bob, 18, 0, 7); ctx.fill();
-        ctx.fillStyle="#fff"; ctx.beginPath(); ctx.arc(e.x-6, e.y-5-bob, 5, 0, 7); ctx.fill(); ctx.arc(e.x+6, e.y-5-bob, 5, 0, 7); ctx.fill();
-        ctx.fillStyle="red"; ctx.fillRect(e.x-15, e.y-30-bob, 30, 4);
-        ctx.fillStyle="#2ecc71"; ctx.fillRect(e.x-15, e.y-30-bob, 30*(e.hp/e.maxHp), 4);
+        // Sombra
+        ctx.fillStyle="rgba(0,0,0,0.3)"; ctx.beginPath(); ctx.ellipse(e.x, e.y, 15, 8, 0, 0, 7); ctx.fill();
+        // Corpo
+        ctx.fillStyle="#c0392b"; ctx.beginPath(); ctx.arc(e.x, e.y-15-bob, 18, 0, 7); ctx.fill();
+        // Olhos bravos
+        ctx.fillStyle="#fff"; ctx.beginPath(); ctx.moveTo(e.x-10, e.y-20-bob); ctx.lineTo(e.x-2, e.y-15-bob); ctx.lineTo(e.x-10, e.y-12-bob); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(e.x+10, e.y-20-bob); ctx.lineTo(e.x+2, e.y-15-bob); ctx.lineTo(e.x+10, e.y-12-bob); ctx.fill();
+        // HP
+        ctx.fillStyle="red"; ctx.fillRect(e.x-15, e.y-40-bob, 30, 4);
+        ctx.fillStyle="#0f0"; ctx.fillRect(e.x-15, e.y-40-bob, 30*(e.hp/e.maxHp), 4);
     });
 
     // Players
     for(const id in state.players) {
         const p = state.players[id];
         if(p.dead) continue;
-        const x = id===myId ? me.x : p.x;
-        const y = id===myId ? me.y : p.y;
-        
+        const x = id===myId?me.x:p.x; const y=id===myId?me.y:p.y;
         drawPlayer(p, x, y);
-
-        // Flecha de Amigo
-        if(id !== myId) {
-            const dx = x - me.x; const dy = y - me.y;
-            if(Math.hypot(dx,dy) > cvs.width/2) {
-                const ang = Math.atan2(dy, dx);
-                const ax = cam.x + cvs.width/2 + Math.cos(ang)*(cvs.width/2 - 40);
-                const ay = cam.y + cvs.height/2 + Math.sin(ang)*(cvs.height/2 - 40);
-                ctx.save(); ctx.translate(ax, ay); ctx.rotate(ang);
-                ctx.fillStyle="#3498db"; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-10,-5); ctx.lineTo(-10,5); ctx.fill();
-                ctx.restore();
-            }
-        }
     }
 
-    // VFX
-    shots.forEach((s,i) => {
-        s.t-=0.1;
-        ctx.strokeStyle="#0ff"; ctx.lineWidth=2; 
-        ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(s.tx, s.ty); ctx.stroke();
-        if(s.t<=0) shots.splice(i,1);
-    });
-    
-    dmgPopups.forEach((d,i) => {
-        d.y-=1; d.t-=0.05; ctx.globalAlpha=d.t;
-        ctx.fillStyle="#fff"; ctx.font="bold 20px Arial"; ctx.fillText(d.val, d.x, d.y);
-        ctx.globalAlpha=1; if(d.t<=0) dmgPopups.splice(i,1);
-    });
+    // Particulas & Textos
+    particles.forEach((p,i) => { p.x+=p.vx; p.y+=p.vy; p.life-=0.05; ctx.globalAlpha=p.life; ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, 7); ctx.fill(); ctx.globalAlpha=1; if(p.life<=0)particles.splice(i,1); });
+    texts.forEach((t,i) => { t.y-=1; t.t-=0.05; ctx.globalAlpha=t.t; ctx.fillStyle="#fff"; ctx.font="bold 20px Arial"; ctx.fillText(t.val, t.x, t.y); ctx.globalAlpha=1; if(t.t<=0)texts.splice(i,1); });
+    shots.forEach((s,i) => { s.t-=0.1; ctx.strokeStyle="#0ff"; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(s.tx, s.ty); ctx.stroke(); if(s.t<=0)shots.splice(i,1); });
 
     ctx.restore();
-
-    // UI Joysticks
-    if(joyL.on) drawJoy(joyL, "#fff");
-    if(joyR.on) drawJoy(joyR, "#f00");
     
-    drawMinimap();
+    // Joystick
+    if(joyL.on) { ctx.strokeStyle="rgba(255,255,255,0.4)"; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(joyL.ox, joyL.oy, 40, 0, 7); ctx.stroke(); ctx.fillStyle="rgba(255,255,255,0.6)"; ctx.beginPath(); ctx.arc(joyL.ox+joyL.dx*40, joyL.oy+joyL.dy*40, 20, 0, 7); ctx.fill(); }
+    if(joyR.on) { ctx.strokeStyle="rgba(255,0,0,0.4)"; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(joyR.ox, joyR.oy, 40, 0, 7); ctx.stroke(); ctx.fillStyle="rgba(255,0,0,0.6)"; ctx.beginPath(); ctx.arc(joyR.ox+Math.cos(joyR.ang)*40, joyR.oy+Math.sin(joyR.ang)*40, 20, 0, 7); ctx.fill(); }
+
+    // Minimapa
+    mCtx.fillStyle="#000"; mCtx.fillRect(0,0,120,120);
+    const s = 120/2400;
+    state.resources.forEach(r => { mCtx.fillStyle=r.type==='tree'?"#0f0":"#777"; mCtx.fillRect(r.x*s, r.y*s, 3, 3); });
+    Object.keys(state.players).forEach(id => { mCtx.fillStyle=id===myId?"#fff":"#00f"; const p = state.players[id]; mCtx.beginPath(); mCtx.arc(p.x*s, p.y*s, 3, 0, 7); mCtx.fill(); });
 }
 loop();
 
-/* === FUNÇÕES DE DESENHO BONITAS === */
-function drawGround() {
-    // Desenha grid de grama (Otimizado: desenha só o que a camera vê)
-    const TILE = 100;
-    const sx = Math.floor(cam.x/TILE)*TILE;
-    const sy = Math.floor(cam.y/TILE)*TILE;
-    for(let i=sx; i<cam.x+cvs.width; i+=TILE) {
-        for(let j=sy; j<cam.y+cvs.height; j+=TILE) {
-            // Pseudo-aleatório baseado na posição pra não piscar
-            const rand = Math.sin(i*j); 
-            ctx.fillStyle = rand > 0 ? "#27ae60" : "#2ecc71";
-            ctx.fillRect(i, j, TILE, TILE);
-        }
-    }
-}
-
 function drawRes(r) {
-    if(r.type === 'tree') {
-        ctx.fillStyle="#795548"; ctx.fillRect(r.x-6, r.y, 12, 20); // Tronco
-        ctx.fillStyle="#2196f3"; // Sombra copa
-        ctx.beginPath(); ctx.arc(r.x+2, r.y-18, 20, 0, 7); ctx.fillStyle="rgba(0,0,0,0.2)"; ctx.fill();
-        ctx.fillStyle="#27ae60"; ctx.beginPath(); ctx.arc(r.x, r.y-20, 20, 0, 7); ctx.fill(); // Copa
-        ctx.fillStyle="#2ecc71"; ctx.beginPath(); ctx.arc(r.x-5, r.y-25, 10, 0, 7); ctx.fill(); // Brilho
+    // Sombra
+    ctx.fillStyle="rgba(0,0,0,0.3)"; ctx.beginPath(); ctx.ellipse(r.x, r.y+5, 12, 6, 0, 0, 7); ctx.fill();
+    if(r.type==='tree') {
+        ctx.fillStyle="#5d4037"; ctx.fillRect(r.x-5, r.y-10, 10, 20); // Tronco
+        const off = Math.sin(Date.now()/300 + r.x); // Vento
+        ctx.fillStyle="#2e7d32"; ctx.beginPath(); ctx.arc(r.x+off, r.y-25, 22, 0, 7); ctx.fill(); // Copa
+        ctx.fillStyle="#4caf50"; ctx.beginPath(); ctx.arc(r.x-10+off, r.y-15, 12, 0, 7); ctx.fill();
+        ctx.beginPath(); ctx.arc(r.x+10+off, r.y-15, 12, 0, 7); ctx.fill();
     } else {
-        ctx.fillStyle="#7f8c8d"; ctx.beginPath(); ctx.arc(r.x, r.y, 15, 0, 7); ctx.fill();
-        ctx.fillStyle="#95a5a6"; ctx.beginPath(); ctx.arc(r.x-3, r.y-3, 10, 0, 7); ctx.fill();
+        ctx.fillStyle="#7f8c8d"; ctx.beginPath(); ctx.arc(r.x, r.y, 18, 0, 7); ctx.fill();
+        ctx.fillStyle="#95a5a6"; ctx.beginPath(); ctx.arc(r.x-5, r.y-5, 10, 0, 7); ctx.fill();
     }
 }
 
 function drawPlayer(p, x, y) {
-    const breath = Math.sin(Date.now()/200)*2;
+    const walk = p.state==='run' ? Math.sin(Date.now()/100)*3 : 0;
+    const breath = Math.sin(Date.now()/300);
     
     // Sombra
     ctx.fillStyle="rgba(0,0,0,0.3)"; ctx.beginPath(); ctx.ellipse(x, y+10, 15, 8, 0, 0, 7); ctx.fill();
 
-    // PET
-    const petX = x + Math.cos(Date.now()/500)*40;
-    const petY = y + Math.sin(Date.now()/500)*40;
-    ctx.fillStyle="#0ff"; ctx.beginPath(); ctx.arc(petX, petY, 6, 0, 7); ctx.fill();
-
-    // Personagem
-    ctx.save(); ctx.translate(x, y+breath);
-    if(p.role === 'warrior') {
-        ctx.fillStyle="#3498db"; ctx.beginPath(); ctx.arc(0,0,18,0,7); ctx.fill(); // Corpo
-        ctx.fillStyle="#2980b9"; ctx.beginPath(); ctx.arc(0,0,18,0,3.14); ctx.fill(); // Detalhe
-        // Capacete
-        ctx.fillStyle="#95a5a6"; ctx.fillRect(-10,-18,20,6); 
-    } else {
-        ctx.fillStyle="#9b59b6"; ctx.beginPath(); ctx.moveTo(0,-20); ctx.lineTo(15,10); ctx.lineTo(-15,10); ctx.fill();
-        ctx.fillStyle="#f1c40f"; ctx.beginPath(); ctx.arc(0,-20,5,0,7); ctx.fill(); // Topo
-    }
+    ctx.save(); ctx.translate(x, y+walk);
+    // Pés
+    ctx.fillStyle="#111"; 
+    ctx.beginPath(); ctx.arc(-8, 12-walk, 5, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(8, 12+walk, 5, 0, 7); ctx.fill();
     
+    // Corpo
+    ctx.fillStyle = p.role==='warrior' ? "#3498db" : "#9b59b6";
+    ctx.fillRect(-12, -15, 24, 25);
+    
+    // Cabeça
+    ctx.fillStyle="#f1c40f"; // Pele
+    ctx.beginPath(); ctx.arc(0, -20+breath, 12, 0, 7); ctx.fill();
+    
+    // Capacete/Cabelo
+    if(p.role==='warrior') {
+        ctx.fillStyle="#95a5a6"; ctx.beginPath(); ctx.arc(0, -20+breath, 13, 3.14, 0); ctx.fill();
+    } else {
+        ctx.fillStyle="#8e44ad"; ctx.beginPath(); ctx.moveTo(-15,-20); ctx.lineTo(0,-40); ctx.lineTo(15,-20); ctx.fill();
+    }
+
     // Olhos
-    ctx.fillStyle="#fff"; ctx.beginPath(); ctx.arc(-6,-4,4,0,7); ctx.arc(6,-4,4,0,7); ctx.fill();
-    ctx.fillStyle="#000"; ctx.beginPath(); ctx.arc(-6 + (p.facing||0),-4,2,0,7); ctx.arc(6 + (p.facing||0),-4,2,0,7); ctx.fill();
+    ctx.fillStyle="#000"; ctx.beginPath(); ctx.arc(-4 + (p.facing||0)*2, -20+breath, 2, 0, 7); ctx.arc(4 + (p.facing||0)*2, -20+breath, 2, 0, 7); ctx.fill();
 
     // Arma
     ctx.rotate(p.angle||0);
-    if(p.role==='warrior') {
-        ctx.fillStyle="#bdc3c7"; ctx.fillRect(15,-3,25,6); // Lamina
-        ctx.fillStyle="#e67e22"; ctx.fillRect(15,-6,5,12); // Guarda
-    } else {
-        ctx.fillStyle="#8e44ad"; ctx.fillRect(15,-2,25,4);
-        ctx.fillStyle="#e74c3c"; ctx.beginPath(); ctx.arc(40,0,5,0,7); ctx.fill();
-    }
+    ctx.fillStyle="#fff"; ctx.fillRect(15, -2, 20, 4);
+
     ctx.restore();
-
-    // Nome
-    ctx.fillStyle="#fff"; ctx.font="10px Arial"; ctx.textAlign="center"; ctx.fillText(p.name, x, y-30+breath);
+    ctx.fillStyle="#fff"; ctx.font="10px Arial"; ctx.textAlign="center"; ctx.fillText(p.name, x, y-40);
 }
 
-function drawJoy(j, color) {
-    ctx.strokeStyle=color; ctx.lineWidth=3; ctx.globalAlpha=0.5;
-    ctx.beginPath(); ctx.arc(j.ox, j.oy, 40, 0, 7); ctx.stroke();
-    ctx.fillStyle=color; ctx.beginPath(); ctx.arc(j.ox+(j.dx*40||Math.cos(j.ang)*40), j.oy+(j.dy*40||Math.sin(j.ang)*40), 20, 0, 7); ctx.fill();
-    ctx.globalAlpha=1;
-}
-
-function drawMinimap() {
-    mCtx.fillStyle="#000"; mCtx.fillRect(0,0,110,110);
-    const s = 110/2400;
-    state.resources.forEach(r => { mCtx.fillStyle=r.type==='tree'?"#0f0":"#777"; mCtx.fillRect(r.x*s, r.y*s, 2, 2); });
-    state.buildings.forEach(b => { mCtx.fillStyle="#e67e22"; mCtx.fillRect(b.x*s, b.y*s, 3, 3); });
-    Object.keys(state.players).forEach(id => {
-        mCtx.fillStyle = id===myId ? "#fff" : "#00f";
-        const p = id===myId ? me : state.players[id];
-        mCtx.beginPath(); mCtx.arc(p.x*s, p.y*s, 3, 0, 7); mCtx.fill();
-    });
+function drawBuild(b) {
+    if(b.type==='table') {
+        ctx.fillStyle="#8e44ad"; ctx.fillRect(b.x-20, b.y-10, 40, 20); // Mesa
+        ctx.fillStyle="#f1c40f"; ctx.fillRect(b.x-15, b.y-15, 30, 5); // Itens
+    } else if(b.type==='campfire') {
+        ctx.fillStyle="#555"; ctx.beginPath(); ctx.arc(b.x, b.y, 15, 0, 7); ctx.fill();
+        ctx.fillStyle="#e67e22"; ctx.beginPath(); ctx.arc(b.x, b.y-5, 8 + Math.random()*4, 0, 7); ctx.fill(); // Fogo
+    } else {
+        ctx.fillStyle = b.type==='wall' ? "#7f8c8d" : "#c0392b";
+        ctx.fillRect(b.x-20, b.y-20, 40, 40);
+        ctx.strokeStyle="#333"; ctx.lineWidth=2; ctx.strokeRect(b.x-20, b.y-20, 40, 40);
+    }
 }
 
 function updateHUD() {
@@ -394,14 +345,19 @@ function updateHUD() {
     document.getElementById('xpTxt').innerText = "LVL "+me.level;
     document.getElementById('wood').innerText = me.wood;
     document.getElementById('stone').innerText = me.stone;
-    document.getElementById('buildBtn').style.display = me.wood>=20 ? 'block' : 'none';
-    if(me.dead) document.getElementById('death').classList.remove('hidden');
-    else document.getElementById('death').classList.add('hidden');
+    
+    // Mostra botão de craft se tiver bancada perto
+    let nearTable = false;
+    state.buildings.forEach(b => { if(b.type==='table' && Math.hypot(me.x-b.x, me.y-b.y) < 100) nearTable=true; });
+    document.getElementById('craftBtn').style.display = (me.wood>=5 || nearTable) ? 'block' : 'none';
 }
 
-function up(c) { socket.emit('levelup',{roomId,choice:c}); document.getElementById('levelUp').classList.add('hidden'); }
-function build() { socket.emit('build',{roomId}); }
+function openCraft() { document.getElementById('craftMenu').classList.remove('hidden'); }
+function closeCraft() { document.getElementById('craftMenu').classList.add('hidden'); }
+function build(t) { socket.emit('build', {roomId, type:t}); closeCraft(); }
+function up(c) { socket.emit('levelup', {roomId, choice:c}); document.getElementById('levelUp').classList.add('hidden'); }
 function respawn() { socket.emit('respawn', roomId); }
 </script>
 </body>
 </html>
+

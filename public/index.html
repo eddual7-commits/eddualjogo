@@ -1086,3 +1086,857 @@ canvas.addEventListener('touchend', e => {
 function updateHUD() {
     const hpPercent = (player.hp / player.maxHp) * 100;
     const xpPercent =
+<!-- CONTINUA DE ONDE PAROU NA FUNÇÃO updateHUD() -->
+
+function updateHUD() {
+    const hpPercent = (player.hp / player.maxHp) * 100;
+    const xpPercent = (player.xp / player.nextLevel) * 100;
+    
+    document.getElementById('hpBar').style.width = hpPercent + '%';
+    document.getElementById('hpText').textContent = `❤️ ${Math.floor(player.hp)}/${player.maxHp}`;
+    
+    document.getElementById('xpBar').style.width = xpPercent + '%';
+    document.getElementById('xpText').textContent = `⭐ LV.${player.level}`;
+    
+    document.getElementById('invWood').textContent = player.inventory.wood;
+    document.getElementById('invStone').textContent = player.inventory.stone;
+    document.getElementById('invCrystal').textContent = player.inventory.crystal;
+    document.getElementById('invFood').textContent = player.inventory.food;
+}
+
+// === HELPER FUNCTIONS ===
+function getItemEmoji(type) {
+    const emojis = {
+        wood: '🪵',
+        stone: '🪨', 
+        crystal: '💎',
+        food: '🍖'
+    };
+    return emojis[type] || '📦';
+}
+
+function showNotification(text) {
+    const notif = document.createElement('div');
+    notif.className = 'notification';
+    notif.textContent = text;
+    document.body.appendChild(notif);
+    setTimeout(() => notif.remove(), 2000);
+}
+
+// === UI FUNCTIONS ===
+function openCraft() {
+    document.getElementById('craftMenu').classList.remove('hidden');
+}
+
+function closeCraft() {
+    document.getElementById('craftMenu').classList.add('hidden');
+}
+
+function build(type) {
+    socket.emit('build', { roomId, type });
+    closeCraft();
+}
+
+function selectUpgrade(choice) {
+    socket.emit('selectUpgrade', { roomId, choice });
+    document.getElementById('levelUp').classList.add('hidden');
+}
+
+function respawn() {
+    socket.emit('respawn', roomId);
+    document.getElementById('death').classList.add('hidden');
+}
+
+function useFood() {
+    if(player.inventory.food > 0 && player.hp < player.maxHp) {
+        socket.emit('useFood', { roomId });
+        playSound('pickup');
+    }
+}
+
+// === DRAW FUNCTIONS ===
+function drawMikuCharacter(x, y, p, isMe) {
+    const wobble = p.state === 'run' ? Math.sin(Date.now() / 80) * 4 : 0;
+    const breathe = Math.sin(Date.now() / 400) * 2;
+    
+    ctx.save();
+    ctx.translate(x, y);
+    
+    // Sombra
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(0, 20, 20, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Aura de level alto
+    if(isMe && player.level > 3) {
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = '#39C5BB';
+    }
+    
+    // Pés (botas)
+    ctx.fillStyle = '#1A1A2E';
+    ctx.beginPath();
+    ctx.arc(-8, 15 + wobble, 6, 0, Math.PI * 2);
+    ctx.arc(8, 15 - wobble, 6, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Corpo (vestido/uniforme)
+    const bodyGrad = ctx.createLinearGradient(-15, -15, 15, 10);
+    bodyGrad.addColorStop(0, p.outfitColor || '#1A1A2E');
+    bodyGrad.addColorStop(1, '#0D1F3C');
+    ctx.fillStyle = bodyGrad;
+    ctx.beginPath();
+    ctx.moveTo(-12, -10 + breathe);
+    ctx.lineTo(-14, 12);
+    ctx.lineTo(-8, 15);
+    ctx.lineTo(0, 13);
+    ctx.lineTo(8, 15);
+    ctx.lineTo(14, 12);
+    ctx.lineTo(12, -10 + breathe);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Gravata/Laço
+    ctx.fillStyle = '#39C5BB';
+    ctx.beginPath();
+    ctx.moveTo(0, -5 + breathe);
+    ctx.lineTo(-4, 0 + breathe);
+    ctx.lineTo(0, 3 + breathe);
+    ctx.lineTo(4, 0 + breathe);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Cabeça
+    ctx.fillStyle = '#FDB7B2';
+    ctx.beginPath();
+    ctx.arc(0, -20 + breathe, 12, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Cabelo (Twintails estilo Miku)
+    ctx.fillStyle = p.hairColor || '#39C5BB';
+    
+    // Franja
+    ctx.beginPath();
+    ctx.arc(0, -25 + breathe, 13, Math.PI, 0);
+    ctx.fill();
+    
+    // Rabos de cavalo (twintails)
+    const hairWave = Math.sin(Date.now() / 200) * 3;
+    
+    // Rabo esquerdo
+    ctx.save();
+    ctx.translate(-15, -15 + breathe);
+    ctx.rotate(-0.3 + hairWave * 0.05);
+    ctx.fillRect(-3, 0, 6, 25);
+    ctx.beginPath();
+    ctx.arc(0, 25, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    
+    // Rabo direito
+    ctx.save();
+    ctx.translate(15, -15 + breathe);
+    ctx.rotate(0.3 - hairWave * 0.05);
+    ctx.fillRect(-3, 0, 6, 25);
+    ctx.beginPath();
+    ctx.arc(0, 25, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    
+    // Presilhas do cabelo
+    ctx.fillStyle = '#1A1A2E';
+    ctx.fillRect(-18, -15 + breathe, 4, 4);
+    ctx.fillRect(14, -15 + breathe, 4, 4);
+    
+    // Olhos (estilo anime)
+    ctx.fillStyle = '#FFF';
+    ctx.beginPath();
+    ctx.ellipse(-5, -20 + breathe, 4, 5, 0, 0, Math.PI * 2);
+    ctx.ellipse(5, -20 + breathe, 4, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = '#00BFFF';
+    ctx.beginPath();
+    ctx.arc(-5 + p.facing * 1, -20 + breathe, 3, 0, Math.PI * 2);
+    ctx.arc(5 + p.facing * 1, -20 + breathe, 3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.arc(-5 + p.facing * 1, -20 + breathe, 1.5, 0, Math.PI * 2);
+    ctx.arc(5 + p.facing * 1, -20 + breathe, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Brilho nos olhos
+    ctx.fillStyle = '#FFF';
+    ctx.beginPath();
+    ctx.arc(-6 + p.facing * 1, -21 + breathe, 1, 0, Math.PI * 2);
+    ctx.arc(4 + p.facing * 1, -21 + breathe, 1, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Arma (leque/microfone estilizado como arma)
+    ctx.save();
+    ctx.rotate(p.angle || 0);
+    
+    // Microfone mágico
+    const micGrad = ctx.createLinearGradient(20, 0, 45, 0);
+    micGrad.addColorStop(0, '#39C5BB');
+    micGrad.addColorStop(1, '#00D4AA');
+    ctx.fillStyle = micGrad;
+    ctx.fillRect(20, -3, 25, 6);
+    
+    // Ponta brilhante
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = '#00FFFF';
+    ctx.fillStyle = '#00FFFF';
+    ctx.beginPath();
+    ctx.arc(48, 0, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    
+    ctx.restore();
+    
+    ctx.restore();
+    
+    // Nome do jogador
+    ctx.fillStyle = isMe ? '#F1C40F' : '#FFF';
+    ctx.font = 'bold 11px "Orbitron"';
+    ctx.textAlign = 'center';
+    ctx.fillText(p.name || 'Miku', x, y - 50);
+    
+    // Level
+    ctx.fillStyle = '#39C5BB';
+    ctx.font = '10px "Orbitron"';
+    ctx.fillText(`Lv.${p.level}`, x, y - 62);
+}
+
+function drawEnemy(e) {
+    if(e.dead) return;
+    
+    const bob = Math.sin(Date.now() / 100 + e.x * 0.01) * 3;
+    const pulse = e.isBoss ? 1 + Math.sin(Date.now() / 200) * 0.1 : 1;
+    
+    ctx.save();
+    ctx.translate(e.x, e.y);
+    
+    // Sombra
+    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    ctx.beginPath();
+    ctx.ellipse(0, 10, 25 * pulse, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Aura de boss
+    if(e.isBoss) {
+        ctx.shadowBlur = 30;
+        ctx.shadowColor = e.color;
+    }
+    
+    const size = (e.isBoss ? 30 : 20) * pulse;
+    
+    // Desenhar baseado no tipo
+    switch(e.type) {
+        case 'slime':
+            const squish = 1 + Math.sin(Date.now() / 150) * 0.15;
+            ctx.fillStyle = e.color;
+            ctx.beginPath();
+            ctx.ellipse(0, -10 - bob, size * squish, size * 0.8, 0, 0, Math.PI * 2);
+            ctx.fill();
+            // Brilho
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            ctx.beginPath();
+            ctx.ellipse(-size * 0.3, -15 - bob, size * 0.2, size * 0.15, 0, 0, Math.PI * 2);
+            ctx.fill();
+            break;
+            
+        case 'goblin':
+            ctx.fillStyle = e.color;
+            ctx.beginPath();
+            ctx.arc(0, -15 - bob, size, 0, Math.PI * 2);
+            ctx.fill();
+            // Orelhas
+            ctx.beginPath();
+            ctx.moveTo(-size, -15 - bob);
+            ctx.lineTo(-size - 8, -30 - bob);
+            ctx.lineTo(-size + 5, -20 - bob);
+            ctx.moveTo(size, -15 - bob);
+            ctx.lineTo(size + 8, -30 - bob);
+            ctx.lineTo(size - 5, -20 - bob);
+            ctx.fill();
+            break;
+            
+        case 'skeleton':
+            ctx.fillStyle = e.color;
+            ctx.beginPath();
+            ctx.arc(0, -15 - bob, size, 0, Math.PI * 2);
+            ctx.fill();
+            // Olhos vazios
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(-7, -18 - bob, 5, 0, Math.PI * 2);
+            ctx.arc(7, -18 - bob, 5, 0, Math.PI * 2);
+            ctx.fill();
+            break;
+            
+        case 'ghost':
+            ctx.globalAlpha = 0.7;
+            ctx.fillStyle = e.color;
+            ctx.beginPath();
+            ctx.arc(0, -15 - bob, size, 0, Math.PI * 2);
+            ctx.fill();
+            // Cauda
+            for(let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                ctx.ellipse(0, 5 + i * 5 + Math.sin(Date.now() / 100 + i) * 3, 
+                           size - i * 3, 8, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+            break;
+            
+        case 'witch':
+            // Corpo
+            ctx.fillStyle = e.color;
+            ctx.beginPath();
+            ctx.arc(0, -15 - bob, size, 0, Math.PI * 2);
+            ctx.fill();
+            // Chapéu
+            ctx.fillStyle = '#2C3E50';
+            ctx.beginPath();
+            ctx.moveTo(-size, -20 - bob);
+            ctx.lineTo(0, -45 - bob);
+            ctx.lineTo(size, -20 - bob);
+            ctx.fill();
+            break;
+            
+        case 'demon':
+            ctx.fillStyle = e.color;
+            ctx.beginPath();
+            ctx.arc(0, -15 - bob, size, 0, Math.PI * 2);
+            ctx.fill();
+            // Chifres
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.moveTo(-10, -25 - bob);
+            ctx.lineTo(-7, -40 - bob);
+            ctx.lineTo(-4, -25 - bob);
+            ctx.moveTo(10, -25 - bob);
+            ctx.lineTo(7, -40 - bob);
+            ctx.lineTo(4, -25 - bob);
+            ctx.fill();
+            break;
+            
+        case 'dragon':
+            // Corpo maior
+            ctx.fillStyle = e.color;
+            ctx.beginPath();
+            ctx.ellipse(0, -20 - bob, size * 1.5, size, 0, 0, Math.PI * 2);
+            ctx.fill();
+            // Asas
+            ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            ctx.beginPath();
+            ctx.moveTo(-size, -20 - bob);
+            ctx.quadraticCurveTo(-size * 2, -30 - bob, -size * 1.5, 0);
+            ctx.moveTo(size, -20 - bob);
+            ctx.quadraticCurveTo(size * 2, -30 - bob, size * 1.5, 0);
+            ctx.fill();
+            break;
+    }
+    
+    // Olhos (para todos exceto skeleton e ghost)
+    if(!['skeleton', 'ghost'].includes(e.type)) {
+        ctx.fillStyle = '#FFF';
+        ctx.beginPath();
+        ctx.arc(-6, -18 - bob, 4, 0, Math.PI * 2);
+        ctx.arc(6, -18 - bob, 4, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = '#F00';
+        ctx.beginPath();
+        ctx.arc(-6 + e.facing * 2, -18 - bob, 2, 0, Math.PI * 2);
+        ctx.arc(6 + e.facing * 2, -18 - bob, 2, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    ctx.restore();
+    
+    // Barra de HP
+    const barWidth = e.isBoss ? 60 : 40;
+    const hpPercent = e.hp / e.maxHp;
+    
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    ctx.fillRect(e.x - barWidth/2, e.y - 45, barWidth, 6);
+    
+    ctx.fillStyle = hpPercent > 0.5 ? '#2ECC71' : hpPercent > 0.25 ? '#F39C12' : '#E74C3C';
+    ctx.fillRect(e.x - barWidth/2, e.y - 45, barWidth * hpPercent, 6);
+    
+    // Label de boss
+    if(e.isBoss) {
+        ctx.fillStyle = '#F1C40F';
+        ctx.font = 'bold 10px "Orbitron"';
+        ctx.textAlign = 'center';
+        ctx.fillText('⭐ BOSS ⭐', e.x, e.y - 55);
+    }
+}
+
+function drawResource(r) {
+    if(r.dead) return;
+    
+    const wobble = Math.sin(Date.now() / 500 + r.x * 0.01) * 2;
+    
+    ctx.save();
+    ctx.translate(r.x, r.y);
+    
+    // Sombra
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(0, 15, 18, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    switch(r.type) {
+        case 'tree':
+            // Tronco
+            ctx.fillStyle = '#6D4C41';
+            ctx.fillRect(-8, -10, 16, 25);
+            // Copa
+            ctx.fillStyle = '#4CAF50';
+            ctx.beginPath();
+            ctx.arc(wobble, -25, 25, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#66BB6A';
+            ctx.beginPath();
+            ctx.arc(-10 + wobble, -15, 15, 0, Math.PI * 2);
+            ctx.arc(10 + wobble, -15, 15, 0, Math.PI * 2);
+            ctx.fill();
+            break;
+            
+        case 'stone':
+            ctx.fillStyle = '#7F8C8D';
+            ctx.beginPath();
+            ctx.arc(0, 0, 20, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#95A5A6';
+            ctx.beginPath();
+            ctx.arc(-5, -5, 12, 0, Math.PI * 2);
+            ctx.fill();
+            break;
+            
+        case 'crystal':
+            // Cristal brilhante
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#00FFFF';
+            ctx.fillStyle = '#00D4AA';
+            ctx.beginPath();
+            ctx.moveTo(0, -30);
+            ctx.lineTo(-10, -10);
+            ctx.lineTo(-8, 10);
+            ctx.lineTo(0, 15);
+            ctx.lineTo(8, 10);
+            ctx.lineTo(10, -10);
+            ctx.closePath();
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            
+            // Brilho interno
+            ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            ctx.beginPath();
+            ctx.moveTo(0, -25);
+            ctx.lineTo(-5, -10);
+            ctx.lineTo(0, -5);
+            ctx.lineTo(5, -10);
+            ctx.closePath();
+            ctx.fill();
+            break;
+    }
+    
+    // Barra de HP se está sendo atacado
+    if(r.hp < r.maxHp) {
+        const hpPercent = r.hp / r.maxHp;
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(-20, -40, 40, 4);
+        ctx.fillStyle = '#2ECC71';
+        ctx.fillRect(-20, -40, 40 * hpPercent, 4);
+    }
+    
+    ctx.restore();
+}
+
+function drawBuilding(b) {
+    ctx.save();
+    ctx.translate(b.x, b.y);
+    
+    switch(b.type) {
+        case 'table':
+            ctx.fillStyle = '#8D6E63';
+            ctx.fillRect(-20, -8, 40, 16);
+            ctx.fillStyle = '#6D4C41';
+            ctx.fillRect(-18, 8, 5, 12);
+            ctx.fillRect(13, 8, 5, 12);
+            break;
+            
+        case 'wall_wood':
+            ctx.fillStyle = '#6D4C41';
+            ctx.fillRect(-25, -25, 50, 50);
+            ctx.strokeStyle = '#4E342E';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(-25, -25, 50, 50);
+            break;
+            
+        case 'wall_stone':
+            ctx.fillStyle = '#7F8C8D';
+            ctx.fillRect(-25, -25, 50, 50);
+            ctx.strokeStyle = '#5D6D7E';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(-25, -25, 50, 50);
+            break;
+            
+        case 'spike':
+            ctx.fillStyle = '#95A5A6';
+            for(let i = 0; i < 5; i++) {
+                ctx.beginPath();
+                ctx.moveTo(-20 + i * 10, 10);
+                ctx.lineTo(-15 + i * 10, -10);
+                ctx.lineTo(-10 + i * 10, 10);
+                ctx.fill();
+            }
+            break;
+            
+        case 'turret':
+            ctx.fillStyle = '#5D6D7E';
+            ctx.fillRect(-15, -5, 30, 20);
+            ctx.fillStyle = '#34495E';
+            ctx.fillRect(-20, 15, 40, 10);
+            ctx.fillStyle = '#95A5A6';
+            ctx.fillRect(10, -3, 25, 6);
+            // Luz indicadora
+            ctx.fillStyle = '#00FFFF';
+            ctx.beginPath();
+            ctx.arc(0, -5, 3, 0, Math.PI * 2);
+            ctx.fill();
+            break;
+            
+        case 'healing':
+            // Base
+            ctx.fillStyle = '#2ECC71';
+            ctx.beginPath();
+            ctx.arc(0, 0, 20, 0, Math.PI * 2);
+            ctx.fill();
+            // Cruz
+            ctx.fillStyle = '#FFF';
+            ctx.fillRect(-3, -12, 6, 24);
+            ctx.fillRect(-12, -3, 24, 6);
+            // Pulso de cura
+            const healPulse = 0.5 + Math.sin(Date.now() / 300) * 0.5;
+            ctx.strokeStyle = `rgba(46, 204, 113, ${healPulse})`;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(0, 0, 25 + healPulse * 10, 0, Math.PI * 2);
+            ctx.stroke();
+            break;
+    }
+    
+    ctx.restore();
+}
+
+function drawOrb(o) {
+    const pulse = 1 + Math.sin(Date.now() / 150 + o.x * 0.01) * 0.3;
+    
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = '#00FFFF';
+    ctx.fillStyle = '#00D4AA';
+    ctx.beginPath();
+    ctx.arc(o.x, o.y, 5 * pulse, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    
+    // Brilho interno
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.beginPath();
+    ctx.arc(o.x - 2, o.y - 2, 2, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+// === GAME LOOP ===
+let lastAttack = 0;
+
+function gameLoop() {
+    requestAnimationFrame(gameLoop);
+    
+    if(!roomId) return;
+    
+    // Movimento do jogador
+    const speed = 6 * (player.stats.speed || 1);
+    if(joystickLeft.active && !player.dead) {
+        player.x += joystickLeft.dx * speed;
+        player.y += joystickLeft.dy * speed;
+        player.x = Math.max(50, Math.min(2950, player.x));
+        player.y = Math.max(50, Math.min(2950, player.y));
+    }
+    
+    // Auto-aim
+    let aimAngle = joystickRight.active ? joystickRight.angle : null;
+    if(!aimAngle && gameState.enemies.length > 0) {
+        let closestEnemy = null;
+        let minDist = 350;
+        
+        gameState.enemies.forEach(e => {
+            if(e.dead) return;
+            const dist = Math.hypot(e.x - player.x, e.y - player.y);
+            if(dist < minDist) {
+                minDist = dist;
+                closestEnemy = e;
+            }
+        });
+        
+        if(closestEnemy) {
+            aimAngle = Math.atan2(closestEnemy.y - player.y, closestEnemy.x - player.x);
+        }
+    }
+    
+    // Camera suave
+    const shakeX = screenShake > 0 ? (Math.random() - 0.5) * screenShake : 0;
+    const shakeY = screenShake > 0 ? (Math.random() - 0.5) * screenShake : 0;
+    
+    camera.x += (player.x - camera.x - canvas.width/2 + shakeX) * 0.08;
+    camera.y += (player.y - camera.y - canvas.height/2 + shakeY) * 0.08;
+    
+    if(screenShake > 0) screenShake -= 0.5;
+    
+    // Enviar movimento
+    socket.emit('move', {
+        roomId,
+        x: player.x,
+        y: player.y,
+        state: joystickLeft.active ? 'run' : 'idle',
+        facing: joystickLeft.dx > 0 ? 1 : joystickLeft.dx < 0 ? -1 : 0,
+        angle: aimAngle || 0
+    });
+    
+    // Ataque
+    const attackSpeed = 250 / (player.stats.attackSpeed || 1);
+    if((joystickRight.active || aimAngle) && Date.now() - lastAttackTime > attackSpeed && !player.dead) {
+        lastAttackTime = Date.now();
+        socket.emit('attack', { roomId, angle: aimAngle });
+        playSound('shoot');
+        
+        // Efeito visual do tiro
+        projectiles.push({
+            x: player.x + Math.cos(aimAngle) * 30,
+            y: player.y + Math.sin(aimAngle) * 30,
+            tx: player.x + Math.cos(aimAngle) * 250,
+            ty: player.y + Math.sin(aimAngle) * 250,
+            color: '#00FFFF',
+            life: 1
+        });
+    }
+    
+    // === RENDERIZAÇÃO ===
+    
+    // Background com gradiente azul
+    const dayNight = gameState.time / 240000; // Ciclo de 4 minutos
+    const brightness = 0.6 + Math.cos(dayNight * Math.PI * 2) * 0.3;
+    
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    bgGrad.addColorStop(0, `rgba(10, 22, 40, ${brightness})`);
+    bgGrad.addColorStop(1, `rgba(13, 31, 60, ${brightness * 0.8})`);
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.save();
+    ctx.translate(-camera.x, -camera.y);
+    
+    // Grid do chão
+    const TILE_SIZE = 100;
+    const startX = Math.floor(camera.x / TILE_SIZE) * TILE_SIZE;
+    const startY = Math.floor(camera.y / TILE_SIZE) * TILE_SIZE;
+    const endX = startX + canvas.width + TILE_SIZE * 2;
+    const endY = startY + canvas.height + TILE_SIZE * 2;
+    
+    for(let x = startX; x < endX; x += TILE_SIZE) {
+        for(let y = startY; y < endY; y += TILE_SIZE) {
+            const noise = Math.sin(x * 0.01) * Math.cos(y * 0.01);
+            const tileColor = noise > 0 ? 
+                `rgba(39, 174, 96, ${0.1 * brightness})` : 
+                `rgba(46, 204, 113, ${0.08 * brightness})`;
+            
+            ctx.fillStyle = tileColor;
+            ctx.fillRect(x, y, TILE_SIZE - 1, TILE_SIZE - 1);
+        }
+    }
+    
+    // Objetos do mundo (ordem de renderização)
+    gameState.resources.forEach(r => drawResource(r));
+    gameState.buildings.forEach(b => drawBuilding(b));
+    gameState.orbs.forEach(o => drawOrb(o));
+    gameState.enemies.forEach(e => drawEnemy(e));
+    
+    // Jogadores
+    for(const id in gameState.players) {
+        const p = gameState.players[id];
+        if(p.dead) continue;
+        
+        const x = id === myId ? player.x : p.x;
+        const y = id === myId ? player.y : p.y;
+        drawMikuCharacter(x, y, p, id === myId);
+    }
+    
+    // Partículas
+    particles = particles.filter(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.4; // Gravidade
+        p.life -= 0.02;
+        
+        ctx.globalAlpha = p.life;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        
+        return p.life > 0;
+    });
+    
+    // Textos de dano
+    damageTexts = damageTexts.filter(t => {
+        t.y -= 2;
+        t.life -= 0.02;
+        
+        ctx.globalAlpha = t.life;
+        ctx.font = t.crit ? 'bold 24px "Orbitron"' : 'bold 16px "Rajdhani"';
+        ctx.fillStyle = t.crit ? '#F1C40F' : '#FFF';
+        ctx.textAlign = 'center';
+        ctx.fillText((t.crit ? '💥 ' : '') + t.value, t.x, t.y);
+        ctx.globalAlpha = 1;
+        
+        return t.life > 0;
+    });
+    
+    // Projéteis
+    projectiles = projectiles.filter(p => {
+        p.life -= 0.08;
+        
+        ctx.globalAlpha = p.life;
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = 3;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = p.color;
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.tx, p.ty);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 1;
+        
+        return p.life > 0;
+    });
+    
+    ctx.restore();
+    
+    // === UI OVERLAY ===
+    
+    // Joystick esquerdo (movimento)
+    if(joystickLeft.active) {
+        ctx.strokeStyle = 'rgba(57, 197, 187, 0.4)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(joystickLeft.ox, joystickLeft.oy, 60, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        const knobGrad = ctx.createRadialGradient(
+            joystickLeft.ox + joystickLeft.dx * 60,
+            joystickLeft.oy + joystickLeft.dy * 60,
+            0,
+            joystickLeft.ox + joystickLeft.dx * 60,
+            joystickLeft.oy + joystickLeft.dy * 60,
+            30
+        );
+        knobGrad.addColorStop(0, 'rgba(57, 197, 187, 0.8)');
+        knobGrad.addColorStop(1, 'rgba(57, 197, 187, 0.3)');
+        ctx.fillStyle = knobGrad;
+        ctx.beginPath();
+        ctx.arc(
+            joystickLeft.ox + joystickLeft.dx * 60,
+            joystickLeft.oy + joystickLeft.dy * 60,
+            30, 0, Math.PI * 2
+        );
+        ctx.fill();
+    }
+    
+    // Joystick direito (mira)
+    if(joystickRight.active) {
+        ctx.strokeStyle = 'rgba(231, 76, 60, 0.4)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(joystickRight.ox, joystickRight.oy, 60, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        const aimGrad = ctx.createRadialGradient(
+            joystickRight.ox + Math.cos(joystickRight.angle) * 60,
+            joystickRight.oy + Math.sin(joystickRight.angle) * 60,
+            0,
+            joystickRight.ox + Math.cos(joystickRight.angle) * 60,
+            joystickRight.oy + Math.sin(joystickRight.angle) * 60,
+            30
+        );
+        aimGrad.addColorStop(0, 'rgba(231, 76, 60, 0.8)');
+        aimGrad.addColorStop(1, 'rgba(231, 76, 60, 0.3)');
+        ctx.fillStyle = aimGrad;
+        ctx.beginPath();
+        ctx.arc(
+            joystickRight.ox + Math.cos(joystickRight.angle) * 60,
+            joystickRight.oy + Math.sin(joystickRight.angle) * 60,
+            30, 0, Math.PI * 2
+        );
+        ctx.fill();
+    }
+    
+    // === MINIMAP ===
+    miniCtx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    miniCtx.fillRect(0, 0, 130, 130);
+    
+    const scale = 130 / 3000;
+    
+    // Recursos
+    gameState.resources.forEach(r => {
+        if(r.dead) return;
+        miniCtx.fillStyle = r.type === 'tree' ? '#4CAF50' : 
+                           r.type === 'stone' ? '#7F8C8D' : '#00D4AA';
+        miniCtx.fillRect(r.x * scale - 1, r.y * scale - 1, 2, 2);
+    });
+    
+    // Inimigos
+    gameState.enemies.forEach(e => {
+        if(e.dead) return;
+        miniCtx.fillStyle = e.isBoss ? '#F1C40F' : '#E74C3C';
+        miniCtx.beginPath();
+        miniCtx.arc(e.x * scale, e.y * scale, e.isBoss ? 4 : 2, 0, Math.PI * 2);
+        miniCtx.fill();
+    });
+    
+    // Jogadores
+    for(const id in gameState.players) {
+        const p = gameState.players[id];
+        if(p.dead) continue;
+        
+        const px = id === myId ? player.x : p.x;
+        const py = id === myId ? player.y : p.y;
+        
+        miniCtx.fillStyle = id === myId ? '#F1C40F' : '#39C5BB';
+        miniCtx.beginPath();
+        miniCtx.arc(px * scale, py * scale, 3, 0, Math.PI * 2);
+        miniCtx.fill();
+    }
+    
+    // Borda do minimap
+    miniCtx.strokeStyle = '#39C5BB';
+    miniCtx.lineWidth = 2;
+    miniCtx.strokeRect(0, 0, 130, 130);
+}
+
+// Iniciar o loop
+gameLoop();
+
+</script>
+</body>
+</html>

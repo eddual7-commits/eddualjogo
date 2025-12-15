@@ -1051,3 +1051,1242 @@ server.listen(PORT, () => {
     console.log(`🎮 Zombie Terraria Server rodando na porta ${PORT}`);
     console.log(`🌍 Mundo: ${WORLD_WIDTH}x${WORLD_HEIGHT} blocos`);
 });
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const path = require('path');
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: { origin: "*" },
+    pingTimeout: 60000,
+    pingInterval: 25000
+});
+
+app.use(express.static('public'));
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+
+// ==================== CONFIGURAÇÕES DO MUNDO ====================
+const WORLD_WIDTH = 400;  // blocos
+const WORLD_HEIGHT = 200; // blocos
+const TILE_SIZE = 16;
+const SPAWN_X = WORLD_WIDTH / 2;
+const SPAWN_Y = 50;
+
+// Tipos de blocos
+const TILES = {
+    AIR: 0,
+    DIRT: 1,
+    GRASS: 2,
+    STONE: 3,
+    WOOD: 4,
+    LEAVES: 5,
+    COAL: 6,
+    IRON: 7,
+    GOLD: 8,
+    DIAMOND: 9,
+    SAND: 10,
+    WATER: 11,
+    LAVA: 12,
+    COBBLESTONE: 13,
+    PLANKS: 14,
+    TORCH: 15,
+    CHEST: 16,
+    WORKBENCH: 17,
+    FURNACE: 18,
+    BEDROCK: 19,
+    COPPER: 20,
+    SILVER: 21,
+    OBSIDIAN: 22,
+    GLASS: 23,
+    BRICK: 24,
+    PLATFORM: 25,
+    DOOR_BOTTOM: 26,
+    DOOR_TOP: 27,
+    SNOW: 28,
+    ICE: 29,
+    CACTUS: 30
+};
+
+// Propriedades dos blocos
+const TILE_PROPS = {
+    [TILES.AIR]: { solid: false, transparent: true, hardness: 0, drops: null, light: 0 },
+    [TILES.DIRT]: { solid: true, transparent: false, hardness: 1, drops: TILES.DIRT, light: 0 },
+    [TILES.GRASS]: { solid: true, transparent: false, hardness: 1, drops: TILES.DIRT, light: 0 },
+    [TILES.STONE]: { solid: true, transparent: false, hardness: 3, drops: TILES.COBBLESTONE, light: 0 },
+    [TILES.WOOD]: { solid: true, transparent: false, hardness: 2, drops: TILES.WOOD, light: 0 },
+    [TILES.LEAVES]: { solid: false, transparent: true, hardness: 0.5, drops: null, light: 0 },
+    [TILES.COAL]: { solid: true, transparent: false, hardness: 3, drops: TILES.COAL, light: 0 },
+    [TILES.IRON]: { solid: true, transparent: false, hardness: 4, drops: TILES.IRON, light: 0 },
+    [TILES.GOLD]: { solid: true, transparent: false, hardness: 4, drops: TILES.GOLD, light: 0 },
+    [TILES.DIAMOND]: { solid: true, transparent: false, hardness: 5, drops: TILES.DIAMOND, light: 0 },
+    [TILES.SAND]: { solid: true, transparent: false, hardness: 1, drops: TILES.SAND, light: 0 },
+    [TILES.WATER]: { solid: false, transparent: true, hardness: 0, drops: null, light: 0 },
+    [TILES.LAVA]: { solid: false, transparent: true, hardness: 0, drops: null, light: 15 },
+    [TILES.COBBLESTONE]: { solid: true, transparent: false, hardness: 3, drops: TILES.COBBLESTONE, light: 0 },
+    [TILES.PLANKS]: { solid: true, transparent: false, hardness: 2, drops: TILES.PLANKS, light: 0 },
+    [TILES.TORCH]: { solid: false, transparent: true, hardness: 0, drops: TILES.TORCH, light: 14 },
+    [TILES.CHEST]: { solid: true, transparent: false, hardness: 2, drops: TILES.CHEST, light: 0 },
+    [TILES.WORKBENCH]: { solid: true, transparent: false, hardness: 2, drops: TILES.WORKBENCH, light: 0 },
+    [TILES.FURNACE]: { solid: true, transparent: false, hardness: 3, drops: TILES.FURNACE, light: 13 },
+    [TILES.BEDROCK]: { solid: true, transparent: false, hardness: Infinity, drops: null, light: 0 },
+    [TILES.COPPER]: { solid: true, transparent: false, hardness: 3, drops: TILES.COPPER, light: 0 },
+    [TILES.SILVER]: { solid: true, transparent: false, hardness: 4, drops: TILES.SILVER, light: 0 },
+    [TILES.OBSIDIAN]: { solid: true, transparent: false, hardness: 10, drops: TILES.OBSIDIAN, light: 0 },
+    [TILES.GLASS]: { solid: true, transparent: true, hardness: 0.5, drops: null, light: 0 },
+    [TILES.BRICK]: { solid: true, transparent: false, hardness: 4, drops: TILES.BRICK, light: 0 },
+    [TILES.PLATFORM]: { solid: false, transparent: true, hardness: 1, drops: TILES.PLATFORM, light: 0, platform: true },
+    [TILES.DOOR_BOTTOM]: { solid: true, transparent: false, hardness: 2, drops: TILES.DOOR_BOTTOM, light: 0 },
+    [TILES.DOOR_TOP]: { solid: true, transparent: false, hardness: 2, drops: null, light: 0 },
+    [TILES.SNOW]: { solid: true, transparent: false, hardness: 1, drops: TILES.SNOW, light: 0 },
+    [TILES.ICE]: { solid: true, transparent: true, hardness: 1, drops: null, light: 0 },
+    [TILES.CACTUS]: { solid: true, transparent: false, hardness: 1, drops: TILES.CACTUS, light: 0 }
+};
+
+// ==================== SERVIDORES/SALAS ====================
+const servers = new Map();
+const players = new Map();
+
+// ==================== GERAÇÃO DO MUNDO ====================
+function generateWorld() {
+    const world = {
+        tiles: [],
+        background: [],
+        lightMap: [],
+        width: WORLD_WIDTH,
+        height: WORLD_HEIGHT
+    };
+    
+    // Inicializa arrays
+    for (let x = 0; x < WORLD_WIDTH; x++) {
+        world.tiles[x] = [];
+        world.background[x] = [];
+        world.lightMap[x] = [];
+        for (let y = 0; y < WORLD_HEIGHT; y++) {
+            world.tiles[x][y] = TILES.AIR;
+            world.background[x][y] = TILES.AIR;
+            world.lightMap[x][y] = 0;
+        }
+    }
+    
+    // Gera terreno com Perlin-like noise
+    const surfaceHeight = [];
+    let height = WORLD_HEIGHT * 0.35;
+    
+    for (let x = 0; x < WORLD_WIDTH; x++) {
+        // Variação suave do terreno
+        height += (Math.random() - 0.5) * 2;
+        height = Math.max(WORLD_HEIGHT * 0.25, Math.min(WORLD_HEIGHT * 0.45, height));
+        
+        // Adiciona colinas ocasionais
+        if (Math.random() < 0.02) {
+            height -= Math.random() * 10;
+        }
+        if (Math.random() < 0.02) {
+            height += Math.random() * 10;
+        }
+        
+        surfaceHeight[x] = Math.floor(height);
+    }
+    
+    // Suaviza o terreno
+    for (let i = 0; i < 3; i++) {
+        for (let x = 1; x < WORLD_WIDTH - 1; x++) {
+            surfaceHeight[x] = Math.floor((surfaceHeight[x-1] + surfaceHeight[x] + surfaceHeight[x+1]) / 3);
+        }
+    }
+    
+    // Preenche o terreno
+    for (let x = 0; x < WORLD_WIDTH; x++) {
+        const surface = surfaceHeight[x];
+        
+        for (let y = 0; y < WORLD_HEIGHT; y++) {
+            if (y < surface) {
+                world.tiles[x][y] = TILES.AIR;
+            } else if (y === surface) {
+                world.tiles[x][y] = TILES.GRASS;
+            } else if (y < surface + 4 + Math.floor(Math.random() * 3)) {
+                world.tiles[x][y] = TILES.DIRT;
+            } else if (y >= WORLD_HEIGHT - 1) {
+                world.tiles[x][y] = TILES.BEDROCK;
+            } else {
+                world.tiles[x][y] = TILES.STONE;
+            }
+            
+            // Background para áreas subterrâneas
+            if (y > surface) {
+                world.background[x][y] = TILES.DIRT;
+            }
+        }
+    }
+    
+    // Gera cavernas
+    generateCaves(world, surfaceHeight);
+    
+    // Gera minérios
+    generateOres(world, surfaceHeight);
+    
+    // Gera árvores
+    generateTrees(world, surfaceHeight);
+    
+    // Gera estruturas especiais
+    generateStructures(world, surfaceHeight);
+    
+    return world;
+}
+
+function generateCaves(world, surfaceHeight) {
+    const numCaves = Math.floor(WORLD_WIDTH * WORLD_HEIGHT * 0.0003);
+    
+    for (let i = 0; i < numCaves; i++) {
+        let x = Math.floor(Math.random() * WORLD_WIDTH);
+        let y = Math.floor(surfaceHeight[Math.floor(WORLD_WIDTH/2)] + 10 + Math.random() * (WORLD_HEIGHT - surfaceHeight[Math.floor(WORLD_WIDTH/2)] - 20));
+        
+        const length = 50 + Math.floor(Math.random() * 150);
+        let dirX = Math.random() - 0.5;
+        let dirY = Math.random() - 0.3;
+        
+        for (let j = 0; j < length; j++) {
+            const radius = 2 + Math.floor(Math.random() * 4);
+            
+            for (let dx = -radius; dx <= radius; dx++) {
+                for (let dy = -radius; dy <= radius; dy++) {
+                    if (dx*dx + dy*dy <= radius*radius) {
+                        const nx = Math.floor(x + dx);
+                        const ny = Math.floor(y + dy);
+                        
+                        if (nx > 0 && nx < WORLD_WIDTH - 1 && ny > surfaceHeight[nx] + 2 && ny < WORLD_HEIGHT - 1) {
+                            if (world.tiles[nx][ny] !== TILES.BEDROCK) {
+                                world.tiles[nx][ny] = TILES.AIR;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            dirX += (Math.random() - 0.5) * 0.2;
+            dirY += (Math.random() - 0.5) * 0.2;
+            dirX = Math.max(-1, Math.min(1, dirX));
+            dirY = Math.max(-0.5, Math.min(0.8, dirY));
+            
+            x += dirX * 2;
+            y += dirY * 2;
+            
+            if (x < 5 || x > WORLD_WIDTH - 5 || y > WORLD_HEIGHT - 5) break;
+        }
+    }
+}
+
+function generateOres(world, surfaceHeight) {
+    const avgSurface = surfaceHeight[Math.floor(WORLD_WIDTH/2)];
+    
+    // Define profundidade dos minérios
+    const ores = [
+        { type: TILES.COAL, minDepth: 0, maxDepth: 0.9, chance: 0.008, veinSize: [3, 8] },
+        { type: TILES.COPPER, minDepth: 0.1, maxDepth: 0.7, chance: 0.006, veinSize: [3, 6] },
+        { type: TILES.IRON, minDepth: 0.2, maxDepth: 0.8, chance: 0.005, veinSize: [2, 5] },
+        { type: TILES.SILVER, minDepth: 0.4, maxDepth: 0.9, chance: 0.003, veinSize: [2, 4] },
+        { type: TILES.GOLD, minDepth: 0.5, maxDepth: 0.95, chance: 0.002, veinSize: [2, 4] },
+        { type: TILES.DIAMOND, minDepth: 0.8, maxDepth: 0.98, chance: 0.001, veinSize: [1, 3] }
+    ];
+    
+    const undergroundHeight = WORLD_HEIGHT - avgSurface;
+    
+    for (const ore of ores) {
+        for (let x = 0; x < WORLD_WIDTH; x++) {
+            for (let y = avgSurface; y < WORLD_HEIGHT - 1; y++) {
+                const depth = (y - avgSurface) / undergroundHeight;
+                
+                if (depth >= ore.minDepth && depth <= ore.maxDepth) {
+                    if (world.tiles[x][y] === TILES.STONE && Math.random() < ore.chance) {
+                        // Gera veia de minério
+                        const veinSize = ore.veinSize[0] + Math.floor(Math.random() * (ore.veinSize[1] - ore.veinSize[0]));
+                        generateOreVein(world, x, y, ore.type, veinSize);
+                    }
+                }
+            }
+        }
+    }
+}
+
+function generateOreVein(world, startX, startY, oreType, size) {
+    let x = startX;
+    let y = startY;
+    
+    for (let i = 0; i < size; i++) {
+        if (x >= 0 && x < WORLD_WIDTH && y >= 0 && y < WORLD_HEIGHT - 1) {
+            if (world.tiles[x][y] === TILES.STONE) {
+                world.tiles[x][y] = oreType;
+            }
+        }
+        
+        x += Math.floor(Math.random() * 3) - 1;
+        y += Math.floor(Math.random() * 3) - 1;
+    }
+}
+
+function generateTrees(world, surfaceHeight) {
+    for (let x = 5; x < WORLD_WIDTH - 5; x++) {
+        if (Math.random() < 0.08) {
+            const surface = surfaceHeight[x];
+            
+            if (world.tiles[x][surface] === TILES.GRASS) {
+                const height = 5 + Math.floor(Math.random() * 8);
+                
+                // Tronco
+                for (let y = surface - height; y < surface; y++) {
+                    if (y >= 0) {
+                        world.tiles[x][y] = TILES.WOOD;
+                    }
+                }
+                
+                // Copa
+                const crownStart = surface - height;
+                const crownRadius = 2 + Math.floor(Math.random() * 2);
+                
+                for (let dx = -crownRadius; dx <= crownRadius; dx++) {
+                    for (let dy = -crownRadius; dy <= crownRadius; dy++) {
+                        const nx = x + dx;
+                        const ny = crownStart + dy;
+                        
+                        if (nx >= 0 && nx < WORLD_WIDTH && ny >= 0) {
+                            if (dx*dx + dy*dy <= crownRadius*crownRadius + Math.random() * 2) {
+                                if (world.tiles[nx][ny] === TILES.AIR) {
+                                    world.tiles[nx][ny] = TILES.LEAVES;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                x += 4; // Espaçamento mínimo entre árvores
+            }
+        }
+    }
+}
+
+function generateStructures(world, surfaceHeight) {
+    // Gera algumas tochas de superfície para iluminação inicial
+    for (let x = 20; x < WORLD_WIDTH - 20; x += 30 + Math.floor(Math.random() * 20)) {
+        const surface = surfaceHeight[x];
+        if (world.tiles[x][surface] === TILES.GRASS && world.tiles[x][surface-1] === TILES.AIR) {
+            world.tiles[x][surface-1] = TILES.TORCH;
+        }
+    }
+}
+
+// ==================== ZUMBIS ====================
+function createZombie(serverId, x, y) {
+    const types = ['normal', 'fast', 'tank', 'crawler'];
+    const weights = [0.5, 0.25, 0.15, 0.1];
+    
+    // Seleciona tipo baseado em peso
+    let rand = Math.random();
+    let type = 'normal';
+    let cumulative = 0;
+    
+    for (let i = 0; i < types.length; i++) {
+        cumulative += weights[i];
+        if (rand <= cumulative) {
+            type = types[i];
+            break;
+        }
+    }
+    
+    const stats = {
+        normal: { hp: 100, speed: 1.5, damage: 10, xp: 10, width: 24, height: 40 },
+        fast: { hp: 50, speed: 3, damage: 8, xp: 15, width: 20, height: 36 },
+        tank: { hp: 300, speed: 0.8, damage: 25, xp: 30, width: 32, height: 48 },
+        crawler: { hp: 60, speed: 2, damage: 12, xp: 12, width: 32, height: 20 }
+    };
+    
+    const s = stats[type];
+    
+    return {
+        id: `zombie_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        type,
+        x, y,
+        vx: 0, vy: 0,
+        width: s.width,
+        height: s.height,
+        hp: s.hp,
+        maxHp: s.hp,
+        speed: s.speed,
+        damage: s.damage,
+        xp: s.xp,
+        grounded: false,
+        facingRight: Math.random() > 0.5,
+        attackCooldown: 0,
+        jumpCooldown: 0,
+        state: 'idle', // idle, walking, jumping, attacking
+        animFrame: 0,
+        target: null
+    };
+}
+
+// ==================== SERVIDOR DE JOGO ====================
+function createServer(name, maxPlayers = 10) {
+    const id = `server_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    const gameServer = {
+        id,
+        name,
+        maxPlayers,
+        players: new Map(),
+        world: generateWorld(),
+        zombies: new Map(),
+        items: new Map(),
+        projectiles: new Map(),
+        particles: [],
+        wave: 1,
+        waveTimer: 90,
+        dayTime: 0.25, // 0 = meia-noite, 0.5 = meio-dia
+        dayDuration: 1200, // segundos para um ciclo completo
+        spawnTimer: 0,
+        lastUpdate: Date.now()
+    };
+    
+    servers.set(id, gameServer);
+    return gameServer;
+}
+
+// ==================== GAME LOOP ====================
+const TICK_RATE = 60;
+const GRAVITY = 0.5;
+const MAX_FALL_SPEED = 15;
+const JUMP_FORCE = 10;
+
+function gameLoop() {
+    const now = Date.now();
+    
+    servers.forEach((server, serverId) => {
+        const deltaTime = (now - server.lastUpdate) / 1000;
+        server.lastUpdate = now;
+        
+        if (server.players.size === 0) return;
+        
+        // Atualiza ciclo dia/noite
+        server.dayTime = (server.dayTime + deltaTime / server.dayDuration) % 1;
+        
+        // Atualiza timer de wave
+        server.waveTimer -= deltaTime;
+        if (server.waveTimer <= 0) {
+            server.wave++;
+            server.waveTimer = 90;
+            
+            // Notifica nova wave
+            io.to(serverId).emit('newWave', { wave: server.wave });
+            
+            // Spawn de boss a cada 5 waves
+            if (server.wave % 5 === 0) {
+                spawnBoss(server);
+            }
+        }
+        
+        // Spawn de zumbis à noite
+        const isNight = server.dayTime < 0.25 || server.dayTime > 0.75;
+        if (isNight) {
+            server.spawnTimer -= deltaTime;
+            if (server.spawnTimer <= 0) {
+                spawnZombies(server);
+                server.spawnTimer = Math.max(0.5, 3 - server.wave * 0.1);
+            }
+        }
+        
+        // Atualiza jogadores
+        server.players.forEach((player, playerId) => {
+            updatePlayer(server, player, deltaTime);
+        });
+        
+        // Atualiza zumbis
+        server.zombies.forEach((zombie, zombieId) => {
+            updateZombie(server, zombie, deltaTime);
+        });
+        
+        // Atualiza projéteis
+        server.projectiles.forEach((proj, projId) => {
+            updateProjectile(server, proj, deltaTime);
+            if (proj.dead) {
+                server.projectiles.delete(projId);
+            }
+        });
+        
+        // Atualiza itens
+        server.items.forEach((item, itemId) => {
+            updateItem(server, item, deltaTime);
+            if (item.dead) {
+                server.items.delete(itemId);
+            }
+        });
+        
+        // Envia estado do jogo
+        broadcastGameState(server);
+    });
+}
+
+function updatePlayer(server, player, dt) {
+    // Aplica gravidade
+    player.vy += GRAVITY;
+    player.vy = Math.min(player.vy, MAX_FALL_SPEED);
+    
+    // Aplica velocidade horizontal
+    if (player.input.left) {
+        player.vx = -player.speed;
+        player.facingRight = false;
+    } else if (player.input.right) {
+        player.vx = player.speed;
+        player.facingRight = true;
+    } else {
+        player.vx *= 0.8; // Fricção
+        if (Math.abs(player.vx) < 0.1) player.vx = 0;
+    }
+    
+    // Pulo
+    if (player.input.jump && player.grounded) {
+        player.vy = -JUMP_FORCE;
+        player.grounded = false;
+    }
+    
+    // Move e verifica colisões
+    moveEntity(server.world, player, dt);
+    
+    // Regeneração passiva
+    if (player.hp < player.maxHp) {
+        player.hp = Math.min(player.maxHp, player.hp + 0.5 * dt);
+    }
+    
+    // Atualiza cooldowns
+    if (player.attackCooldown > 0) {
+        player.attackCooldown -= dt;
+    }
+}
+
+function updateZombie(server, zombie, dt) {
+    // Encontra jogador mais próximo
+    let nearestPlayer = null;
+    let nearestDist = Infinity;
+    
+    server.players.forEach((player) => {
+        const dist = Math.hypot(player.x - zombie.x, player.y - zombie.y);
+        if (dist < nearestDist) {
+            nearestDist = dist;
+            nearestPlayer = player;
+        }
+    });
+    
+    if (nearestPlayer && nearestDist < 500) {
+        zombie.target = nearestPlayer;
+        
+        // Move em direção ao jogador
+        if (zombie.x < nearestPlayer.x - 20) {
+            zombie.vx = zombie.speed;
+            zombie.facingRight = true;
+        } else if (zombie.x > nearestPlayer.x + 20) {
+            zombie.vx = -zombie.speed;
+            zombie.facingRight = false;
+        } else {
+            zombie.vx = 0;
+        }
+        
+        // Pula se bloqueado ou se jogador está acima
+        if (zombie.grounded && zombie.jumpCooldown <= 0) {
+            const ahead = zombie.facingRight ? zombie.x + 20 : zombie.x - 20;
+            const tileAhead = getTile(server.world, ahead, zombie.y);
+            const playerAbove = nearestPlayer.y < zombie.y - 30;
+            
+            if ((tileAhead && TILE_PROPS[tileAhead]?.solid) || playerAbove) {
+                zombie.vy = -JUMP_FORCE * 0.8;
+                zombie.jumpCooldown = 0.5;
+            }
+        }
+        
+        // Ataca jogador
+        if (nearestDist < 40 && zombie.attackCooldown <= 0) {
+            nearestPlayer.hp -= zombie.damage;
+            zombie.attackCooldown = 1;
+            
+            io.to(server.id).emit('playerDamaged', {
+                playerId: nearestPlayer.id,
+                damage: zombie.damage,
+                hp: nearestPlayer.hp
+            });
+            
+            if (nearestPlayer.hp <= 0) {
+                handlePlayerDeath(server, nearestPlayer);
+            }
+        }
+    } else {
+        // Idle/patrulha
+        if (Math.random() < 0.01) {
+            zombie.vx = (Math.random() - 0.5) * zombie.speed;
+            zombie.facingRight = zombie.vx > 0;
+        }
+    }
+    
+    // Aplica gravidade
+    zombie.vy += GRAVITY;
+    zombie.vy = Math.min(zombie.vy, MAX_FALL_SPEED);
+    
+    // Atualiza cooldowns
+    zombie.jumpCooldown = Math.max(0, zombie.jumpCooldown - dt);
+    zombie.attackCooldown = Math.max(0, zombie.attackCooldown - dt);
+    
+    // Move
+    moveEntity(server.world, zombie, dt);
+    
+    // Animação
+    zombie.animFrame = (zombie.animFrame + dt * 10) % 4;
+}
+
+function updateProjectile(server, proj, dt) {
+    proj.x += proj.vx * dt * 60;
+    proj.y += proj.vy * dt * 60;
+    proj.vy += GRAVITY * 0.3;
+    
+    proj.life -= dt;
+    if (proj.life <= 0) {
+        proj.dead = true;
+        return;
+    }
+    
+    // Colisão com blocos
+    const tile = getTile(server.world, proj.x, proj.y);
+    if (tile && TILE_PROPS[tile]?.solid) {
+        proj.dead = true;
+        return;
+    }
+    
+    // Colisão com zumbis
+    server.zombies.forEach((zombie, zombieId) => {
+        if (proj.dead) return;
+        
+        if (proj.x > zombie.x - zombie.width/2 && 
+            proj.x < zombie.x + zombie.width/2 &&
+            proj.y > zombie.y - zombie.height/2 && 
+            proj.y < zombie.y + zombie.height/2) {
+            
+            zombie.hp -= proj.damage;
+            proj.dead = true;
+            
+            if (zombie.hp <= 0) {
+                handleZombieDeath(server, zombie, proj.ownerId);
+            }
+        }
+    });
+}
+
+function updateItem(server, item, dt) {
+    // Gravidade
+    item.vy = (item.vy || 0) + GRAVITY * 0.5;
+    item.y += item.vy;
+    
+    // Colisão com chão
+    const tile = getTile(server.world, item.x, item.y + 8);
+    if (tile && TILE_PROPS[tile]?.solid) {
+        item.y = Math.floor(item.y / TILE_SIZE) * TILE_SIZE;
+        item.vy = 0;
+    }
+    
+    // Lifetime
+    item.lifetime -= dt;
+    if (item.lifetime <= 0) {
+        item.dead = true;
+        return;
+    }
+    
+    // Coleta por jogadores
+    server.players.forEach((player) => {
+        const dist = Math.hypot(player.x - item.x, player.y - item.y);
+        if (dist < 40) {
+            // Adiciona ao inventário
+            addToInventory(player, item.type, item.amount);
+            item.dead = true;
+            
+            io.to(server.id).emit('itemCollected', {
+                playerId: player.id,
+                itemType: item.type,
+                amount: item.amount
+            });
+        }
+    });
+}
+
+function moveEntity(world, entity, dt) {
+    const steps = 4;
+    const stepX = (entity.vx * dt * 60) / steps;
+    const stepY = (entity.vy * dt * 60) / steps;
+    
+    entity.grounded = false;
+    
+    for (let i = 0; i < steps; i++) {
+        // Move X
+        entity.x += stepX;
+        if (checkCollision(world, entity)) {
+            entity.x -= stepX;
+            entity.vx = 0;
+        }
+        
+        // Move Y
+        entity.y += stepY;
+        if (checkCollision(world, entity)) {
+            entity.y -= stepY;
+            if (entity.vy > 0) {
+                entity.grounded = true;
+            }
+            entity.vy = 0;
+        }
+    }
+    
+    // Limites do mundo
+    entity.x = Math.max(entity.width/2, Math.min(WORLD_WIDTH * TILE_SIZE - entity.width/2, entity.x));
+    entity.y = Math.max(0, Math.min(WORLD_HEIGHT * TILE_SIZE - entity.height, entity.y));
+}
+
+function checkCollision(world, entity) {
+    const left = Math.floor((entity.x - entity.width/2) / TILE_SIZE);
+    const right = Math.floor((entity.x + entity.width/2) / TILE_SIZE);
+    const top = Math.floor((entity.y - entity.height/2) / TILE_SIZE);
+    const bottom = Math.floor((entity.y + entity.height/2) / TILE_SIZE);
+    
+    for (let x = left; x <= right; x++) {
+        for (let y = top; y <= bottom; y++) {
+            const tile = getTile(world, x * TILE_SIZE, y * TILE_SIZE);
+            if (tile && TILE_PROPS[tile]?.solid) {
+                return true;
+            }
+        }
+    }
+    
+    return false;
+}
+
+function getTile(world, pixelX, pixelY) {
+    const x = Math.floor(pixelX / TILE_SIZE);
+    const y = Math.floor(pixelY / TILE_SIZE);
+    
+    if (x < 0 || x >= world.width || y < 0 || y >= world.height) {
+        return TILES.BEDROCK;
+    }
+    
+    return world.tiles[x][y];
+}
+
+function setTile(world, pixelX, pixelY, tileType) {
+    const x = Math.floor(pixelX / TILE_SIZE);
+    const y = Math.floor(pixelY / TILE_SIZE);
+    
+    if (x < 0 || x >= world.width || y < 0 || y >= world.height) {
+        return false;
+    }
+    
+    if (world.tiles[x][y] === TILES.BEDROCK) {
+        return false;
+    }
+    
+    world.tiles[x][y] = tileType;
+    return true;
+}
+
+function spawnZombies(server) {
+    const numToSpawn = Math.min(1 + Math.floor(server.wave / 3), 5);
+    
+    server.players.forEach((player) => {
+        for (let i = 0; i < numToSpawn; i++) {
+            // Spawn fora da tela do jogador
+            const side = Math.random() > 0.5 ? 1 : -1;
+            const spawnX = player.x + side * (600 + Math.random() * 200);
+            
+            // Encontra superfície
+            let spawnY = 0;
+            for (let y = 0; y < server.world.height; y++) {
+                const tile = server.world.tiles[Math.floor(spawnX / TILE_SIZE)]?.[y];
+                if (tile && TILE_PROPS[tile]?.solid) {
+                    spawnY = y * TILE_SIZE - 20;
+                    break;
+                }
+            }
+            
+            if (spawnX > 0 && spawnX < WORLD_WIDTH * TILE_SIZE) {
+                const zombie = createZombie(server.id, spawnX, spawnY);
+                
+                // Buff baseado na wave
+                zombie.hp *= 1 + (server.wave - 1) * 0.1;
+                zombie.maxHp = zombie.hp;
+                zombie.damage *= 1 + (server.wave - 1) * 0.05;
+                
+                server.zombies.set(zombie.id, zombie);
+            }
+        }
+    });
+}
+
+function spawnBoss(server) {
+    const bossTypes = ['giant', 'necromancer', 'berserker'];
+    const type = bossTypes[Math.floor(Math.random() * bossTypes.length)];
+    
+    // Spawn no centro dos jogadores
+    let avgX = 0, count = 0;
+    server.players.forEach((player) => {
+        avgX += player.x;
+        count++;
+    });
+    
+    if (count === 0) return;
+    avgX /= count;
+    
+    const side = Math.random() > 0.5 ? 1 : -1;
+    const spawnX = avgX + side * 800;
+    
+    let spawnY = 0;
+    for (let y = 0; y < server.world.height; y++) {
+        const tile = server.world.tiles[Math.floor(spawnX / TILE_SIZE)]?.[y];
+        if (tile && TILE_PROPS[tile]?.solid) {
+            spawnY = y * TILE_SIZE - 40;
+            break;
+        }
+    }
+    
+    const boss = {
+        id: `boss_${Date.now()}`,
+        type,
+        isBoss: true,
+        x: spawnX,
+        y: spawnY,
+        vx: 0, vy: 0,
+        width: 64,
+        height: 80,
+        hp: 1000 * server.wave,
+        maxHp: 1000 * server.wave,
+        speed: 1.2,
+        damage: 30 + server.wave * 5,
+        xp: 200 * server.wave,
+        grounded: false,
+        facingRight: side < 0,
+        attackCooldown: 0,
+        jumpCooldown: 0,
+        state: 'idle',
+        animFrame: 0,
+        target: null
+    };
+    
+    server.zombies.set(boss.id, boss);
+    
+    io.to(server.id).emit('bossSpawn', { boss });
+}
+
+function handleZombieDeath(server, zombie, killerId) {
+    // Drop XP e itens
+    const item = {
+        id: `item_${Date.now()}_${Math.random()}`,
+        type: 'xp',
+        amount: zombie.xp,
+        x: zombie.x,
+        y: zombie.y,
+        vy: -5,
+        lifetime: 30
+    };
+    
+    server.items.set(item.id, item);
+    
+    // Chance de drop de itens especiais
+    if (Math.random() < 0.1) {
+        const drops = ['coin', 'health_potion', 'ammo'];
+        const dropItem = {
+            id: `item_${Date.now()}_${Math.random()}`,
+            type: drops[Math.floor(Math.random() * drops.length)],
+            amount: 1,
+            x: zombie.x + (Math.random() - 0.5) * 20,
+            y: zombie.y,
+            vy: -5,
+            lifetime: 60
+        };
+        server.items.set(dropItem.id, dropItem);
+    }
+    
+    // Remove zumbi
+    server.zombies.delete(zombie.id);
+    
+    // Notifica
+    io.to(server.id).emit('zombieDeath', {
+        zombieId: zombie.id,
+        x: zombie.x,
+        y: zombie.y,
+        killerId
+    });
+    
+    // Dá XP ao jogador
+    const killer = server.players.get(killerId);
+    if (killer) {
+        killer.xp += zombie.xp;
+        checkLevelUp(killer);
+    }
+}
+
+function handlePlayerDeath(server, player) {
+    // Drop de itens
+    // TODO: implementar drop do inventário
+    
+    // Respawn
+    player.hp = player.maxHp;
+    player.x = SPAWN_X * TILE_SIZE;
+    player.y = findSpawnY(server.world, SPAWN_X) * TILE_SIZE;
+    
+    io.to(server.id).emit('playerDeath', {
+        playerId: player.id,
+        x: player.x,
+        y: player.y
+    });
+}
+
+function findSpawnY(world, x) {
+    for (let y = 0; y < world.height; y++) {
+        if (world.tiles[x]?.[y] && TILE_PROPS[world.tiles[x][y]]?.solid) {
+            return y - 2;
+        }
+    }
+    return 50;
+}
+
+function addToInventory(player, itemType, amount) {
+    // Encontra slot existente ou vazio
+    for (let i = 0; i < player.inventory.length; i++) {
+        if (player.inventory[i]?.type === itemType) {
+            player.inventory[i].amount += amount;
+            return;
+        }
+    }
+    
+    for (let i = 0; i < player.inventory.length; i++) {
+        if (!player.inventory[i]) {
+            player.inventory[i] = { type: itemType, amount };
+            return;
+        }
+    }
+}
+
+function checkLevelUp(player) {
+    const xpNeeded = 100 * Math.pow(1.5, player.level - 1);
+    
+    while (player.xp >= xpNeeded) {
+        player.xp -= xpNeeded;
+        player.level++;
+        player.maxHp += 10;
+        player.hp = player.maxHp;
+        player.damage += 2;
+        
+        io.to(player.serverId).emit('levelUp', {
+            playerId: player.id,
+            level: player.level
+        });
+    }
+}
+
+function broadcastGameState(server) {
+    const state = {
+        time: server.dayTime,
+        wave: server.wave,
+        waveTimer: Math.ceil(server.waveTimer),
+        players: Array.from(server.players.values()).map(p => ({
+            id: p.id,
+            name: p.name,
+            x: p.x, y: p.y,
+            vx: p.vx, vy: p.vy,
+            hp: p.hp, maxHp: p.maxHp,
+            level: p.level,
+            facingRight: p.facingRight,
+            grounded: p.grounded,
+            color: p.color,
+            selectedSlot: p.selectedSlot
+        })),
+        zombies: Array.from(server.zombies.values()).map(z => ({
+            id: z.id,
+            type: z.type,
+            x: z.x, y: z.y,
+            hp: z.hp, maxHp: z.maxHp,
+            facingRight: z.facingRight,
+            isBoss: z.isBoss,
+            animFrame: Math.floor(z.animFrame)
+        })),
+        projectiles: Array.from(server.projectiles.values()).map(p => ({
+            id: p.id, type: p.type,
+            x: p.x, y: p.y,
+            vx: p.vx, vy: p.vy
+        })),
+        items: Array.from(server.items.values()).map(i => ({
+            id: i.id, type: i.type,
+            x: i.x, y: i.y,
+            amount: i.amount
+        }))
+    };
+    
+    io.to(server.id).emit('gameState', state);
+}
+
+// ==================== SOCKET HANDLERS ====================
+io.on('connection', (socket) => {
+    console.log('Player connected:', socket.id);
+    
+    // Lista servidores
+    socket.on('getServers', () => {
+        const serverList = Array.from(servers.values()).map(s => ({
+            id: s.id,
+            name: s.name,
+            players: s.players.size,
+            maxPlayers: s.maxPlayers,
+            wave: s.wave
+        }));
+        socket.emit('serverList', serverList);
+    });
+    
+    // Criar servidor
+    socket.on('createServer', (data) => {
+        const server = createServer(data.serverName || 'New Server', data.maxPlayers || 10);
+        socket.emit('serverCreated', { serverId: server.id });
+    });
+    
+    // Entrar no jogo
+    socket.on('joinGame', (data) => {
+        const { serverId, playerName, playerColor } = data;
+        
+        let server = servers.get(serverId);
+        if (!server) {
+            // Cria servidor padrão se não existir
+            server = createServer('Main Server');
+        }
+        
+        if (server.players.size >= server.maxPlayers) {
+            socket.emit('joinError', { message: 'Server is full' });
+            return;
+        }
+        
+        // Encontra spawn
+        const spawnY = findSpawnY(server.world, SPAWN_X);
+        
+        const player = {
+            id: socket.id,
+            name: playerName || 'Player',
+            color: playerColor || '#00ff00',
+            x: SPAWN_X * TILE_SIZE,
+            y: spawnY * TILE_SIZE,
+            vx: 0, vy: 0,
+            width: 24,
+            height: 40,
+            hp: 100,
+            maxHp: 100,
+            speed: 4,
+            damage: 10,
+            level: 1,
+            xp: 0,
+            grounded: false,
+            facingRight: true,
+            inventory: new Array(40).fill(null),
+            hotbar: new Array(9).fill(null),
+            selectedSlot: 0,
+            input: { left: false, right: false, jump: false },
+            attackCooldown: 0,
+            serverId: server.id
+        };
+        
+        // Itens iniciais
+        player.hotbar[0] = { type: 'pickaxe', amount: 1, damage: 5 };
+        player.hotbar[1] = { type: 'sword', amount: 1, damage: 15 };
+        player.hotbar[2] = { type: 'torch', amount: 50 };
+        player.hotbar[3] = { type: 'wood', amount: 20 };
+        
+        server.players.set(socket.id, player);
+        players.set(socket.id, { serverId: server.id, player });
+        
+        socket.join(server.id);
+        
+        // Envia mundo para o jogador
+        socket.emit('joinSuccess', {
+            playerId: socket.id,
+            player,
+            world: {
+                width: server.world.width,
+                height: server.world.height,
+                tiles: server.world.tiles,
+                background: server.world.background
+            },
+            time: server.dayTime,
+            wave: server.wave,
+            waveTimer: server.waveTimer
+        });
+        
+        // Notifica outros jogadores
+        socket.to(server.id).emit('playerJoined', { player });
+    });
+    
+    // Input do jogador
+    socket.on('playerInput', (input) => {
+        const data = players.get(socket.id);
+        if (data?.player) {
+            data.player.input = input;
+        }
+    });
+    
+    // Clique/ataque
+    socket.on('playerAction', (action) => {
+        const data = players.get(socket.id);
+        if (!data) return;
+        
+        const { player, serverId } = data;
+        const server = servers.get(serverId);
+        if (!server) return;
+        
+        const { type, x, y } = action;
+        
+        if (type === 'break') {
+            // Quebra bloco
+            const tile = getTile(server.world, x, y);
+            if (tile && tile !== TILES.AIR && tile !== TILES.BEDROCK) {
+                const props = TILE_PROPS[tile];
+                
+                // Verifica distância
+                const dist = Math.hypot(player.x - x, player.y - y);
+                if (dist > 100) return;
+                
+                // Remove bloco
+                setTile(server.world, x, y, TILES.AIR);
+                
+                // Drop
+                if (props?.drops) {
+                    const item = {
+                        id: `item_${Date.now()}_${Math.random()}`,
+                        type: 'block',
+                        tileType: props.drops,
+                        amount: 1,
+                        x, y,
+                        vy: -3,
+                        lifetime: 60
+                    };
+                    server.items.set(item.id, item);
+                }
+                
+                // Notifica
+                io.to(serverId).emit('blockBroken', {
+                    x: Math.floor(x / TILE_SIZE),
+                    y: Math.floor(y / TILE_SIZE)
+                });
+            }
+        } else if (type === 'place') {
+            // Coloca bloco
+            const tile = getTile(server.world, x, y);
+            if (tile === TILES.AIR) {
+                const selected = player.hotbar[player.selectedSlot];
+                if (selected && selected.type === 'block' && selected.amount > 0) {
+                    setTile(server.world, x, y, selected.tileType);
+                    selected.amount--;
+                    if (selected.amount <= 0) {
+                        player.hotbar[player.selectedSlot] = null;
+                    }
+                    
+                    io.to(serverId).emit('blockPlaced', {
+                        x: Math.floor(x / TILE_SIZE),
+                        y: Math.floor(y / TILE_SIZE),
+                        tile: selected.tileType
+                    });
+                }
+            }
+        } else if (type === 'attack') {
+            const selected = player.hotbar[player.selectedSlot];
+            
+            if (player.attackCooldown <= 0) {
+                if (selected?.type === 'sword') {
+                    // Ataque melee
+                    const attackRange = 50;
+                    const attackDir = player.facingRight ? 1 : -1;
+                    
+                    server.zombies.forEach((zombie) => {
+                        const dx = zombie.x - player.x;
+                        const dy = zombie.y - player.y;
+                        const dist = Math.hypot(dx, dy);
+                        
+                        if (dist < attackRange && Math.sign(dx) === attackDir) {
+                            zombie.hp -= player.damage + (selected.damage || 0);
+                            if (zombie.hp <= 0) {
+                                handleZombieDeath(server, zombie, socket.id);
+                            }
+                        }
+                    });
+                    
+                    player.attackCooldown = 0.4;
+                    io.to(serverId).emit('playerAttack', { playerId: socket.id, type: 'melee' });
+                    
+                } else if (selected?.type === 'bow' || selected?.type === 'gun') {
+                    // Ataque ranged
+                    const angle = Math.atan2(y - player.y, x - player.x);
+                    const speed = selected.type === 'gun' ? 20 : 12;
+                    
+                    const projectile = {
+                        id: `proj_${Date.now()}_${Math.random()}`,
+                        type: selected.type === 'gun' ? 'bullet' : 'arrow',
+                        ownerId: socket.id,
+                        x: player.x,
+                        y: player.y,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        damage: player.damage + (selected.damage || 0),
+                        life: 3
+                    };
+                    
+                    server.projectiles.set(projectile.id, projectile);
+                    player.attackCooldown = selected.type === 'gun' ? 0.15 : 0.6;
+                }
+            }
+        }
+    });
+    
+    // Troca de slot
+    socket.on('selectSlot', (slot) => {
+        const data = players.get(socket.id);
+        if (data?.player && slot >= 0 && slot < 9) {
+            data.player.selectedSlot = slot;
+        }
+    });
+    
+    // Chat
+    socket.on('chatMessage', (message) => {
+        const data = players.get(socket.id);
+        if (data) {
+            io.to(data.serverId).emit('chatMessage', {
+                playerId: socket.id,
+                playerName: data.player.name,
+                message: message.substring(0, 200)
+            });
+        }
+    });
+    
+    // Desconexão
+    socket.on('disconnect', () => {
+        const data = players.get(socket.id);
+        if (data) {
+            const server = servers.get(data.serverId);
+            if (server) {
+                server.players.delete(socket.id);
+                io.to(data.serverId).emit('playerLeft', { playerId: socket.id });
+                
+                // Remove servidor vazio após 5 minutos
+                if (server.players.size === 0) {
+                    setTimeout(() => {
+                        if (server.players.size === 0) {
+                            servers.delete(server.id);
+                        }
+                    }, 300000);
+                }
+            }
+            players.delete(socket.id);
+        }
+        console.log('Player disconnected:', socket.id);
+    });
+});
+
+// Inicia game loop
+setInterval(gameLoop, 1000 / TICK_RATE);
+
+// Inicia servidor
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`🧟 Zombie Survival Terraria server running on port ${PORT}`);
+});

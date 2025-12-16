@@ -1,7 +1,7 @@
 {
-  "name": "mini-terraria",
+  "name": "zombie-survival-terraria",
   "version": "2.0.0",
-  "description": "Zombie Survival estilo Terraria - Multiplayer",
+  "description": "Zombie Survival Multiplayer - Terraria Style",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

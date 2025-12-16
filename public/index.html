@@ -11,7 +11,6 @@
             box-sizing: border-box;
             user-select: none;
             -webkit-user-select: none;
-            -webkit-tap-highlight-color: transparent;
         }
         
         html, body {
@@ -25,8 +24,10 @@
         /* ==================== MENU ==================== */
         #menu {
             position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: linear-gradient(180deg, #1a0a2e 0%, #0d0d0d 50%, #1a0505 100%);
             display: flex;
             flex-direction: column;
@@ -35,7 +36,9 @@
             z-index: 1000;
         }
         
-        .menu-hidden { display: none !important; }
+        .menu-hidden {
+            display: none !important;
+        }
         
         #menu h1 {
             font-size: 4em;
@@ -66,7 +69,7 @@
             padding: 30px;
             width: 90%;
             max-width: 500px;
-            box-shadow: 0 10px 40px rgba(0, 255, 68, 0.2), inset 0 0 50px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 10px 40px rgba(0, 255, 68, 0.2);
         }
         
         .menu-section {
@@ -112,7 +115,6 @@
             cursor: pointer;
             border: 3px solid transparent;
             transition: all 0.2s;
-            position: relative;
         }
         
         .color-option:hover {
@@ -154,11 +156,6 @@
             color: #fff;
         }
         
-        .btn-secondary:hover {
-            background: linear-gradient(180deg, #555 0%, #333 100%);
-        }
-        
-        /* Server List */
         .server-list {
             max-height: 200px;
             overflow-y: auto;
@@ -206,8 +203,10 @@
         /* ==================== LOADING ==================== */
         #loading {
             position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: #0a0a0a;
             display: flex;
             flex-direction: column;
@@ -216,7 +215,9 @@
             z-index: 999;
         }
         
-        .loading-hidden { display: none !important; }
+        .loading-hidden {
+            display: none !important;
+        }
         
         .loading-bar-container {
             width: 300px;
@@ -239,11 +240,13 @@
             margin-top: 15px;
         }
         
-        /* ==================== GAME CANVAS ==================== */
+        /* ==================== GAME ==================== */
         #gameContainer {
             position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             overflow: hidden;
         }
         
@@ -256,8 +259,10 @@
         /* ==================== HUD ==================== */
         #hud {
             position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             pointer-events: none;
             z-index: 100;
         }
@@ -266,7 +271,6 @@
             pointer-events: auto;
         }
         
-        /* Top Bar */
         .top-bar {
             position: absolute;
             top: 10px;
@@ -316,7 +320,6 @@
             text-shadow: 1px 1px 2px #000;
         }
         
-        /* Wave Info */
         .wave-info {
             position: absolute;
             top: 10px;
@@ -338,7 +341,6 @@
             font-size: 0.9em;
         }
         
-        /* Day/Night Indicator */
         .time-indicator {
             position: absolute;
             top: 10px;
@@ -356,7 +358,6 @@
             font-size: 1.5em;
         }
         
-        /* Hotbar */
         .hotbar {
             position: absolute;
             bottom: 10px;
@@ -386,7 +387,7 @@
         
         .hotbar-slot.selected {
             border-color: #00ff44;
-            box-shadow: 0 0 15px rgba(0, 255, 68, 0.5), inset 0 0 10px rgba(0, 255, 68, 0.2);
+            box-shadow: 0 0 15px rgba(0, 255, 68, 0.5);
             transform: translateY(-3px);
         }
         
@@ -416,7 +417,6 @@
             color: #666;
         }
         
-        /* Minimap */
         .minimap {
             position: absolute;
             bottom: 80px;
@@ -432,9 +432,9 @@
         .minimap canvas {
             width: 100%;
             height: 100%;
+            image-rendering: pixelated;
         }
         
-        /* Chat */
         .chat-container {
             position: absolute;
             bottom: 80px;
@@ -487,8 +487,7 @@
             cursor: pointer;
             font-weight: bold;
         }
-        
-        /* Mobile Controls */
+                /* ==================== MOBILE CONTROLS ==================== */
         .mobile-controls {
             display: none;
         }
@@ -537,6 +536,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            transition: none;
         }
         
         .mobile-btn {
@@ -563,7 +563,6 @@
             right: 140px;
         }
         
-        /* Damage Numbers */
         .damage-number {
             position: absolute;
             font-weight: bold;
@@ -575,11 +574,16 @@
         }
         
         @keyframes floatUp {
-            0% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px) scale(1.5);
+            }
         }
         
-        /* Notifications */
         .notification {
             position: fixed;
             top: 100px;
@@ -595,8 +599,14 @@
         }
         
         @keyframes notifyIn {
-            from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
-            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
         }
         
         .notification.wave {
@@ -648,7 +658,7 @@
                     <div class="server-item selected" data-server="main">
                         <div class="server-info">
                             <h3>Servidor Principal</h3>
-                            <span>Wave 1 • Ping: --ms</span>
+                            <span>Wave 1</span>
                         </div>
                         <div class="server-players">0/10</div>
                     </div>
@@ -732,22 +742,14 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-// ==================== CONTINUAÇÃO NO PRÓXIMO BLOCO ====================
-    </script>
-</body>
-</html>
-<script>
-// ==================== CONFIGURAÇÕES ====================
+        // ==================== CONFIG ====================
 const CONFIG = {
     TILE_SIZE: 16,
     RENDER_DISTANCE: 50,
-    LIGHT_QUALITY: 1, // 1 = full, 2 = half, 4 = quarter
-    SHOW_FPS: true,
-    PARALLAX_LAYERS: 4,
-    PARTICLE_LIMIT: 200
+    SHOW_FPS: true
 };
 
-// ==================== ESTADO DO JOGO ====================
+// ==================== GAME STATE ====================
 const Game = {
     socket: null,
     canvas: null,
@@ -755,121 +757,79 @@ const Game = {
     minimapCanvas: null,
     minimapCtx: null,
     
-    // Estado
     connected: false,
     playing: false,
     playerId: null,
     
-    // Mundo
     world: null,
-    lightMap: null,
-    
-    // Entidades
     players: new Map(),
     zombies: new Map(),
     projectiles: new Map(),
     items: new Map(),
     particles: [],
-    damageNumbers: [],
     
-    // Jogador local
     player: null,
-    camera: { x: 0, y: 0 },
+    camera: { x: 0, y: 0, shakeX: 0, shakeY: 0 },
     
-    // Input
     keys: {},
-    mouse: { x: 0, y: 0, down: false, button: 0 },
-    joystick: { left: { x: 0, y: 0, active: false }, right: { x: 0, y: 0, active: false } },
+    mouse: { x: 0, y: 0, down: false },
+    joystick: { left: { x: 0, y: 0 }, right: { x: 0, y: 0 } },
     
-    // Tempo
-    dayTime: 0.25,
+    dayTime: 0.3,
     wave: 1,
     waveTimer: 90,
     
-    // Performance
+    selectedSlot: 0,
+    chatOpen: false,
+    
     fps: 0,
     frameCount: 0,
     lastFpsUpdate: 0,
     lastUpdate: 0,
-    
-    // UI
-    selectedSlot: 0,
-    chatOpen: false,
-    
-    // Assets
-    sprites: {},
-    colors: {}
+    damageFlash: 0
 };
 
-// ==================== CORES DOS TILES ====================
+// ==================== TILE COLORS ====================
 const TILE_COLORS = {
     0: null, // AIR
-    1: ['#8B5A2B', '#7A4F26', '#6B4423'], // DIRT
-    2: ['#4CAF50', '#45A049', '#3D8B40'], // GRASS
-    3: ['#808080', '#707070', '#606060'], // STONE
-    4: ['#8B4513', '#7A3C10', '#6B330D'], // WOOD
-    5: ['#228B22', '#1E7B1E', '#1A6B1A'], // LEAVES
-    6: ['#2F2F2F', '#252525', '#1F1F1F'], // COAL
-    7: ['#C19A6B', '#B08A5B', '#A07A4B'], // IRON
-    8: ['#FFD700', '#E6C200', '#CCB000'], // GOLD
-    9: ['#00FFFF', '#00E5E5', '#00CCCC'], // DIAMOND
-    10: ['#F4D03F', '#E5C135', '#D6B22B'], // SAND
-    11: ['#4169E1', '#3A5FCC', '#3355B7'], // WATER
-    12: ['#FF4500', '#E63E00', '#CC3700'], // LAVA
-    13: ['#696969', '#5F5F5F', '#555555'], // COBBLESTONE
-    14: ['#DEB887', '#CFA877', '#C09867'], // PLANKS
-    15: ['#FFA500', '#FF8C00', '#FF7400'], // TORCH
-    16: ['#8B4513', '#7A3C10', '#6B330D'], // CHEST
-    17: ['#A0522D', '#8B4726', '#763C1F'], // WORKBENCH
-    18: ['#464646', '#3C3C3C', '#323232'], // FURNACE
-    19: ['#1A1A1A', '#0F0F0F', '#050505'], // BEDROCK
-    20: ['#B87333', '#A66329', '#94531F'], // COPPER
-    21: ['#C0C0C0', '#B0B0B0', '#A0A0A0'], // SILVER
-    22: ['#1A0033', '#0F001A', '#050008'], // OBSIDIAN
-    23: ['#ADD8E6', '#9DC8D6', '#8DB8C6'], // GLASS
-    24: ['#8B0000', '#7A0000', '#6B0000'], // BRICK
-    25: ['#8B4513', '#7A3C10', '#6B330D'], // PLATFORM
-    26: ['#654321', '#5A3B1D', '#4F3319'], // DOOR_BOTTOM
-    27: ['#654321', '#5A3B1D', '#4F3319'], // DOOR_TOP
-    28: ['#FFFAFA', '#F0EAEA', '#E0DADA'], // SNOW
-    29: ['#E0FFFF', '#D0EFEF', '#C0DFDF'], // ICE
-    30: ['#2E8B57', '#268B4D', '#1E7B43']  // CACTUS
+    1: ['#8B5A2B', '#7A4F26'], // DIRT
+    2: ['#228B22', '#1E7B1E'], // GRASS
+    3: ['#808080', '#707070'], // STONE
+    4: ['#8B4513', '#7A3C10'], // WOOD
+    5: ['#228B22', '#1E7B1E'], // LEAVES
+    6: ['#2F2F2F', '#252525'], // COAL
+    7: ['#C19A6B', '#B08A5B'], // IRON
+    8: ['#FFD700', '#E6C200'], // GOLD
+    9: ['#00FFFF', '#00E5E5'], // DIAMOND
+    10: ['#F4D03F', '#E5C135'], // SAND
+    13: ['#696969', '#5F5F5F'], // COBBLESTONE
+    14: ['#DEB887', '#CFA877'], // PLANKS
+    15: ['#FFA500', '#FF8C00'], // TORCH
+    19: ['#1A1A1A', '#0F0F0F'], // BEDROCK
+    20: ['#B87333', '#A66329'], // COPPER
+    21: ['#C0C0C0', '#B0B0B0'], // SILVER
+    25: ['#8B4513', '#7A3C10'] // PLATFORM
 };
 
-// ==================== INICIALIZAÇÃO ====================
+// ==================== INIT ====================
 function init() {
-    // Canvas principal
     Game.canvas = document.getElementById('gameCanvas');
     Game.ctx = Game.canvas.getContext('2d');
-    
-    // Canvas do minimap
     Game.minimapCanvas = document.getElementById('minimapCanvas');
     Game.minimapCtx = Game.minimapCanvas.getContext('2d');
     
-    // Resize
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
     
-    // Socket.io
     Game.socket = io();
     setupSocketEvents();
-    
-    // Eventos de input
     setupInputEvents();
-    
-    // Eventos do menu
     setupMenuEvents();
-    
-    // Hotbar
     createHotbar();
     
-    // Solicita lista de servidores
     Game.socket.emit('getServers');
     
-    // Inicia loop de renderização
     requestAnimationFrame(gameLoop);
-    
-    console.log('🧟 Zombie Survival Terraria initialized!');
 }
 
 function resizeCanvas() {
@@ -879,31 +839,27 @@ function resizeCanvas() {
     Game.minimapCanvas.height = 100;
 }
 
-// ==================== EVENTOS DO SOCKET ====================
+// ==================== SOCKET EVENTS ====================
 function setupSocketEvents() {
     const socket = Game.socket;
     
     socket.on('connect', () => {
-        console.log('Connected to server');
         Game.connected = true;
+        console.log('Conectado ao servidor');
     });
     
     socket.on('disconnect', () => {
-        console.log('Disconnected from server');
         Game.connected = false;
         Game.playing = false;
+        console.log('Desconectado');
     });
     
     socket.on('serverList', (servers) => {
         updateServerList(servers);
     });
     
-    socket.on('serverCreated', (data) => {
-        console.log('Server created:', data.serverId);
-    });
-    
     socket.on('joinSuccess', (data) => {
-        console.log('Joined game!', data);
+        console.log('Entrou no jogo!', data);
         
         Game.playerId = data.playerId;
         Game.player = data.player;
@@ -912,17 +868,12 @@ function setupSocketEvents() {
         Game.wave = data.wave;
         Game.waveTimer = data.waveTimer;
         
-        // Cria lightmap
-        createLightMap();
-        
-        // Esconde menu, mostra jogo
         document.getElementById('loading').classList.add('loading-hidden');
         document.getElementById('menu').classList.add('menu-hidden');
         document.getElementById('gameContainer').style.display = 'block';
         
         Game.playing = true;
         
-        // Centra câmera no jogador
         Game.camera.x = Game.player.x - Game.canvas.width / 2;
         Game.camera.y = Game.player.y - Game.canvas.height / 2;
         
@@ -940,34 +891,27 @@ function setupSocketEvents() {
         Game.wave = state.wave;
         Game.waveTimer = state.waveTimer;
         
-        // Atualiza jogadores
         Game.players.clear();
         state.players.forEach(p => {
             Game.players.set(p.id, p);
             if (p.id === Game.playerId) {
-                // Atualiza jogador local com dados do servidor
                 Object.assign(Game.player, p);
             }
         });
         
-        // Atualiza zumbis
         Game.zombies.clear();
         state.zombies.forEach(z => Game.zombies.set(z.id, z));
         
-        // Atualiza projéteis
         Game.projectiles.clear();
         state.projectiles.forEach(p => Game.projectiles.set(p.id, p));
         
-        // Atualiza itens
         Game.items.clear();
         state.items.forEach(i => Game.items.set(i.id, i));
         
-        // Atualiza UI
         updateUI();
     });
     
     socket.on('playerJoined', (data) => {
-        console.log('Player joined:', data.player.name);
         addChatMessage('Sistema', `${data.player.name} entrou no jogo`, '#44ff44');
     });
     
@@ -976,45 +920,43 @@ function setupSocketEvents() {
         if (player) {
             addChatMessage('Sistema', `${player.name} saiu do jogo`, '#ff4444');
         }
-        Game.players.delete(data.playerId);
     });
     
     socket.on('blockBroken', (data) => {
         if (Game.world) {
             Game.world.tiles[data.x][data.y] = 0;
-            updateLocalLight(data.x, data.y);
         }
+        
         // Partículas
-        createBlockParticles(data.x * CONFIG.TILE_SIZE, data.y * CONFIG.TILE_SIZE);
+        for (let i = 0; i < 5; i++) {
+            Game.particles.push({
+                x: data.x * CONFIG.TILE_SIZE + Math.random() * CONFIG.TILE_SIZE,
+                y: data.y * CONFIG.TILE_SIZE + Math.random() * CONFIG.TILE_SIZE,
+                vx: (Math.random() - 0.5) * 3,
+                vy: -Math.random() * 3,
+                size: 2 + Math.random() * 2,
+                color: '#8B5A2B',
+                life: 0.5
+            });
+        }
     });
     
     socket.on('blockPlaced', (data) => {
         if (Game.world) {
             Game.world.tiles[data.x][data.y] = data.tile;
-            updateLocalLight(data.x, data.y);
         }
     });
     
     socket.on('playerDamaged', (data) => {
         if (data.playerId === Game.playerId) {
-            // Screen shake
             Game.camera.shakeX = (Math.random() - 0.5) * 10;
             Game.camera.shakeY = (Math.random() - 0.5) * 10;
-            
-            // Efeito vermelho
             Game.damageFlash = 1;
-        }
-        
-        // Número de dano
-        const player = Game.players.get(data.playerId);
-        if (player) {
-            addDamageNumber(player.x, player.y - 30, data.damage, '#ff4444');
         }
     });
     
     socket.on('zombieDeath', (data) => {
-        // Partículas de morte
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 8; i++) {
             Game.particles.push({
                 x: data.x,
                 y: data.y,
@@ -1022,8 +964,7 @@ function setupSocketEvents() {
                 vy: -Math.random() * 5,
                 size: 3 + Math.random() * 3,
                 color: '#8B0000',
-                life: 1,
-                gravity: 0.2
+                life: 1
             });
         }
     });
@@ -1032,7 +973,6 @@ function setupSocketEvents() {
         const player = Game.players.get(data.playerId);
         if (player) {
             player.attacking = true;
-            player.attackAnim = 0;
         }
     });
     
@@ -1041,7 +981,7 @@ function setupSocketEvents() {
         addChatMessage('Sistema', `Wave ${data.wave} começou!`, '#ff4444');
     });
     
-    socket.on('bossSpawn', (data) => {
+    socket.on('bossSpawn', () => {
         showNotification('💀 BOSS APARECEU!', 'boss');
         addChatMessage('Sistema', 'Um BOSS apareceu!', '#ff00ff');
     });
@@ -1052,41 +992,35 @@ function setupSocketEvents() {
         }
     });
     
-    socket.on('itemCollected', (data) => {
-        if (data.playerId === Game.playerId) {
-            updateHotbar();
-        }
+    socket.on('itemCollected', () => {
+        updateHotbar();
     });
     
     socket.on('chatMessage', (data) => {
-        addChatMessage(data.playerName, data.message, Game.players.get(data.playerId)?.color || '#ffffff');
+        const player = Game.players.get(data.playerId);
+        addChatMessage(data.playerName, data.message, player?.color || '#fff');
     });
 }
 
-// ==================== EVENTOS DE INPUT ====================
+// ==================== INPUT ====================
 function setupInputEvents() {
-    // Teclado
     window.addEventListener('keydown', (e) => {
         if (Game.chatOpen && e.key !== 'Escape' && e.key !== 'Enter') return;
         
         Game.keys[e.code] = true;
         
-        // Números para hotbar
         if (e.key >= '1' && e.key <= '9') {
             Game.selectedSlot = parseInt(e.key) - 1;
             Game.socket.emit('selectSlot', Game.selectedSlot);
             updateHotbar();
         }
         
-        // Chat
         if (e.key === 'Enter') {
             toggleChat();
         }
         
-        if (e.key === 'Escape') {
-            if (Game.chatOpen) {
-                toggleChat();
-            }
+        if (e.key === 'Escape' && Game.chatOpen) {
+            toggleChat();
         }
     });
     
@@ -1094,7 +1028,6 @@ function setupInputEvents() {
         Game.keys[e.code] = false;
     });
     
-    // Mouse
     Game.canvas.addEventListener('mousemove', (e) => {
         Game.mouse.x = e.clientX;
         Game.mouse.y = e.clientY;
@@ -1102,48 +1035,29 @@ function setupInputEvents() {
     
     Game.canvas.addEventListener('mousedown', (e) => {
         Game.mouse.down = true;
-        Game.mouse.button = e.button;
         handleClick(e);
     });
     
-    Game.canvas.addEventListener('mouseup', (e) => {
+    Game.canvas.addEventListener('mouseup', () => {
         Game.mouse.down = false;
     });
     
     Game.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
     
-    // Scroll para zoom (opcional)
-    Game.canvas.addEventListener('wheel', (e) => {
-        // Pode implementar zoom aqui
-    });
-    
-    // Touch/Mobile
     setupMobileControls();
 }
 
 function setupMobileControls() {
     const joystickLeft = document.getElementById('joystickLeft');
     const knobLeft = document.getElementById('knobLeft');
-    const joystickRight = document.getElementById('joystickRight');
-    const knobRight = document.getElementById('knobRight');
     const jumpBtn = document.getElementById('jumpBtn');
     const attackBtn = document.getElementById('attackBtn');
     
     let leftTouch = null;
-    let rightTouch = null;
     
-    // Joystick esquerdo (movimento)
     joystickLeft.addEventListener('touchstart', (e) => {
         e.preventDefault();
         leftTouch = e.touches[0].identifier;
-        Game.joystick.left.active = true;
-    });
-    
-    // Joystick direito (mira)
-    joystickRight.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        rightTouch = e.touches[0].identifier;
-        Game.joystick.right.active = true;
     });
     
     window.addEventListener('touchmove', (e) => {
@@ -1169,28 +1083,6 @@ function setupMobileControls() {
                 Game.joystick.left.x = dx / maxDist;
                 Game.joystick.left.y = dy / maxDist;
             }
-            
-            if (touch.identifier === rightTouch) {
-                const rect = joystickRight.getBoundingClientRect();
-                const centerX = rect.left + rect.width / 2;
-                const centerY = rect.top + rect.height / 2;
-                
-                let dx = touch.clientX - centerX;
-                let dy = touch.clientY - centerY;
-                const dist = Math.hypot(dx, dy);
-                const maxDist = rect.width / 2 - 25;
-                
-                if (dist > maxDist) {
-                    dx = dx / dist * maxDist;
-                    dy = dy / dist * maxDist;
-                }
-                
-                knobRight.style.left = `calc(50% + ${dx}px)`;
-                knobRight.style.top = `calc(50% + ${dy}px)`;
-                
-                Game.joystick.right.x = dx / maxDist;
-                Game.joystick.right.y = dy / maxDist;
-            }
         }
     });
     
@@ -1198,35 +1090,30 @@ function setupMobileControls() {
         for (let touch of e.changedTouches) {
             if (touch.identifier === leftTouch) {
                 leftTouch = null;
-                Game.joystick.left = { x: 0, y: 0, active: false };
+                Game.joystick.left = { x: 0, y: 0 };
                 knobLeft.style.left = '50%';
                 knobLeft.style.top = '50%';
-            }
-            if (touch.identifier === rightTouch) {
-                rightTouch = null;
-                Game.joystick.right = { x: 0, y: 0, active: false };
-                knobRight.style.left = '50%';
-                knobRight.style.top = '50%';
             }
         }
     });
     
-    // Botão de pulo
     jumpBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
         Game.keys['Space'] = true;
     });
-    jumpBtn.addEventListener('touchend', (e) => {
+    
+    jumpBtn.addEventListener('touchend', () => {
         Game.keys['Space'] = false;
     });
     
-    // Botão de ataque
     attackBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        if (Game.playing && Game.player) {
-            const worldX = Game.player.x + (Game.player.facingRight ? 40 : -40);
-            const worldY = Game.player.y;
-            Game.socket.emit('playerAction', { type: 'attack', x: worldX, y: worldY });
+        if (Game.playing) {
+            Game.socket.emit('playerAction', {
+                type: 'attack',
+                x: Game.player.x + (Game.player.facingRight ? 40 : -40),
+                y: Game.player.y
+            });
         }
     });
 }
@@ -1238,25 +1125,19 @@ function handleClick(e) {
     const worldY = Game.mouse.y + Game.camera.y;
     
     if (e.button === 0) {
-        // Clique esquerdo - Ataque/Mineração
         const item = Game.player.hotbar?.[Game.selectedSlot];
         
         if (item?.type === 'pickaxe') {
-            // Minerar bloco
             Game.socket.emit('playerAction', { type: 'break', x: worldX, y: worldY });
         } else {
-            // Atacar
             Game.socket.emit('playerAction', { type: 'attack', x: worldX, y: worldY });
         }
     } else if (e.button === 2) {
-        // Clique direito - Colocar bloco
         Game.socket.emit('playerAction', { type: 'place', x: worldX, y: worldY });
     }
 }
-
-// ==================== MENU ====================
+        // ==================== MENU ====================
 function setupMenuEvents() {
-    // Cores
     document.querySelectorAll('.color-option').forEach(el => {
         el.addEventListener('click', () => {
             document.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
@@ -1264,39 +1145,27 @@ function setupMenuEvents() {
         });
     });
     
-    // Botão jogar
     document.getElementById('playBtn').addEventListener('click', () => {
         const name = document.getElementById('playerName').value.trim() || 'Jogador';
         const color = document.querySelector('.color-option.selected').dataset.color;
-        const serverItem = document.querySelector('.server-item.selected');
-        const serverId = serverItem?.dataset.server || 'main';
         
-        // Mostra loading
         document.getElementById('menu').classList.add('menu-hidden');
         document.getElementById('loading').classList.remove('loading-hidden');
         
-        // Simula carregamento
         let progress = 0;
         const loadingBar = document.getElementById('loadingBar');
         const loadingText = document.getElementById('loadingText');
         
-        const loadingSteps = [
-            'Conectando ao servidor...',
-            'Gerando mundo...',
-            'Carregando texturas...',
-            'Preparando zumbis...',
-            'Iniciando jogo...'
-        ];
+        const steps = ['Conectando...', 'Gerando mundo...', 'Carregando...', 'Iniciando...'];
         
-        const loadInterval = setInterval(() => {
+        const interval = setInterval(() => {
             progress += 5;
             loadingBar.style.width = progress + '%';
-            loadingText.textContent = loadingSteps[Math.floor(progress / 25)] || loadingSteps[loadingSteps.length - 1];
+            loadingText.textContent = steps[Math.floor(progress / 30)] || steps[steps.length - 1];
             
             if (progress >= 100) {
-                clearInterval(loadInterval);
+                clearInterval(interval);
                 Game.socket.emit('joinGame', {
-                    serverId: serverId === 'main' ? null : serverId,
                     playerName: name,
                     playerColor: color
                 });
@@ -1304,12 +1173,10 @@ function setupMenuEvents() {
         }, 50);
     });
     
-    // Refresh servidores
     document.getElementById('refreshServers').addEventListener('click', () => {
         Game.socket.emit('getServers');
     });
     
-    // Chat
     document.getElementById('chatSend').addEventListener('click', sendChatMessage);
     document.getElementById('chatInput').addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
@@ -1322,7 +1189,6 @@ function updateServerList(servers) {
     const list = document.getElementById('serverList');
     list.innerHTML = '';
     
-    // Adiciona servidor padrão se não houver nenhum
     if (servers.length === 0) {
         servers = [{ id: 'main', name: 'Servidor Principal', players: 0, maxPlayers: 10, wave: 1 }];
     }
@@ -1346,7 +1212,7 @@ function updateServerList(servers) {
     });
 }
 
-// ==================== HOTBAR ====================
+// ==================== UI ====================
 function createHotbar() {
     const hotbar = document.getElementById('hotbar');
     hotbar.innerHTML = '';
@@ -1372,17 +1238,13 @@ function updateHotbar() {
     if (!Game.player?.hotbar) return;
     
     const slots = document.querySelectorAll('.hotbar-slot');
-    const itemIcons = {
+    const icons = {
         'pickaxe': '⛏️',
         'sword': '🗡️',
-        'bow': '🏹',
-        'gun': '🔫',
         'torch': '🔦',
         'wood': '🪵',
-        'stone': '🪨',
-        'dirt': '🟫',
-        'health_potion': '❤️',
-        'block': '⬜'
+        'coin': '🪙',
+        'health_potion': '❤️'
     };
     
     slots.forEach((slot, i) => {
@@ -1393,7 +1255,7 @@ function updateHotbar() {
         slot.classList.toggle('selected', i === Game.selectedSlot);
         
         if (item) {
-            icon.textContent = itemIcons[item.type] || '❓';
+            icon.textContent = icons[item.type] || '❓';
             count.textContent = item.amount > 1 ? item.amount : '';
         } else {
             icon.textContent = '';
@@ -1402,36 +1264,29 @@ function updateHotbar() {
     });
 }
 
-// ==================== UI ====================
 function updateUI() {
     if (!Game.player) return;
     
-    // HP
     const hpPercent = (Game.player.hp / Game.player.maxHp) * 100;
     document.getElementById('healthFill').style.width = hpPercent + '%';
     document.getElementById('healthText').textContent = `${Math.ceil(Game.player.hp)}/${Game.player.maxHp}`;
     
-    // XP
     const xpNeeded = 100 * Math.pow(1.5, Game.player.level - 1);
     const xpPercent = (Game.player.xp / xpNeeded) * 100;
     document.getElementById('xpFill').style.width = xpPercent + '%';
     document.getElementById('levelText').textContent = `Lv.${Game.player.level}`;
     
-    // Wave
     document.getElementById('waveNumber').textContent = Game.wave;
     document.getElementById('waveTimer').textContent = Math.ceil(Game.waveTimer);
     
-    // Tempo
     const isDay = Game.dayTime >= 0.25 && Game.dayTime <= 0.75;
     document.getElementById('timeIcon').textContent = isDay ? '☀️' : '🌙';
     document.getElementById('timeText').textContent = isDay ? 'Dia' : 'Noite';
 }
 
-// ==================== CHAT ====================
 function toggleChat() {
     Game.chatOpen = !Game.chatOpen;
     const input = document.getElementById('chatInput');
-    
     if (Game.chatOpen) {
         input.focus();
     } else {
@@ -1451,7 +1306,7 @@ function sendChatMessage() {
     toggleChat();
 }
 
-function addChatMessage(name, text, color = '#ffffff') {
+function addChatMessage(name, text, color = '#fff') {
     const container = document.getElementById('chatMessages');
     const msg = document.createElement('div');
     msg.className = 'chat-message';
@@ -1459,7 +1314,6 @@ function addChatMessage(name, text, color = '#ffffff') {
     container.appendChild(msg);
     container.scrollTop = container.scrollHeight;
     
-    // Remove mensagens antigas
     while (container.children.length > 50) {
         container.removeChild(container.firstChild);
     }
@@ -1474,180 +1328,44 @@ function showNotification(text, type = '') {
     setTimeout(() => notif.remove(), 3000);
 }
 
-function addDamageNumber(x, y, damage, color) {
-    Game.damageNumbers.push({
-        x, y,
-        text: '-' + Math.ceil(damage),
-        color,
-        life: 1,
-        vy: -2
-    });
-}
-    // ==================== ILUMINAÇÃO ====================
-function createLightMap() {
-    if (!Game.world) return;
-    
-    Game.lightMap = [];
-    for (let x = 0; x < Game.world.width; x++) {
-        Game.lightMap[x] = [];
-        for (let y = 0; y < Game.world.height; y++) {
-            Game.lightMap[x][y] = 0;
-        }
-    }
-    
-    // Iluminação inicial do céu
-    for (let x = 0; x < Game.world.width; x++) {
-        let sunlight = 15;
-        for (let y = 0; y < Game.world.height; y++) {
-            const tile = Game.world.tiles[x][y];
-            if (tile !== 0 && TILE_COLORS[tile]) {
-                sunlight = Math.max(0, sunlight - 1);
-            }
-            Game.lightMap[x][y] = sunlight;
-        }
-    }
-}
-
-function updateLocalLight(cx, cy) {
-    // Atualiza luz em área ao redor do bloco modificado
-    const radius = 15;
-    for (let x = cx - radius; x <= cx + radius; x++) {
-        if (x < 0 || x >= Game.world.width) continue;
-        let sunlight = 15;
-        for (let y = 0; y < Game.world.height; y++) {
-            const tile = Game.world.tiles[x][y];
-            if (tile !== 0 && TILE_COLORS[tile]) {
-                sunlight = Math.max(0, sunlight - 1);
-            }
-            
-            // Tochas e outras fontes de luz
-            if (tile === 15) { // TORCH
-                sunlight = Math.max(sunlight, 14);
-            } else if (tile === 12) { // LAVA
-                sunlight = Math.max(sunlight, 15);
-            }
-            
-            if (Game.lightMap[x]) {
-                Game.lightMap[x][y] = sunlight;
-            }
-        }
-    }
-}
-
-// ==================== PARTÍCULAS ====================
-function createBlockParticles(x, y) {
-    for (let i = 0; i < 8; i++) {
-        Game.particles.push({
-            x: x + Math.random() * CONFIG.TILE_SIZE,
-            y: y + Math.random() * CONFIG.TILE_SIZE,
-            vx: (Math.random() - 0.5) * 4,
-            vy: -Math.random() * 4,
-            size: 2 + Math.random() * 3,
-            color: '#8B5A2B',
-            life: 0.5 + Math.random() * 0.5,
-            gravity: 0.3
-        });
-    }
-}
-
-function updateParticles(dt) {
-    for (let i = Game.particles.length - 1; i >= 0; i--) {
-        const p = Game.particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += p.gravity || 0;
-        p.life -= dt;
-        
-        if (p.life <= 0) {
-            Game.particles.splice(i, 1);
-        }
-    }
-    
-    // Limita partículas
-    while (Game.particles.length > CONFIG.PARTICLE_LIMIT) {
-        Game.particles.shift();
-    }
-    
-    // Números de dano
-    for (let i = Game.damageNumbers.length - 1; i >= 0; i--) {
-        const d = Game.damageNumbers[i];
-        d.y += d.vy;
-        d.life -= dt;
-        
-        if (d.life <= 0) {
-            Game.damageNumbers.splice(i, 1);
-        }
-    }
-}
-
-// ==================== RENDERIZAÇÃO ====================
+// ==================== RENDER ====================
 function render() {
     const ctx = Game.ctx;
     const width = Game.canvas.width;
     const height = Game.canvas.height;
     
-    // Limpa canvas
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, width, height);
     
     if (!Game.playing || !Game.world) return;
     
-    // Atualiza câmera
     updateCamera();
     
-    // Aplica shake
-    const shakeX = Game.camera.shakeX || 0;
-    const shakeY = Game.camera.shakeY || 0;
-    Game.camera.shakeX = shakeX * 0.9;
-    Game.camera.shakeY = shakeY * 0.9;
-    
     ctx.save();
-    ctx.translate(-Game.camera.x + shakeX, -Game.camera.y + shakeY);
+    ctx.translate(-Game.camera.x + Game.camera.shakeX, -Game.camera.y + Game.camera.shakeY);
     
-    // Renderiza parallax background
     renderSky(ctx);
-    
-    // Renderiza mundo
     renderWorld(ctx);
-    
-    // Renderiza itens
     renderItems(ctx);
-    
-    // Renderiza jogadores
     renderPlayers(ctx);
-    
-    // Renderiza zumbis
     renderZombies(ctx);
-    
-    // Renderiza projéteis
     renderProjectiles(ctx);
-    
-    // Renderiza partículas
     renderParticles(ctx);
-    
-    // Highlight do bloco sob o mouse
-    renderBlockHighlight(ctx);
     
     ctx.restore();
     
-    // Renderiza números de dano (UI space)
-    renderDamageNumbers(ctx);
-    
-    // Efeito de dano
     if (Game.damageFlash > 0) {
         ctx.fillStyle = `rgba(255, 0, 0, ${Game.damageFlash * 0.3})`;
         ctx.fillRect(0, 0, width, height);
         Game.damageFlash -= 0.05;
     }
     
-    // FPS
     if (CONFIG.SHOW_FPS) {
         ctx.fillStyle = '#fff';
         ctx.font = '14px monospace';
         ctx.fillText(`FPS: ${Game.fps}`, 10, height - 10);
     }
     
-    // Renderiza minimap
     renderMinimap();
 }
 
@@ -1657,187 +1375,34 @@ function updateCamera() {
     const targetX = Game.player.x - Game.canvas.width / 2;
     const targetY = Game.player.y - Game.canvas.height / 2;
     
-    // Suaviza movimento da câmera
     Game.camera.x += (targetX - Game.camera.x) * 0.1;
     Game.camera.y += (targetY - Game.camera.y) * 0.1;
     
-    // Limites do mundo
-    const maxX = Game.world.width * CONFIG.TILE_SIZE - Game.canvas.width;
-    const maxY = Game.world.height * CONFIG.TILE_SIZE - Game.canvas.height;
-    
-    Game.camera.x = Math.max(0, Math.min(maxX, Game.camera.x));
-    Game.camera.y = Math.max(0, Math.min(maxY, Game.camera.y));
+    Game.camera.shakeX *= 0.9;
+    Game.camera.shakeY *= 0.9;
 }
 
 function renderSky(ctx) {
     const width = Game.canvas.width;
     const height = Game.canvas.height;
     
-    // Cor do céu baseada no tempo
-    let skyTop, skyBottom;
-    
-    if (Game.dayTime < 0.25) {
-        // Noite -> Amanhecer
-        const t = Game.dayTime / 0.25;
-        skyTop = lerpColor('#0a0a2e', '#ff7e50', t);
-        skyBottom = lerpColor('#1a1a3e', '#ffb347', t);
-    } else if (Game.dayTime < 0.5) {
-        // Amanhecer -> Meio-dia
-        const t = (Game.dayTime - 0.25) / 0.25;
-        skyTop = lerpColor('#ff7e50', '#4a90d9', t);
-        skyBottom = lerpColor('#ffb347', '#87CEEB', t);
-    } else if (Game.dayTime < 0.75) {
-        // Meio-dia -> Entardecer
-        const t = (Game.dayTime - 0.5) / 0.25;
-        skyTop = lerpColor('#4a90d9', '#ff6b35', t);
-        skyBottom = lerpColor('#87CEEB', '#ff8c42', t);
-    } else {
-        // Entardecer -> Noite
-        const t = (Game.dayTime - 0.75) / 0.25;
-        skyTop = lerpColor('#ff6b35', '#0a0a2e', t);
-        skyBottom = lerpColor('#ff8c42', '#1a1a3e', t);
-    }
-    
-    // Gradiente do céu
-    const gradient = ctx.createLinearGradient(0, Game.camera.y, 0, Game.camera.y + height);
-    gradient.addColorStop(0, skyTop);
-    gradient.addColorStop(1, skyBottom);
-    
-    ctx.fillStyle = gradient;
-    ctx.fillRect(Game.camera.x, Game.camera.y, width, height);
-    
-    // Sol/Lua
-    const celestialY = Game.camera.y + height * 0.2;
-    const celestialX = Game.camera.x + width * (0.2 + Game.dayTime * 0.6);
-    
-    if (Game.dayTime >= 0.25 && Game.dayTime <= 0.75) {
-        // Sol
-        ctx.fillStyle = '#FFD700';
-        ctx.beginPath();
-        ctx.arc(celestialX, celestialY, 40, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.fillStyle = '#FFF8DC';
-        ctx.beginPath();
-        ctx.arc(celestialX, celestialY, 35, 0, Math.PI * 2);
-        ctx.fill();
-    } else {
-        // Lua
-        ctx.fillStyle = '#F5F5F5';
-        ctx.beginPath();
-        ctx.arc(celestialX, celestialY, 30, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.fillStyle = '#E0E0E0';
-        ctx.beginPath();
-        ctx.arc(celestialX - 5, celestialY - 5, 8, 0, Math.PI * 2);
-        ctx.fill();
-    }
-    
-    // Estrelas à noite
+    let skyColor;
     if (Game.dayTime < 0.25 || Game.dayTime > 0.75) {
-        ctx.fillStyle = '#fff';
-        for (let i = 0; i < 50; i++) {
-            const starX = Game.camera.x + ((i * 137) % width);
-            const starY = Game.camera.y + ((i * 251) % (height * 0.5));
-            const size = 1 + (i % 3);
-            const alpha = 0.3 + Math.sin(Date.now() / 500 + i) * 0.3;
-            ctx.globalAlpha = alpha;
-            ctx.fillRect(starX, starY, size, size);
-        }
-        ctx.globalAlpha = 1;
+        skyColor = '#0a0a2e';
+    } else {
+        skyColor = '#87CEEB';
     }
     
-    // Montanhas de fundo (parallax)
-    renderMountains(ctx);
-    
-    // Nuvens
-    renderClouds(ctx);
-}
-
-function renderMountains(ctx) {
-    const parallax = 0.3;
-    const baseY = Game.camera.y + Game.canvas.height * 0.6;
-    
-    ctx.fillStyle = '#2d4a3e';
-    ctx.beginPath();
-    ctx.moveTo(Game.camera.x, baseY + 200);
-    
-    for (let x = 0; x <= Game.canvas.width + 100; x += 50) {
-        const worldX = (Game.camera.x * parallax + x);
-        const peakHeight = Math.sin(worldX * 0.005) * 100 + Math.sin(worldX * 0.01) * 50;
-        ctx.lineTo(Game.camera.x + x, baseY - peakHeight);
-    }
-    
-    ctx.lineTo(Game.camera.x + Game.canvas.width, baseY + 200);
-    ctx.closePath();
-    ctx.fill();
-    
-    // Segunda camada
-    ctx.fillStyle = '#1a3025';
-    ctx.beginPath();
-    ctx.moveTo(Game.camera.x, baseY + 200);
-    
-    for (let x = 0; x <= Game.canvas.width + 100; x += 40) {
-        const worldX = (Game.camera.x * (parallax * 0.6) + x);
-        const peakHeight = Math.sin(worldX * 0.008 + 1) * 80 + Math.sin(worldX * 0.015) * 40 + 50;
-        ctx.lineTo(Game.camera.x + x, baseY - peakHeight);
-    }
-    
-    ctx.lineTo(Game.camera.x + Game.canvas.width, baseY + 200);
-    ctx.closePath();
-    ctx.fill();
-}
-
-function renderClouds(ctx) {
-    const cloudY = Game.camera.y + 100;
-    const time = Date.now() / 20000;
-    
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    
-    for (let i = 0; i < 10; i++) {
-        const baseX = ((i * 300 + time * 100 * (1 + i % 3)) % (Game.canvas.width + 400)) - 200;
-        const x = Game.camera.x + baseX;
-        const y = cloudY + Math.sin(i * 1.5) * 50;
-        
-        // Nuvem = vários círculos
-        for (let j = 0; j < 5; j++) {
-            const cx = x + j * 25 - 50;
-            const cy = y + Math.sin(j) * 10;
-            const r = 30 + Math.sin(j * 2) * 10;
-            
-            ctx.beginPath();
-            ctx.arc(cx, cy, r, 0, Math.PI * 2);
-            ctx.fill();
-        }
-    }
+    ctx.fillStyle = skyColor;
+    ctx.fillRect(Game.camera.x, Game.camera.y, width, height);
 }
 
 function renderWorld(ctx) {
-    const startX = Math.floor(Game.camera.x / CONFIG.TILE_SIZE) - 1;
-    const startY = Math.floor(Game.camera.y / CONFIG.TILE_SIZE) - 1;
-    const endX = startX + Math.ceil(Game.canvas.width / CONFIG.TILE_SIZE) + 2;
-    const endY = startY + Math.ceil(Game.canvas.height / CONFIG.TILE_SIZE) + 2;
+    const startX = Math.floor(Game.camera.x / CONFIG.TILE_SIZE);
+    const startY = Math.floor(Game.camera.y / CONFIG.TILE_SIZE);
+    const endX = startX + Math.ceil(Game.canvas.width / CONFIG.TILE_SIZE) + 1;
+    const endY = startY + Math.ceil(Game.canvas.height / CONFIG.TILE_SIZE) + 1;
     
-    const ts = CONFIG.TILE_SIZE;
-    
-    // Background tiles primeiro
-    for (let x = startX; x <= endX; x++) {
-        for (let y = startY; y <= endY; y++) {
-            if (x < 0 || x >= Game.world.width || y < 0 || y >= Game.world.height) continue;
-            
-            const bgTile = Game.world.background[x][y];
-            if (bgTile && TILE_COLORS[bgTile]) {
-                const colors = TILE_COLORS[bgTile];
-                ctx.fillStyle = colors[0];
-                ctx.globalAlpha = 0.5;
-                ctx.fillRect(x * ts, y * ts, ts, ts);
-                ctx.globalAlpha = 1;
-            }
-        }
-    }
-    
-    // Foreground tiles
     for (let x = startX; x <= endX; x++) {
         for (let y = startY; y <= endY; y++) {
             if (x < 0 || x >= Game.world.width || y < 0 || y >= Game.world.height) continue;
@@ -1845,409 +1410,121 @@ function renderWorld(ctx) {
             const tile = Game.world.tiles[x][y];
             if (!tile || !TILE_COLORS[tile]) continue;
             
-            const colors = TILE_COLORS[tile];
+            ctx.fillStyle = TILE_COLORS[tile][0];
+            ctx.fillRect(x * CONFIG.TILE_SIZE, y * CONFIG.TILE_SIZE, CONFIG.TILE_SIZE, CONFIG.TILE_SIZE);
             
-            // Cor base
-            ctx.fillStyle = colors[0];
-            ctx.fillRect(x * ts, y * ts, ts, ts);
+            // Detalhes
+            if (TILE_COLORS[tile][1]) {
+                ctx.fillStyle = TILE_COLORS[tile][1];
+                ctx.fillRect(
+                    x * CONFIG.TILE_SIZE + 2,
+                    y * CONFIG.TILE_SIZE + 2,
+                    CONFIG.TILE_SIZE - 4,
+                    CONFIG.TILE_SIZE - 4
+                );
+            }
             
-            // Detalhes do tile
-            renderTileDetails(ctx, x, y, tile, colors);
-            
-            // Iluminação
-            const light = Game.lightMap?.[x]?.[y] ?? 15;
-            const darkness = 1 - (light / 15);
-            const nightFactor = (Game.dayTime < 0.25 || Game.dayTime > 0.75) ? 0.3 : 0;
-            const totalDarkness = Math.min(0.95, darkness * 0.7 + nightFactor);
-            
-            if (totalDarkness > 0) {
-                ctx.fillStyle = `rgba(0, 0, 0, ${totalDarkness})`;
-                ctx.fillRect(x * ts, y * ts, ts, ts);
+            // Tocha
+            if (tile === 15) {
+                ctx.fillStyle = '#FF4500';
+                ctx.beginPath();
+                ctx.arc(
+                    x * CONFIG.TILE_SIZE + 8,
+                    y * CONFIG.TILE_SIZE + 4,
+                    4, 0, Math.PI * 2
+                );
+                ctx.fill();
             }
         }
-    }
-}
-
-function renderTileDetails(ctx, x, y, tile, colors) {
-    const ts = CONFIG.TILE_SIZE;
-    const px = x * ts;
-    const py = y * ts;
-    
-    switch (tile) {
-        case 2: // GRASS
-            // Grama no topo
-            ctx.fillStyle = '#5cbf60';
-            ctx.fillRect(px, py, ts, 3);
-            // Textura
-            ctx.fillStyle = colors[1];
-            for (let i = 0; i < 3; i++) {
-                ctx.fillRect(px + i * 5 + 2, py + 3, 2, 2);
-            }
-            break;
-            
-        case 3: // STONE
-        case 13: // COBBLESTONE
-            // Textura de pedra
-            ctx.fillStyle = colors[1];
-            ctx.fillRect(px + 2, py + 2, 4, 4);
-            ctx.fillRect(px + 10, py + 8, 4, 5);
-            ctx.fillStyle = colors[2];
-            ctx.fillRect(px + 7, py + 4, 3, 3);
-            break;
-            
-        case 6: // COAL
-            ctx.fillStyle = '#1a1a1a';
-            ctx.fillRect(px + 4, py + 4, 4, 4);
-            ctx.fillRect(px + 9, py + 7, 3, 3);
-            ctx.fillRect(px + 3, py + 10, 4, 3);
-            break;
-            
-        case 7: // IRON
-            ctx.fillStyle = '#e8d4b8';
-            ctx.fillRect(px + 3, py + 3, 4, 4);
-            ctx.fillRect(px + 9, py + 8, 4, 4);
-            break;
-            
-        case 8: // GOLD
-            ctx.fillStyle = '#fff44f';
-            ctx.fillRect(px + 4, py + 4, 5, 5);
-            ctx.fillRect(px + 8, py + 9, 4, 4);
-            break;
-            
-        case 9: // DIAMOND
-            ctx.fillStyle = '#7DF9FF';
-            ctx.beginPath();
-            ctx.moveTo(px + 8, py + 3);
-            ctx.lineTo(px + 12, py + 8);
-            ctx.lineTo(px + 8, py + 13);
-            ctx.lineTo(px + 4, py + 8);
-            ctx.closePath();
-            ctx.fill();
-            break;
-            
-        case 15: // TORCH
-            // Vara
-            ctx.fillStyle = '#8B4513';
-            ctx.fillRect(px + 6, py + 6, 4, 10);
-            // Chama
-            const flicker = Math.sin(Date.now() / 100 + x) * 2;
-            ctx.fillStyle = '#FF4500';
-            ctx.beginPath();
-            ctx.arc(px + 8, py + 4 + flicker, 4, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#FFD700';
-            ctx.beginPath();
-            ctx.arc(px + 8, py + 4 + flicker, 2, 0, Math.PI * 2);
-            ctx.fill();
-            break;
-            
-        case 4: // WOOD
-            // Textura de madeira
-            ctx.fillStyle = colors[1];
-            ctx.fillRect(px, py + 4, ts, 2);
-            ctx.fillRect(px, py + 10, ts, 2);
-            break;
-            
-        case 5: // LEAVES
-            // Textura de folhas
-            ctx.fillStyle = colors[1];
-            for (let i = 0; i < 4; i++) {
-                const lx = px + Math.random() * 12;
-                const ly = py + Math.random() * 12;
-                ctx.fillRect(lx, ly, 4, 4);
-            }
-            break;
     }
 }
 
 function renderItems(ctx) {
-    Game.items.forEach((item) => {
-        const bob = Math.sin(Date.now() / 300 + item.x) * 3;
+    Game.items.forEach(item => {
+        const bob = Math.sin(Date.now() / 300) * 3;
         
-        ctx.save();
-        ctx.translate(item.x, item.y + bob);
-        
-        // Brilho
         ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
         ctx.beginPath();
-        ctx.arc(0, 0, 15, 0, Math.PI * 2);
+        ctx.arc(item.x, item.y + bob, 15, 0, Math.PI * 2);
         ctx.fill();
         
-        // Ícone
         ctx.font = '16px Arial';
         ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        
-        const icons = {
-            'xp': '✨',
-            'coin': '🪙',
-            'health_potion': '❤️',
-            'ammo': '🔹',
-            'block': '⬜'
-        };
-        
-        ctx.fillText(icons[item.type] || '❓', 0, 0);
-        
-        ctx.restore();
+        ctx.fillText('✨', item.x, item.y + bob);
     });
 }
 
 function renderPlayers(ctx) {
-    Game.players.forEach((player) => {
-        renderPlayer(ctx, player, player.id === Game.playerId);
+    Game.players.forEach(player => {
+        ctx.fillStyle = player.color || '#00ff44';
+        ctx.fillRect(
+            player.x - 12,
+            player.y - 20,
+            24, 40
+        );
+        
+        ctx.fillStyle = '#FFE4C4';
+        ctx.fillRect(
+            player.x - 10,
+            player.y - 20,
+            20, 15
+        );
+        
+        ctx.fillStyle = '#fff';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(player.name, player.x, player.y - 30);
+        
+        // HP
+        ctx.fillStyle = '#333';
+        ctx.fillRect(player.x - 20, player.y - 26, 40, 4);
+        ctx.fillStyle = '#ff4444';
+        ctx.fillRect(player.x - 20, player.y - 26, 40 * (player.hp / player.maxHp), 4);
     });
-}
-
-function renderPlayer(ctx, player, isLocal) {
-    const x = player.x;
-    const y = player.y;
-    const w = player.width || 24;
-    const h = player.height || 40;
-    
-    ctx.save();
-    ctx.translate(x, y);
-    
-    // Flip se olhando para esquerda
-    if (!player.facingRight) {
-        ctx.scale(-1, 1);
-    }
-    
-    // Sombra
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-    ctx.beginPath();
-    ctx.ellipse(0, h/2 - 2, w/2, 5, 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Corpo
-    ctx.fillStyle = player.color || '#00ff44';
-    ctx.fillRect(-w/2 + 4, -h/2 + 15, w - 8, h - 20);
-    
-    // Cabeça
-    ctx.fillStyle = '#FFE4C4';
-    ctx.fillRect(-w/2 + 2, -h/2, w - 4, 18);
-    
-    // Olhos
-    ctx.fillStyle = '#000';
-    ctx.fillRect(-w/2 + 6, -h/2 + 6, 4, 4);
-    ctx.fillRect(w/2 - 10, -h/2 + 6, 4, 4);
-    
-    // Cabelo
-    ctx.fillStyle = player.color || '#00ff44';
-    ctx.fillRect(-w/2 + 2, -h/2, w - 4, 5);
-    
-    // Pernas (animação de andar)
-    const walkAnim = Math.abs(player.vx) > 0.1 ? Math.sin(Date.now() / 100) * 5 : 0;
-    ctx.fillStyle = '#4a4a4a';
-    ctx.fillRect(-w/2 + 4, h/2 - 12, 6, 10);
-    ctx.fillRect(w/2 - 10, h/2 - 12, 6, 10);
-    
-    // Braço com arma
-    ctx.fillStyle = '#FFE4C4';
-    const armY = -h/2 + 20;
-    ctx.fillRect(w/2 - 4, armY, 8, 15);
-    
-    // Arma
-    const item = player.selectedSlot !== undefined && player.hotbar ? 
-                 player.hotbar[player.selectedSlot] : null;
-    if (item) {
-        ctx.font = '16px Arial';
-        ctx.fillText(getItemIcon(item.type), w/2 + 8, armY + 8);
-    }
-    
-    ctx.restore();
-    
-    // Nome e barra de HP
-    ctx.fillStyle = '#fff';
-    ctx.font = '12px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText(player.name, x, y - h/2 - 20);
-    
-    // HP bar
-    const hpWidth = 40;
-    const hpHeight = 6;
-    const hpX = x - hpWidth/2;
-    const hpY = y - h/2 - 12;
-    
-    ctx.fillStyle = '#333';
-    ctx.fillRect(hpX, hpY, hpWidth, hpHeight);
-    ctx.fillStyle = '#ff4444';
-    ctx.fillRect(hpX, hpY, hpWidth * (player.hp / player.maxHp), hpHeight);
-    ctx.strokeStyle = '#000';
-    ctx.strokeRect(hpX, hpY, hpWidth, hpHeight);
 }
 
 function renderZombies(ctx) {
-    Game.zombies.forEach((zombie) => {
-        renderZombie(ctx, zombie);
+    Game.zombies.forEach(zombie => {
+        const colors = {
+            normal: '#2d5a27',
+            fast: '#1a3a17',
+            tank: '#4a2a4a',
+            boss: '#5a0000'
+        };
+        
+        ctx.fillStyle = colors[zombie.type] || colors.normal;
+        ctx.fillRect(
+            zombie.x - zombie.width / 2,
+            zombie.y - zombie.height / 2,
+            zombie.width,
+            zombie.height
+        );
+        
+        if (zombie.isBoss) {
+            ctx.strokeStyle = '#ff00ff';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(
+                zombie.x - zombie.width / 2,
+                zombie.y - zombie.height / 2,
+                zombie.width,
+                zombie.height
+            );
+        }
     });
 }
 
-function renderZombie(ctx, zombie) {
-    const x = zombie.x;
-    const y = zombie.y;
-    const w = zombie.width || 24;
-    const h = zombie.height || 40;
-    
-    ctx.save();
-    ctx.translate(x, y);
-    
-    if (!zombie.facingRight) {
-        ctx.scale(-1, 1);
-    }
-    
-    // Cores baseadas no tipo
-    const colors = {
-        normal: { body: '#2d5a27', skin: '#5a8f54' },
-        fast: { body: '#1a3a17', skin: '#3d6a37' },
-        tank: { body: '#4a2a4a', skin: '#7a5a7a' },
-        crawler: { body: '#3a2a1a', skin: '#5a4a3a' },
-        giant: { body: '#5a0000', skin: '#8a3030' },
-        necromancer: { body: '#2a0a3a', skin: '#5a3a6a' },
-        berserker: { body: '#5a2a0a', skin: '#8a5a3a' }
-    };
-    
-    const c = colors[zombie.type] || colors.normal;
-    
-    if (zombie.isBoss) {
-        // Aura de boss
-        ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';
-        ctx.beginPath();
-        ctx.arc(0, 0, 60, 0, Math.PI * 2);
-        ctx.fill();
-    }
-    
-    // Corpo do zumbi
-    ctx.fillStyle = c.body;
-    ctx.fillRect(-w/2 + 2, -h/2 + 12, w - 4, h - 15);
-    
-    // Cabeça
-    ctx.fillStyle = c.skin;
-    ctx.fillRect(-w/2, -h/2, w, 16);
-    
-    // Olhos vermelhos
-    ctx.fillStyle = '#ff0000';
-    ctx.fillRect(-w/2 + 4, -h/2 + 5, 4, 4);
-    ctx.fillRect(w/2 - 8, -h/2 + 5, 4, 4);
-    
-    // Boca
-    ctx.fillStyle = '#300';
-    ctx.fillRect(-w/2 + 4, -h/2 + 11, w - 8, 3);
-    
-    // Braços (animação)
-    const armAnim = Math.sin(Date.now() / 200) * 10;
-    ctx.fillStyle = c.skin;
-    ctx.save();
-    ctx.translate(-w/2, -h/2 + 15);
-    ctx.rotate((-20 + armAnim) * Math.PI / 180);
-    ctx.fillRect(-4, 0, 6, 20);
-    ctx.restore();
-    
-    ctx.save();
-    ctx.translate(w/2, -h/2 + 15);
-    ctx.rotate((20 - armAnim) * Math.PI / 180);
-    ctx.fillRect(-2, 0, 6, 20);
-    ctx.restore();
-    
-    // Pernas
-    const legAnim = Math.sin(Date.now() / 150) * 8;
-    ctx.fillStyle = c.body;
-    ctx.fillRect(-w/2 + 2, h/2 - 15, 8, 12);
-    ctx.fillRect(w/2 - 10, h/2 - 15, 8, 12);
-    
-    ctx.restore();
-    
-    // HP bar do boss
-    if (zombie.isBoss) {
-        const hpWidth = 80;
-        const hpHeight = 10;
-        const hpX = x - hpWidth/2;
-        const hpY = y - h/2 - 25;
-        
-        ctx.fillStyle = '#333';
-        ctx.fillRect(hpX, hpY, hpWidth, hpHeight);
-        ctx.fillStyle = '#ff00ff';
-        ctx.fillRect(hpX, hpY, hpWidth * (zombie.hp / zombie.maxHp), hpHeight);
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(hpX, hpY, hpWidth, hpHeight);
-        
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 14px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('BOSS', x, hpY - 5);
-    }
-}
-
 function renderProjectiles(ctx) {
-    Game.projectiles.forEach((proj) => {
-        ctx.save();
-        ctx.translate(proj.x, proj.y);
-        ctx.rotate(Math.atan2(proj.vy, proj.vx));
-        
-        if (proj.type === 'bullet') {
-            ctx.fillStyle = '#FFD700';
-            ctx.fillRect(-8, -2, 16, 4);
-        } else if (proj.type === 'arrow') {
-            ctx.fillStyle = '#8B4513';
-            ctx.fillRect(-15, -1, 20, 2);
-            ctx.fillStyle = '#808080';
-            ctx.beginPath();
-            ctx.moveTo(8, 0);
-            ctx.lineTo(5, -4);
-            ctx.lineTo(5, 4);
-            ctx.closePath();
-            ctx.fill();
-        }
-        
-        ctx.restore();
+    Game.projectiles.forEach(proj => {
+        ctx.fillStyle = '#FFD700';
+        ctx.fillRect(proj.x - 4, proj.y - 2, 8, 4);
     });
 }
 
 function renderParticles(ctx) {
-    Game.particles.forEach((p) => {
+    Game.particles.forEach(p => {
         ctx.globalAlpha = p.life;
         ctx.fillStyle = p.color;
         ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
-    });
-    ctx.globalAlpha = 1;
-}
-
-function renderBlockHighlight(ctx) {
-    if (!Game.mouse.x || !Game.mouse.y) return;
-    
-    const worldX = Game.mouse.x + Game.camera.x;
-    const worldY = Game.mouse.y + Game.camera.y;
-    const tileX = Math.floor(worldX / CONFIG.TILE_SIZE);
-    const tileY = Math.floor(worldY / CONFIG.TILE_SIZE);
-    
-    // Verifica distância
-    const dist = Math.hypot(
-        tileX * CONFIG.TILE_SIZE + 8 - Game.player.x,
-        tileY * CONFIG.TILE_SIZE + 8 - Game.player.y
-    );
-    
-    if (dist <= 100) {
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(
-            tileX * CONFIG.TILE_SIZE,
-            tileY * CONFIG.TILE_SIZE,
-            CONFIG.TILE_SIZE,
-            CONFIG.TILE_SIZE
-        );
-    }
-}
-
-function renderDamageNumbers(ctx) {
-    Game.damageNumbers.forEach((d) => {
-        const screenX = d.x - Game.camera.x;
-        const screenY = d.y - Game.camera.y;
-        
-        ctx.globalAlpha = d.life;
-        ctx.fillStyle = d.color;
-        ctx.font = 'bold 18px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(d.text, screenX, screenY);
     });
     ctx.globalAlpha = 1;
 }
@@ -2265,15 +1542,12 @@ function renderMinimap() {
     const scale = 0.5;
     const centerX = Game.player.x / CONFIG.TILE_SIZE;
     const centerY = Game.player.y / CONFIG.TILE_SIZE;
-    const viewWidth = width / scale;
-    const viewHeight = height / scale;
     
-    const startX = Math.floor(centerX - viewWidth / 2);
-    const startY = Math.floor(centerY - viewHeight / 2);
+    const startX = Math.floor(centerX - width / scale / 2);
+    const startY = Math.floor(centerY - height / scale / 2);
     
-    // Tiles
-    for (let x = 0; x < viewWidth; x++) {
-        for (let y = 0; y < viewHeight; y++) {
+    for (let x = 0; x < width / scale; x++) {
+        for (let y = 0; y < height / scale; y++) {
             const wx = startX + x;
             const wy = startY + y;
             
@@ -2287,65 +1561,8 @@ function renderMinimap() {
         }
     }
     
-    // Jogador
     ctx.fillStyle = '#00ff44';
-    ctx.fillRect(
-        (centerX - startX) * scale - 2,
-        (centerY - startY) * scale - 2,
-        4, 4
-    );
-    
-    // Outros jogadores
-    ctx.fillStyle = '#4444ff';
-    Game.players.forEach((p) => {
-        if (p.id === Game.playerId) return;
-        const px = p.x / CONFIG.TILE_SIZE - startX;
-        const py = p.y / CONFIG.TILE_SIZE - startY;
-        ctx.fillRect(px * scale - 1, py * scale - 1, 3, 3);
-    });
-    
-    // Zumbis
-    ctx.fillStyle = '#ff4444';
-    Game.zombies.forEach((z) => {
-        const zx = z.x / CONFIG.TILE_SIZE - startX;
-        const zy = z.y / CONFIG.TILE_SIZE - startY;
-        ctx.fillRect(zx * scale - 1, zy * scale - 1, 2, 2);
-    });
-}
-
-// ==================== UTILIDADES ====================
-function lerpColor(color1, color2, t) {
-    const c1 = hexToRgb(color1);
-    const c2 = hexToRgb(color2);
-    
-    const r = Math.round(c1.r + (c2.r - c1.r) * t);
-    const g = Math.round(c1.g + (c2.g - c1.g) * t);
-    const b = Math.round(c1.b + (c2.b - c1.b) * t);
-    
-    return `rgb(${r}, ${g}, ${b})`;
-}
-
-function hexToRgb(hex) {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16)
-    } : { r: 0, g: 0, b: 0 };
-}
-
-function getItemIcon(type) {
-    const icons = {
-        'pickaxe': '⛏️',
-        'sword': '🗡️',
-        'bow': '🏹',
-        'gun': '🔫',
-        'torch': '🔦',
-        'wood': '🪵',
-        'stone': '🪨',
-        'health_potion': '❤️'
-    };
-    return icons[type] || '❓';
+    ctx.fillRect(width/2 - 2, height/2 - 2, 4, 4);
 }
 
 // ==================== GAME LOOP ====================
@@ -2353,7 +1570,6 @@ function gameLoop(timestamp) {
     const dt = (timestamp - Game.lastUpdate) / 1000;
     Game.lastUpdate = timestamp;
     
-    // FPS counter
     Game.frameCount++;
     if (timestamp - Game.lastFpsUpdate >= 1000) {
         Game.fps = Game.frameCount;
@@ -2361,13 +1577,11 @@ function gameLoop(timestamp) {
         Game.lastFpsUpdate = timestamp;
     }
     
-    // Update
     if (Game.playing) {
         updateInput();
         updateParticles(dt);
     }
     
-    // Render
     render();
     
     requestAnimationFrame(gameLoop);
@@ -2379,23 +1593,28 @@ function updateInput() {
     const input = {
         left: Game.keys['KeyA'] || Game.keys['ArrowLeft'] || Game.joystick.left.x < -0.3,
         right: Game.keys['KeyD'] || Game.keys['ArrowRight'] || Game.joystick.left.x > 0.3,
-        jump: Game.keys['Space'] || Game.keys['KeyW'] || Game.keys['ArrowUp'] || Game.joystick.left.y < -0.5
+        jump: Game.keys['Space'] || Game.keys['KeyW'] || Game.joystick.left.y < -0.5
     };
     
     Game.socket.emit('playerInput', input);
-    
-    // Auto-ataque contínuo
-    if (Game.mouse.down && Game.playing) {
-        const worldX = Game.mouse.x + Game.camera.x;
-        const worldY = Game.mouse.y + Game.camera.y;
+}
+
+function updateParticles(dt) {
+    for (let i = Game.particles.length - 1; i >= 0; i--) {
+        const p = Game.particles[i];
+        p.x += p.vx || 0;
+        p.y += p.vy || 0;
+        p.vy = (p.vy || 0) + 0.5;
+        p.life -= dt;
         
-        const item = Game.player.hotbar?.[Game.selectedSlot];
-        if (item?.type === 'pickaxe') {
-            Game.socket.emit('playerAction', { type: 'break', x: worldX, y: worldY });
+        if (p.life <= 0) {
+            Game.particles.splice(i, 1);
         }
     }
 }
 
-// ==================== INICIALIZAÇÃO ====================
+// Inicia o jogo
 window.addEventListener('load', init);
-</script>
+    </script>
+</body>
+</html>

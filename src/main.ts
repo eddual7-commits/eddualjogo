@@ -5,9 +5,9 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
-import { Game } from './core/Game';
-import { World } from './world/World';
-import { WORLD } from './core/Constants';
+import { Game } from './core/game';
+import { World } from './world/world';
+import { WORLD } from './core/constants';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // MAIN

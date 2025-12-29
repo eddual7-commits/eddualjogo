@@ -1,514 +1,142 @@
-/**
- * ═══════════════════════════════════════════════════════════════════════════
- * ECOBOX ULTIMATE - INPUT SYSTEM
- * Sistema de input com suporte a mouse, touch e gestos
- * ═══════════════════════════════════════════════════════════════════════════
- */
-
-import { INPUT } from './Constants';
-import { Vector2, EventEmitter } from './Utils';
-import { Camera } from './Camera';
-
-// ═══════════════════════════════════════════════════════════════════════════
-// TYPES
-// ═══════════════════════════════════════════════════════════════════════════
+import { Vector2, EventEmitter } from './utils';
+import { Camera } from './camera';
 
 export interface PointerData {
-  id: number;
   x: number;
   y: number;
   worldX: number;
   worldY: number;
-  button: number;
-  isTouch: boolean;
-}
-
-export interface DragData {
-  startX: number;
-  startY: number;
-  currentX: number;
-  currentY: number;
-  deltaX: number;
-  deltaY: number;
-  worldStartX: number;
-  worldStartY: number;
-}
-
-export interface PinchData {
-  centerX: number;
-  centerY: number;
-  scale: number;
-  initialDistance: number;
-  currentDistance: number;
 }
 
 export interface InputEvents {
-  pointerdown: PointerData;
-  pointerup: PointerData;
-  pointermove: PointerData;
   click: PointerData;
-  doubleclick: PointerData;
-  rightclick: PointerData;
-  longpress: PointerData;
-  dragstart: DragData;
-  drag: DragData;
-  dragend: DragData;
-  pinchstart: PinchData;
-  pinch: PinchData;
-  pinchend: PinchData;
+  dragstart: { startX: number; startY: number };
+  drag: { deltaX: number; deltaY: number; currentX: number; currentY: number };
+  dragend: void;
   wheel: { delta: number; x: number; y: number };
-  keydown: { key: string; code: string; shift: boolean; ctrl: boolean; alt: boolean };
-  keyup: { key: string; code: string };
+  pinch: { scale: number; centerX: number; centerY: number };
+  keydown: { code: string };
+  keyup: { code: string };
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// INPUT CLASS
-// ═══════════════════════════════════════════════════════════════════════════
-
 export class Input extends EventEmitter<InputEvents> {
-  // State
-  private pointers: Map<number, PointerData> = new Map();
-  private keys: Set<string> = new Set();
-  
-  // Mouse position
-  private _mouseX: number = 0;
-  private _mouseY: number = 0;
-  private _mouseWorldX: number = 0;
-  private _mouseWorldY: number = 0;
-  
-  // Drag state
-  private isDragging: boolean = false;
-  private dragStartPos: Vector2 = new Vector2();
-  private dragWorldStartPos: Vector2 = new Vector2();
-  private dragPointerId: number = -1;
-  
-  // Pinch state
-  private isPinching: boolean = false;
-  private pinchInitialDistance: number = 0;
-  private pinchCenter: Vector2 = new Vector2();
-  
-  // Click detection
-  private lastClickTime: number = 0;
-  private lastClickPos: Vector2 = new Vector2();
-  private longPressTimer: number | null = null;
-  private longPressTriggered: boolean = false;
-  
-  // References
   private element: HTMLElement;
   private camera: Camera | null = null;
-  
+  private isDragging = false;
+  private lastX = 0;
+  private lastY = 0;
+  private pointers: Map<number, { x: number; y: number }> = new Map();
+  private initialPinchDist = 0;
+
   constructor(element: HTMLElement) {
     super();
     this.element = element;
-    this.setupEventListeners();
+    this.setupEvents();
   }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // SETUP
-  // ═══════════════════════════════════════════════════════════════════════════
 
   setCamera(camera: Camera): void {
     this.camera = camera;
   }
 
-  private setupEventListeners(): void {
-    // Pointer events (unified mouse + touch)
-    this.element.addEventListener('pointerdown', this.handlePointerDown.bind(this));
-    this.element.addEventListener('pointermove', this.handlePointerMove.bind(this));
-    this.element.addEventListener('pointerup', this.handlePointerUp.bind(this));
-    this.element.addEventListener('pointercancel', this.handlePointerUp.bind(this));
-    this.element.addEventListener('pointerleave', this.handlePointerUp.bind(this));
-    
-    // Wheel
-    this.element.addEventListener('wheel', this.handleWheel.bind(this), { passive: false });
-    
-    // Context menu (right click)
-    this.element.addEventListener('contextmenu', (e) => e.preventDefault());
-    
-    // Keyboard
-    window.addEventListener('keydown', this.handleKeyDown.bind(this));
-    window.addEventListener('keyup', this.handleKeyUp.bind(this));
-    
-    // Prevent default touch behaviors
-    this.element.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
-    this.element.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+  private setupEvents(): void {
+    this.element.addEventListener('pointerdown', this.onPointerDown.bind(this));
+    this.element.addEventListener('pointermove', this.onPointerMove.bind(this));
+    this.element.addEventListener('pointerup', this.onPointerUp.bind(this));
+    this.element.addEventListener('pointercancel', this.onPointerUp.bind(this));
+    this.element.addEventListener('wheel', this.onWheel.bind(this), { passive: false });
+    this.element.addEventListener('contextmenu', e => e.preventDefault());
+    window.addEventListener('keydown', this.onKeyDown.bind(this));
+    window.addEventListener('keyup', this.onKeyUp.bind(this));
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // POINTER HANDLERS
-  // ═══════════════════════════════════════════════════════════════════════════
+  private getWorldPos(x: number, y: number): { worldX: number; worldY: number } {
+    if (this.camera) {
+      const pos = this.camera.screenToWorld(x, y);
+      return { worldX: pos.x, worldY: pos.y };
+    }
+    return { worldX: x, worldY: y };
+  }
 
-  private handlePointerDown(e: PointerEvent): void {
-    const data = this.createPointerData(e);
-    this.pointers.set(e.pointerId, data);
+  private onPointerDown(e: PointerEvent): void {
+    const rect = this.element.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
     
-    this._mouseX = data.x;
-    this._mouseY = data.y;
-    this._mouseWorldX = data.worldX;
-    this._mouseWorldY = data.worldY;
+    this.pointers.set(e.pointerId, { x, y });
     
-    this.emit('pointerdown', data);
-    
-    // Check for pinch (2 fingers)
     if (this.pointers.size === 2) {
-      this.startPinch();
+      const pts = Array.from(this.pointers.values());
+      this.initialPinchDist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+    }
+    
+    this.isDragging = true;
+    this.lastX = x;
+    this.lastY = y;
+    this.emit('dragstart', { startX: x, startY: y });
+  }
+
+  private onPointerMove(e: PointerEvent): void {
+    const rect = this.element.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    this.pointers.set(e.pointerId, { x, y });
+    
+    if (this.pointers.size === 2) {
+      const pts = Array.from(this.pointers.values());
+      const dist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+      const scale = dist / this.initialPinchDist;
+      const centerX = (pts[0].x + pts[1].x) / 2;
+      const centerY = (pts[0].y + pts[1].y) / 2;
+      this.emit('pinch', { scale, centerX, centerY });
+      this.initialPinchDist = dist;
       return;
     }
     
-    // Single pointer handling
-    if (this.pointers.size === 1) {
-      // Store for drag detection
-      this.dragStartPos.set(data.x, data.y);
-      this.dragWorldStartPos.set(data.worldX, data.worldY);
-      this.dragPointerId = e.pointerId;
-      
-      // Start long press timer
-      this.longPressTriggered = false;
-      this.longPressTimer = window.setTimeout(() => {
-        if (!this.isDragging && this.pointers.has(e.pointerId)) {
-          this.longPressTriggered = true;
-          this.emit('longpress', data);
-        }
-      }, INPUT.LONG_PRESS_TIME);
+    if (this.isDragging) {
+      const deltaX = x - this.lastX;
+      const deltaY = y - this.lastY;
+      this.lastX = x;
+      this.lastY = y;
+      this.emit('drag', { deltaX, deltaY, currentX: x, currentY: y });
     }
   }
 
-  private handlePointerMove(e: PointerEvent): void {
-    const data = this.createPointerData(e);
-    this.pointers.set(e.pointerId, data);
-    
-    this._mouseX = data.x;
-    this._mouseY = data.y;
-    this._mouseWorldX = data.worldX;
-    this._mouseWorldY = data.worldY;
-    
-    this.emit('pointermove', data);
-    
-    // Handle pinch
-    if (this.isPinching && this.pointers.size === 2) {
-      this.updatePinch();
-      return;
-    }
-    
-    // Handle drag
-    if (this.pointers.size === 1 && e.pointerId === this.dragPointerId) {
-      const dx = data.x - this.dragStartPos.x;
-      const dy = data.y - this.dragStartPos.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      
-      if (!this.isDragging && distance > INPUT.DRAG_THRESHOLD) {
-        this.isDragging = true;
-        this.clearLongPressTimer();
-        
-        this.emit('dragstart', {
-          startX: this.dragStartPos.x,
-          startY: this.dragStartPos.y,
-          currentX: data.x,
-          currentY: data.y,
-          deltaX: dx,
-          deltaY: dy,
-          worldStartX: this.dragWorldStartPos.x,
-          worldStartY: this.dragWorldStartPos.y,
-        });
-      }
-      
-      if (this.isDragging) {
-        this.emit('drag', {
-          startX: this.dragStartPos.x,
-          startY: this.dragStartPos.y,
-          currentX: data.x,
-          currentY: data.y,
-          deltaX: dx,
-          deltaY: dy,
-          worldStartX: this.dragWorldStartPos.x,
-          worldStartY: this.dragWorldStartPos.y,
-        });
-      }
-    }
-  }
-
-  private handlePointerUp(e: PointerEvent): void {
-    const data = this.createPointerData(e);
-    
-    this.clearLongPressTimer();
-    
-    // Handle pinch end
-    if (this.isPinching) {
-      this.endPinch();
-    }
-    
-    // Handle drag end
-    if (this.isDragging && e.pointerId === this.dragPointerId) {
-      this.emit('dragend', {
-        startX: this.dragStartPos.x,
-        startY: this.dragStartPos.y,
-        currentX: data.x,
-        currentY: data.y,
-        deltaX: data.x - this.dragStartPos.x,
-        deltaY: data.y - this.dragStartPos.y,
-        worldStartX: this.dragWorldStartPos.x,
-        worldStartY: this.dragWorldStartPos.y,
-      });
-      this.isDragging = false;
-    }
-    
-    // Handle click (if not dragged or long pressed)
-    if (!this.isDragging && !this.longPressTriggered && this.pointers.has(e.pointerId)) {
-      const now = performance.now();
-      const timeSinceLastClick = now - this.lastClickTime;
-      const dx = data.x - this.lastClickPos.x;
-      const dy = data.y - this.lastClickPos.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      
-      if (e.button === 2) {
-        this.emit('rightclick', data);
-      } else if (timeSinceLastClick < INPUT.DOUBLE_CLICK_TIME && distance < INPUT.DRAG_THRESHOLD) {
-        this.emit('doubleclick', data);
-        this.lastClickTime = 0;
-      } else {
-        this.emit('click', data);
-        this.lastClickTime = now;
-        this.lastClickPos.set(data.x, data.y);
-      }
-    }
-    
+  private onPointerUp(e: PointerEvent): void {
+    const wasClick = this.isDragging && this.pointers.size === 1;
     this.pointers.delete(e.pointerId);
-    this.emit('pointerup', data);
     
     if (this.pointers.size === 0) {
       this.isDragging = false;
-      this.dragPointerId = -1;
+      this.emit('dragend', undefined);
+    }
+    
+    if (wasClick) {
+      const rect = this.element.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const { worldX, worldY } = this.getWorldPos(x, y);
+      this.emit('click', { x, y, worldX, worldY });
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // PINCH HANDLING
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  private startPinch(): void {
-    const pointers = Array.from(this.pointers.values());
-    const p1 = pointers[0];
-    const p2 = pointers[1];
-    
-    this.pinchInitialDistance = Math.sqrt(
-      Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2)
-    );
-    
-    this.pinchCenter.set(
-      (p1.x + p2.x) / 2,
-      (p1.y + p2.y) / 2
-    );
-    
-    this.isPinching = true;
-    this.isDragging = false;
-    this.clearLongPressTimer();
-    
-    this.emit('pinchstart', {
-      centerX: this.pinchCenter.x,
-      centerY: this.pinchCenter.y,
-      scale: 1,
-      initialDistance: this.pinchInitialDistance,
-      currentDistance: this.pinchInitialDistance,
-    });
-  }
-
-  private updatePinch(): void {
-    const pointers = Array.from(this.pointers.values());
-    if (pointers.length < 2) return;
-    
-    const p1 = pointers[0];
-    const p2 = pointers[1];
-    
-    const currentDistance = Math.sqrt(
-      Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2)
-    );
-    
-    const scale = currentDistance / this.pinchInitialDistance;
-    
-    this.pinchCenter.set(
-      (p1.x + p2.x) / 2,
-      (p1.y + p2.y) / 2
-    );
-    
-    this.emit('pinch', {
-      centerX: this.pinchCenter.x,
-      centerY: this.pinchCenter.y,
-      scale,
-      initialDistance: this.pinchInitialDistance,
-      currentDistance,
-    });
-  }
-
-  private endPinch(): void {
-    const pointers = Array.from(this.pointers.values());
-    const currentDistance = pointers.length >= 2
-      ? Math.sqrt(Math.pow(pointers[1].x - pointers[0].x, 2) + Math.pow(pointers[1].y - pointers[0].y, 2))
-      : this.pinchInitialDistance;
-    
-    this.emit('pinchend', {
-      centerX: this.pinchCenter.x,
-      centerY: this.pinchCenter.y,
-      scale: currentDistance / this.pinchInitialDistance,
-      initialDistance: this.pinchInitialDistance,
-      currentDistance,
-    });
-    
-    this.isPinching = false;
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // WHEEL HANDLING
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  private handleWheel(e: WheelEvent): void {
+  private onWheel(e: WheelEvent): void {
     e.preventDefault();
-    
     const rect = this.element.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    // Normalize wheel delta
-    let delta = e.deltaY;
-    if (e.deltaMode === 1) delta *= 40; // Lines
-    if (e.deltaMode === 2) delta *= 800; // Pages
-    
-    this.emit('wheel', { delta, x, y });
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // KEYBOARD HANDLING
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  private handleKeyDown(e: KeyboardEvent): void {
-    // Don't capture if typing in input
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-      return;
-    }
-    
-    this.keys.add(e.code);
-    
-    this.emit('keydown', {
-      key: e.key,
-      code: e.code,
-      shift: e.shiftKey,
-      ctrl: e.ctrlKey,
-      alt: e.altKey,
+    this.emit('wheel', {
+      delta: e.deltaY,
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
     });
   }
 
-  private handleKeyUp(e: KeyboardEvent): void {
-    this.keys.delete(e.code);
-    
-    this.emit('keyup', {
-      key: e.key,
-      code: e.code,
-    });
+  private onKeyDown(e: KeyboardEvent): void {
+    this.emit('keydown', { code: e.code });
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // HELPERS
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  private createPointerData(e: PointerEvent): PointerData {
-    const rect = this.element.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    let worldX = x;
-    let worldY = y;
-    
-    if (this.camera) {
-      const worldPos = this.camera.screenToWorld(x, y);
-      worldX = worldPos.x;
-      worldY = worldPos.y;
-    }
-    
-    return {
-      id: e.pointerId,
-      x,
-      y,
-      worldX,
-      worldY,
-      button: e.button,
-      isTouch: e.pointerType === 'touch',
-    };
+  private onKeyUp(e: KeyboardEvent): void {
+    this.emit('keyup', { code: e.code });
   }
 
-  private clearLongPressTimer(): void {
-    if (this.longPressTimer !== null) {
-      clearTimeout(this.longPressTimer);
-      this.longPressTimer = null;
-    }
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // PUBLIC API
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  get mouseX(): number {
-    return this._mouseX;
-  }
-
-  get mouseY(): number {
-    return this._mouseY;
-  }
-
-  get mouseWorldX(): number {
-    return this._mouseWorldX;
-  }
-
-  get mouseWorldY(): number {
-    return this._mouseWorldY;
-  }
-
-  get mousePosition(): Vector2 {
-    return new Vector2(this._mouseX, this._mouseY);
-  }
-
-  get mouseWorldPosition(): Vector2 {
-    return new Vector2(this._mouseWorldX, this._mouseWorldY);
-  }
-
-  isKeyDown(code: string): boolean {
-    return this.keys.has(code);
-  }
-
-  isAnyKeyDown(...codes: string[]): boolean {
-    return codes.some(code => this.keys.has(code));
-  }
-
-  areAllKeysDown(...codes: string[]): boolean {
-    return codes.every(code => this.keys.has(code));
-  }
-
-  getPointerCount(): number {
-    return this.pointers.size;
-  }
-
-  getPointers(): PointerData[] {
-    return Array.from(this.pointers.values());
-  }
-
-  isPointerDown(): boolean {
-    return this.pointers.size > 0;
-  }
-
-  getIsDragging(): boolean {
-    return this.isDragging;
-  }
-
-  getIsPinching(): boolean {
-    return this.isPinching;
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // CLEANUP
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  destroy(): void {
-    this.clearLongPressTimer();
-    this.pointers.clear();
-    this.keys.clear();
-    this.clear();
-  }
-      }
+  destroy(): void {}
+}
